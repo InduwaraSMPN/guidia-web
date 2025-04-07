@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, User, Loader2 } from 'lucide-react';
 import { Message } from '../lib/types';
 import { cn, formatDate, groupMessagesByDate } from '../lib/utils';
+import { stripHtmlTags } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirebase } from '@/contexts/FirebaseContext';
 import { database } from '@/firebase/config';
@@ -79,7 +80,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
             name: userInfo.name,
             image: userInfo.image,
             type: userInfo.type === 'company' ? 'company' : 'user',
-            subtitle: userInfo.subtitle
+            subtitle: userInfo.type === 'company' && userInfo.subtitle ? stripHtmlTags(userInfo.subtitle) : userInfo.subtitle
           });
         } catch (error) {
           console.error(`Error fetching user info for ${otherUserId}:`, error);

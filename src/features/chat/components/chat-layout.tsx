@@ -4,6 +4,7 @@ import { ChatDetail } from '../components/chat-detail';
 import { database } from '@/firebase/config';
 import { ref, get } from 'firebase/database';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
+import { stripHtmlTags } from '@/lib/utils';
 
 interface ChatLayoutProps {
   userID?: string;
@@ -55,7 +56,7 @@ export function ChatLayout({ userID }: ChatLayoutProps) {
             name: userInfo.name,
             image: userInfo.image,
             type: userInfo.type === 'company' ? 'company' : 'user',
-            subtitle: userInfo.subtitle
+            subtitle: userInfo.type === 'company' && userInfo.subtitle ? stripHtmlTags(userInfo.subtitle) : userInfo.subtitle
           });
         } catch (fetchError) {
           console.error(`Error fetching user info for ${otherUserId}:`, fetchError);

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Send, User, Loader2 } from "lucide-react";
+import { stripHtmlTags } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ChatMessage } from "../components/ChatMessage";
@@ -148,7 +149,7 @@ export function ChatPage(): JSX.Element {
           subtitle:
             data.studentLevel ||
             data.counselorPosition ||
-            data.companyDescription ||
+            (data.companyDescription ? stripHtmlTags(data.companyDescription) : "") ||
             "",
         });
       } catch (error: any) {
