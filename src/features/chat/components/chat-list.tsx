@@ -21,6 +21,33 @@ export function ChatList({ onSelectChat, selectedChat, userID }: ChatListProps) 
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
+  // Function to handle the messagesRead event
+  useEffect(() => {
+    const handleMessagesRead = (event: Event) => {
+      const { conversationId, messageIds } = (event as CustomEvent).detail;
+      console.log('Messages read event received:', { conversationId, messageIds });
+
+      // Update the unread count for the affected chat
+      setChats(prevChats => {
+        return prevChats.map(chat => {
+          if (chat.id === conversationId) {
+            console.log(`Updating unread count for chat ${chat.id} from ${chat.unread} to 0`);
+            return { ...chat, unread: 0 };
+          }
+          return chat;
+        });
+      });
+    };
+
+    // Add event listener for messagesRead event
+    window.addEventListener('messagesRead', handleMessagesRead);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('messagesRead', handleMessagesRead);
+    };
+  }, []);
+
   useEffect(() => {
     if (!userID) return;
 

@@ -4,6 +4,8 @@ export interface Message {
   timestamp: string;
   sender: string;
   isCurrentUser: boolean;
+  read?: boolean;
+  messageID?: string;
 }
 
 export interface Chat {

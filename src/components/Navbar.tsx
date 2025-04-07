@@ -25,6 +25,25 @@ const ChatPopover: React.FC = () => {
            location.pathname.includes('/messages');
   };
 
+  // Listen for messagesRead event to update unread count
+  useEffect(() => {
+    const handleMessagesRead = () => {
+      console.log('Messages read event received in Navbar');
+      // Decrement the unread count or refetch it
+      if (unreadCount > 0) {
+        setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+      }
+    };
+
+    // Add event listener for messagesRead event
+    window.addEventListener('messagesRead', handleMessagesRead);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('messagesRead', handleMessagesRead);
+    };
+  }, [unreadCount]);
+
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!user?.userType) return;
@@ -43,7 +62,7 @@ const ChatPopover: React.FC = () => {
     };
 
     fetchUnreadCount();
-  }, [user]);
+  }, [user, userTypePath]);
 
   const handleChatClick = () => {
     if (user) {

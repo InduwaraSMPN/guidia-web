@@ -6,10 +6,10 @@ import { stripHtmlTags } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirebase } from '@/contexts/FirebaseContext';
 import { database } from '@/firebase/config';
-import { ref, onValue, push, set, serverTimestamp } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { useParams } from 'react-router-dom';
 import { getOrCreateConversation } from '@/utils/getOrCreateConversation';
-import { fetchUserInfo, UserInfo } from '@/utils/fetchUserInfo';
+import { fetchUserInfo } from '@/utils/fetchUserInfo';
 
 interface ChatDetailProps {
   chatId: string;
@@ -32,7 +32,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
   const [receiverInfo, setReceiverInfo] = useState(receiver);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { sendMessage, listenToMessages, isFirebaseReady } = useFirebase();
+  const { sendMessage, listenToMessages, markMessagesAsRead, isFirebaseReady } = useFirebase();
   const { userID } = useParams<{ userID: string }>();
 
   // Log important information for debugging
@@ -115,12 +115,34 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
           content: msg.message || msg.content,
           timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
           sender: msg.senderID || msg.sender,
-          isCurrentUser: (msg.senderID || msg.sender) === userID
+          isCurrentUser: (msg.senderID || msg.sender) === userID,
+          read: msg.read || false,
+          messageID: msg.messageID || msg.id
         }));
 
         console.log('Formatted messages:', formattedMessages);
         setMessages(formattedMessages);
         setIsLoading(false);
+
+        // Mark unread messages as read
+        const unreadMessages = firebaseMessages
+          .filter(msg => !msg.isSender && !msg.read && msg.receiverID === userID)
+          .map(msg => msg.messageID);
+
+        if (unreadMessages.length > 0) {
+          console.log('Marking messages as read:', unreadMessages);
+          markMessagesAsRead(chatId, unreadMessages)
+            .then(() => {
+              console.log('Messages marked as read successfully');
+              // Dispatch a custom event to notify other components that messages have been read
+              window.dispatchEvent(new CustomEvent('messagesRead', {
+                detail: { conversationId: chatId, messageIds: unreadMessages }
+              }));
+            })
+            .catch(error => {
+              console.error('Error marking messages as read:', error);
+            });
+        }
       }, userID); // Pass the userID parameter here
 
       return () => unsubscribe();
