@@ -1,0 +1,291 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { MultipleInput } from '@/components/ui/MultipleInput';
+import { motion } from 'framer-motion';
+import { ChevronLeft, Check, Plus, X } from 'lucide-react';
+
+const SUGGESTED_LANGUAGES = [
+  'Sinhala',
+  'English',
+  'Tamil',
+  'Pali',
+  'Hindi',
+  'Arabic',
+  'French',
+  'Bengali',
+  'Portuguese',
+  'Russian',
+  'Japanese',
+  'German',
+  'Korean',
+];
+
+export function EditCounselorLanguages() {
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const navigate = useNavigate();
+  const { userID } = useParams();
+  const { user } = useAuth();
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      if (!userID || !token) return;
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/counselors/${userID}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch counselor data');
+        }
+
+        const data = await response.json();
+        const fetchedLanguages = data.counselorLanguages || [];
+        setLanguages(fetchedLanguages);
+        setInitialLoad(false);
+      } catch (error) {
+        console.error('Error fetching languages:', error);
+        toast.error('Failed to load languages');
+        setInitialLoad(false);
+      }
+    };
+
+    fetchLanguages();
+  }, [userID, token]);
+
+  const handleAddLanguage = (language: string) => {
+    if (!languages.includes(language)) {
+      setLanguages(prev => [...prev, language]);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user?.userID || !token) {
+      toast.error('Please login to continue');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const profileData = {
+        counselorName: null,
+        position: null,
+        education: null,
+        contactNumber: null,
+        yearsOfExperience: null,
+        location: null,
+        languages: languages,
+        description: null,
+        profileImagePath: null,
+        userID: user.userID
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/${userID}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update languages');
+      }
+
+      toast.success('Languages updated successfully');
+      navigate(`/counselor/profile/${userID}`);
+    } catch (error) {
+      console.error('Error updating languages:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update languages');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter suggestions to only show ones not already selected
+  const filteredSuggestions = SUGGESTED_LANGUAGES.filter(
+    lang => !languages.includes(lang)
+  );
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.05 
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 pt-32 pb-32 px-4 sm:px-6 lg:px-8">
+      <motion.div 
+        className="max-w-3xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Button
+          variant="ghost"
+          className="mb-4 flex items-center size-sm"
+          onClick={() => navigate(`/counselor/profile/${userID}`)}
+        >
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back to Profile
+        </Button>
+
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-[#800020]">
+            Your Languages
+          </h1>
+        </header>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <label className="block text-sm font-medium text-gray-700 mb-4">
+              Your Selected Languages {languages.length > 0 && 
+                <span className="text-gray-500 font-normal">
+                  ({languages.length}/10)
+                </span>
+              }
+            </label>
+            
+            {initialLoad ? (
+              <div className="h-20 flex items-center justify-center">
+                <div className="animate-pulse h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            ) : languages.length === 0 ? (
+              <div className="py-8 text-center border border-dashed border-gray-200 rounded-lg bg-gray-50">
+                <p className="text-gray-500">No languages selected yet</p>
+                <p className="text-sm text-gray-400 mt-1">Choose from suggestions below or add your own</p>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <MultipleInput
+                  items={languages}
+                  onItemsChange={setLanguages}
+                  placeholder="Enter a language"
+                  allowDuplicates={false}
+                  maxItems={10}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="p-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">
+              Suggested Languages:
+            </h3>
+            
+            {filteredSuggestions.length === 0 ? (
+              <p className="text-sm text-gray-500 py-2">
+                All suggested languages have been selected. You can add custom languages above.
+              </p>
+            ) : (
+              <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {filteredSuggestions.map((language) => (
+                  <motion.div
+                    key={language}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddLanguage(language)}
+                      disabled={languages.length >= 10}
+                      className="text-sm text-[#800020] hover:bg-rose-800 w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                    >
+                      <span>{language}</span>
+                      <Plus 
+                        className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" 
+                      />
+                    </Button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              {languages.length === 10 ? (
+                <span className="text-amber-600 flex items-center">
+                  <span className="bg-amber-100 p-1 rounded-full mr-2">
+                    <X className="h-3 w-3" />
+                  </span>
+                  Maximum limit reached (10/10)
+                </span>
+              ) : languages.length > 0 ? (
+                <span className="flex items-center">
+                  <span className="bg-emerald-100 p-1 rounded-full mr-2">
+                    <Check className="h-3 w-3 text-emerald-500" />
+                  </span>
+                  {10 - languages.length} more available
+                </span>
+              ) : null}
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(`/counselor/profile/${userID}`)}
+                className="transition-all duration-200"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="transition-all duration-200 relative"
+              >
+                {isLoading ? (
+                  <>
+                    <span className="opacity-0">Save Changes</span>
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </span>
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+

@@ -1,0 +1,105 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Input } from '../../components/ui/input';
+
+type UserType = 'Student' | 'Counselor' | 'Company';
+
+export function RegisterAs() {
+  const [selectedType, setSelectedType] = useState<UserType | null>(null);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && selectedType) {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Send OTP request
+        const response = await fetch('http://localhost:3001/auth/register/send-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, userType: selectedType })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send OTP');
+        }
+
+        // Store the user type and email in localStorage for the flow
+        localStorage.setItem('registrationData', JSON.stringify({
+          userType: selectedType,
+          email: email
+        }));
+
+        // Navigate to email verification
+        navigate('/auth/email-verification');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to send OTP');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <h1 className="text-3xl font-bold text-[#800020] mb-8">Register As</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex gap-4 justify-center mb-8">
+            {(['Student', 'Counselor', 'Company'] as UserType[]).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setSelectedType(type)}
+                className={`px-6 py-2 rounded-md text-base font-medium transition-colors ${
+                  selectedType === type
+                    ? 'bg-[#800020] text-white'
+                    : 'border border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 text-left">
+              Email Address<span className="text-[#800020]">*</span>
+            </label>
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm mt-2">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={!selectedType || !email || loading}
+            className="w-full bg-[#800020] text-white py-3 rounded-md font-medium hover:bg-rose-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Sending OTP...' : 'Verify'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
