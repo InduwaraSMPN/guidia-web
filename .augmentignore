@@ -1,0 +1,13 @@
+# Package management
+package-lock.json
+**/package-lock.json
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Large data files
+
+# Dependencies
+node_modules/

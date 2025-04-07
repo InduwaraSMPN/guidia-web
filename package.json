@@ -7,6 +7,9 @@
     "dev:frontend": "vite",
     "dev:backend": "cd guidia-auth && npm run dev",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "install:frontend": "npm install",
+    "install:backend": "cd guidia-auth && npm install",
+    "install:all": "concurrently \"npm run install:frontend\" \"npm run install:backend\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
