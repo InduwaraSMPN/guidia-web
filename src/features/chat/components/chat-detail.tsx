@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, User, Loader2 } from 'lucide-react';
 import { Message } from '../lib/types';
-import { cn, formatDate } from '../lib/utils';
+import { cn, formatDate, groupMessagesByDate } from '../lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirebase } from '@/contexts/FirebaseContext';
 import { database } from '@/firebase/config';
@@ -213,7 +213,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
@@ -224,13 +224,25 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
           </div>
         ) : messages.length > 0 ? (
           <>
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                receiverImage={receiverInfo?.image}
-                receiverName={receiverInfo?.name}
-              />
+            {groupMessagesByDate(messages).map((group) => (
+              <div key={group.date} className="space-y-3 mb-6">
+                {/* Date divider */}
+                <div className="flex justify-center my-4">
+                  <div className="bg-gray-200 text-gray-600 text-xs px-4 py-1.5 rounded-full font-medium">
+                    {group.date}
+                  </div>
+                </div>
+
+                {/* Messages for this date */}
+                {group.messages.map((message) => (
+                  <MessageBubble
+                    key={message.id}
+                    message={message}
+                    receiverImage={receiverInfo?.image}
+                    receiverName={receiverInfo?.name}
+                  />
+                ))}
+              </div>
             ))}
             <div ref={messagesEndRef} />
           </>
