@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { User, LogOut, Settings, Edit, Clock } from "lucide-react"
 import { format } from "date-fns"
+import ThemeToggle from "./ThemeToggle"
 
 interface ProfileData {
   studentProfileImagePath?: string;
@@ -290,6 +291,11 @@ export function ProfileDropdown() {
               <LogOut className="h-4 w-4 text-gray-500" />
               Logout
             </button>
+          </div>
+
+          {/* Theme Toggle */}
+          <div className="px-4 py-2 border-t border-gray-200">
+            <ThemeToggle />
           </div>
 
           {/* Date and Time */}
