@@ -1,13 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
-const NotificationService = require('../services/notificationService');
-
-// Initialize notification service with the database pool
-router.use((req, res, next) => {
-  req.notificationService = new NotificationService(req.app.locals.pool);
-  next();
-});
+// Note: NotificationService is now initialized in index.js with the socket service
 
 /**
  * Get notifications for the authenticated user
@@ -16,9 +10,9 @@ router.use((req, res, next) => {
 router.get('/', verifyToken, async (req, res) => {
   try {
     const userID = req.user.id;
-    const { 
-      limit = 50, 
-      offset = 0, 
+    const {
+      limit = 50,
+      offset = 0,
       unreadOnly = false,
       sortBy = 'createdAt',
       sortOrder = 'DESC'
@@ -70,7 +64,7 @@ router.patch('/mark-read', verifyToken, async (req, res) => {
     }
 
     const success = await req.notificationService.markAsRead(userID, notificationIDs);
-    
+
     if (success) {
       res.json({ message: 'Notifications marked as read' });
     } else {
@@ -90,7 +84,7 @@ router.patch('/mark-all-read', verifyToken, async (req, res) => {
   try {
     const userID = req.user.id;
     const success = await req.notificationService.markAllAsRead(userID);
-    
+
     if (success) {
       res.json({ message: 'All notifications marked as read' });
     } else {
@@ -116,7 +110,7 @@ router.delete('/', verifyToken, async (req, res) => {
     }
 
     const success = await req.notificationService.deleteNotifications(userID, notificationIDs);
-    
+
     if (success) {
       res.json({ message: 'Notifications deleted' });
     } else {
@@ -163,11 +157,11 @@ router.patch('/preferences', verifyToken, async (req, res) => {
     };
 
     const success = await req.notificationService.updatePreference(
-      userID, 
-      notificationType, 
+      userID,
+      notificationType,
       preferences
     );
-    
+
     if (success) {
       res.json({ message: 'Notification preference updated' });
     } else {

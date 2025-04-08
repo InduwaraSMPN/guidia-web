@@ -46,6 +46,7 @@ const companiesRouter = require('./routes/companies');
 const jobsRouter = require('./routes/jobs');
 const messagesRouter = require('./routes/messages');
 const notificationsRouter = require('./routes/notifications');
+const NotificationSocketService = require('./services/notificationSocketService');
 app.use('/api', messagesRouter);
 
 // Basic middleware
@@ -86,7 +87,12 @@ app.locals.pool = pool;
 app.use('/api/counselors', counselorsRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/messages', messagesRouter);
-app.use('/api/notifications', notificationsRouter);
+
+// Initialize notification service with socket service
+app.use('/api/notifications', (req, res, next) => {
+  req.notificationService = new (require('./services/notificationService'))(req.app.locals.pool, notificationSocketService);
+  next();
+}, notificationsRouter);
 
 // **Endpoints**
 
@@ -968,6 +974,10 @@ const io = new Server(server, {
     credentials: true
   }
 });
+
+// Initialize notification socket service
+const notificationSocketService = new NotificationSocketService(io);
+notificationSocketService.initialize();
 
 // Socket.io middleware for authentication
 io.use((socket, next) => {

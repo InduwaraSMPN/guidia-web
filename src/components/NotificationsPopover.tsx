@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { CheckCheck, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSocket } from '@/contexts/SocketContext';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Notification {
   notificationID: number;
@@ -23,11 +25,36 @@ interface Notification {
 
 export function NotificationsPopover() {
   const { user } = useAuth();
+  const { onNotification, offNotification } = useSocket();
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  // Handle receiving a new notification via WebSocket
+  const handleNewNotification = useCallback((notification: Notification) => {
+    setNotifications(prev => {
+      // Check if notification already exists
+      const exists = prev.some(n => n.notificationID === notification.notificationID);
+      if (exists) return prev;
+
+      // Add new notification at the beginning of the array
+      const updated = [notification, ...prev];
+
+      // Show toast notification
+      toast(notification.title, {
+        description: notification.message,
+        duration: 5000,
+      });
+
+      // Update unread count
+      setUnreadCount(count => count + 1);
+
+      return updated;
+    });
+  }, []);
 
   // Fetch notifications when the component mounts or user changes
   useEffect(() => {
@@ -44,7 +71,13 @@ export function NotificationsPopover() {
           params: { limit: 20 }
         });
 
-        setNotifications(response.data);
+        // Type assertion since we know the structure
+        const notificationsData = response.data as Notification[];
+        setNotifications(notificationsData);
+
+        // Count unread notifications
+        const unreadNotifications = notificationsData.filter(n => !n.isRead);
+        setUnreadCount(unreadNotifications.length);
       } catch (err) {
         console.error('Error fetching notifications:', err);
         setError('Failed to load notifications');
@@ -55,11 +88,14 @@ export function NotificationsPopover() {
 
     fetchNotifications();
 
-    // Set up polling for new notifications (every 30 seconds)
-    const intervalId = setInterval(fetchNotifications, 30000);
+    // Register for real-time notifications
+    onNotification(handleNewNotification);
 
-    return () => clearInterval(intervalId);
-  }, [user]);
+    return () => {
+      // Clean up event listener
+      offNotification(handleNewNotification);
+    };
+  }, [user, onNotification, offNotification, handleNewNotification]);
 
   // Handle clicking outside to close the popover
   useEffect(() => {
@@ -80,7 +116,7 @@ export function NotificationsPopover() {
     };
   }, [isOpen]);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  // We now track unreadCount in state
 
   const markAllAsRead = async () => {
     if (unreadCount === 0) return;
@@ -93,6 +129,9 @@ export function NotificationsPopover() {
 
       // Update local state
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+
+      // Reset unread count
+      setUnreadCount(0);
     } catch (err) {
       console.error('Error marking notifications as read:', err);
     }
@@ -183,6 +222,9 @@ export function NotificationsPopover() {
                               ? { ...n, isRead: true }
                               : n
                           ));
+
+                          // Update unread count
+                          setUnreadCount(prev => Math.max(0, prev - 1));
                         } catch (err) {
                           console.error('Error marking notification as read:', err);
                         }

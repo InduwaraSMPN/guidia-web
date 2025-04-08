@@ -4,8 +4,9 @@ const mysql = require('mysql2/promise');
  * Service for handling notifications
  */
 class NotificationService {
-  constructor(pool) {
+  constructor(pool, socketService = null) {
     this.pool = pool;
+    this.socketService = socketService;
   }
 
   /**
@@ -46,7 +47,33 @@ class NotificationService {
         ]
       );
 
-      return result.insertId;
+      const notificationId = result.insertId;
+
+      // Send real-time notification if socket service is available
+      if (this.socketService) {
+        // Fetch the created notification to get all fields
+        const [notifications] = await this.pool.query(
+          `SELECT * FROM notifications WHERE notificationID = ${notificationId}`
+        );
+
+        if (notifications.length > 0) {
+          const notification = notifications[0];
+
+          // Parse metadata if it exists
+          if (notification.metadata) {
+            try {
+              notification.metadata = JSON.parse(notification.metadata);
+            } catch (e) {
+              console.error('Error parsing notification metadata:', e);
+            }
+          }
+
+          // Send notification via WebSocket
+          this.socketService.sendNotificationToUser(userID, notification);
+        }
+      }
+
+      return notificationId;
     } catch (error) {
       console.error('Error creating notification:', error);
       throw error;
