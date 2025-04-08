@@ -26,6 +26,7 @@ import { CounselorProfilePage } from './pages/CounselorProfilePage';
 import { CompanyProfilePage } from './pages/CompanyProfilePage';
 import { CompanyDetailsPage } from './pages/CompanyDetailsPage';
 import { CompanyJobsPage } from './pages/CompanyJobsPage';
+import { CompanyApplicationsPage } from './pages/CompanyApplicationsPage';
 import { EditCareerPathways } from './pages/profile/EditCareerPathways';
 import { EditSpecializations } from './pages/profile/EditSpecializations';
 import { EditStudentProfile } from './pages/profile/EditStudentProfile';
@@ -323,6 +324,11 @@ function AppContent() {
             <Route path="profile/jobposts/edit/:userID" element={
               <ProtectedRoute requiredUserType="Company">
                 <PostJobPage />
+              </ProtectedRoute>
+            } />
+            <Route path="applications/:companyID" element={
+              <ProtectedRoute requiredUserType="Company">
+                <CompanyApplicationsPage />
               </ProtectedRoute>
             } />
           </Route>

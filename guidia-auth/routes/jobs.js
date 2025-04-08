@@ -477,7 +477,9 @@ router.get('/applications/:userId', verifyToken, async (req, res) => {
         c.name as companyName,
         c.logoPath as companyLogoPath,
         ja.resumePath,
-        DATE_FORMAT(ja.submittedAt, '%Y-%m-%dT%H:%i:%s.000Z') as submittedAt
+        ja.status,
+        DATE_FORMAT(ja.submittedAt, '%Y-%m-%dT%H:%i:%s.000Z') as submittedAt,
+        DATE_FORMAT(ja.statusUpdatedAt, '%Y-%m-%dT%H:%i:%s.000Z') as statusUpdatedAt
       FROM job_applications ja
       JOIN jobs j ON ja.jobID = j.jobID
       JOIN companies c ON j.companyID = c.companyID
@@ -489,6 +491,159 @@ router.get('/applications/:userId', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching applications:', error);
     res.status(500).json({ error: 'Failed to fetch applications' });
+  }
+});
+
+// GET /api/jobs/applications/company/:companyId
+// Get all applications for a company's jobs
+router.get('/applications/company/:companyId', verifyToken, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const companyId = req.params.companyId;
+    const userId = req.user.id;
+
+    // First, check if the user is authorized to view these applications
+    // The user must be from the company
+    const [authorized] = await pool.execute(
+      'SELECT userID FROM companies WHERE companyID = ? AND userID = ?',
+      [companyId, userId]
+    );
+
+    if (authorized.length === 0) {
+      return res.status(403).json({
+        error: 'You are not authorized to view these applications'
+      });
+    }
+
+    // Get all applications for this company's jobs
+    const [applications] = await pool.execute(`
+      SELECT
+        ja.applicationID,
+        ja.jobID,
+        ja.studentID,
+        ja.firstName,
+        ja.lastName,
+        ja.email,
+        ja.phone,
+        ja.resumePath,
+        ja.status,
+        DATE_FORMAT(ja.submittedAt, '%Y-%m-%dT%H:%i:%s.000Z') as submittedAt,
+        DATE_FORMAT(ja.statusUpdatedAt, '%Y-%m-%dT%H:%i:%s.000Z') as statusUpdatedAt,
+        ja.notes,
+        j.title as jobTitle,
+        j.location as jobLocation,
+        s.studentProfileImagePath
+      FROM job_applications ja
+      JOIN jobs j ON ja.jobID = j.jobID
+      LEFT JOIN students s ON ja.studentID = s.userID
+      WHERE j.companyID = ?
+      ORDER BY ja.submittedAt DESC
+    `, [companyId]);
+
+    res.json(applications);
+  } catch (error) {
+    console.error('Error fetching company applications:', error);
+    res.status(500).json({ error: 'Failed to fetch applications' });
+  }
+});
+
+// PATCH /api/jobs/applications/:id/status
+// Update application status (for companies)
+router.patch('/applications/:id/status', verifyToken, async (req, res) => {
+  const NotificationTriggers = require('../utils/notificationTriggers');
+  const notificationTriggers = new NotificationTriggers(req.app.locals.pool);
+  try {
+    const pool = req.app.locals.pool;
+    const applicationId = req.params.id;
+    const userId = req.user.id;
+    const { status, notes } = req.body;
+
+    if (!status || !['pending', 'reviewed', 'shortlisted', 'rejected', 'approved'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    // First, check if the user is authorized to update this application
+    // The user must be from the company that posted the job
+    const [authorized] = await pool.execute(`
+      SELECT j.jobID, j.title, c.companyID, c.companyName, c.userID as companyUserID,
+             ja.applicationID, ja.studentID, ja.status as currentStatus
+      FROM job_applications ja
+      JOIN jobs j ON ja.jobID = j.jobID
+      JOIN companies c ON j.companyID = c.companyID
+      WHERE ja.applicationID = ? AND c.userID = ?
+    `, [applicationId, userId]);
+
+    if (authorized.length === 0) {
+      return res.status(403).json({
+        error: 'You are not authorized to update this application status'
+      });
+    }
+
+    const job = authorized[0];
+    const currentStatus = job.currentStatus;
+
+    // Don't update if status hasn't changed
+    if (currentStatus === status) {
+      return res.json({
+        message: 'Status is already set to ' + status,
+        applicationID: applicationId
+      });
+    }
+
+    // Update the application status
+    await pool.execute(`
+      UPDATE job_applications
+      SET status = ?,
+          statusUpdatedAt = CURRENT_TIMESTAMP,
+          statusUpdatedBy = ?,
+          notes = ?
+      WHERE applicationID = ?
+    `, [status, userId, notes || null, applicationId]);
+
+    // Get student details for notification
+    const [studentDetails] = await pool.execute(`
+      SELECT s.*, u.userID
+      FROM students s
+      JOIN users u ON s.userID = u.userID
+      WHERE u.userID = ?
+    `, [job.studentID]);
+
+    if (studentDetails.length > 0) {
+      const student = studentDetails[0];
+      const application = {
+        applicationID: applicationId,
+        studentID: job.studentID
+      };
+
+      // Create company object for notification
+      const company = {
+        companyID: job.companyID,
+        companyName: job.companyName,
+        userID: job.companyUserID
+      };
+
+      // Trigger notification for status change
+      try {
+        await notificationTriggers.jobApplicationStatusChanged(
+          application,
+          status,
+          { jobID: job.jobID, title: job.title },
+          company
+        );
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // Continue with the response even if notification fails
+      }
+    }
+
+    res.json({
+      message: 'Application status updated successfully',
+      applicationID: applicationId,
+      newStatus: status
+    });
+  } catch (error) {
+    console.error('Error updating application status:', error);
+    res.status(500).json({ error: 'Failed to update application status' });
   }
 });
 

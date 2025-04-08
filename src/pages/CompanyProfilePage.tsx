@@ -270,12 +270,21 @@ export function CompanyProfilePage() {
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Posted Jobs</h2>
               {isCurrentUser && (
-                <Button
-                  onClick={() => navigate("/jobs/post")}
-                  className="bg-[#800020] hover:bg-rose-800 text-white transition-transform hover:scale-105 active:scale-95"
-                >
-                  Post New Job
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => navigate(`/company/applications/${companyData.companyID}`)}
+                    variant="outline"
+                    className="border-[#800020] text-[#800020] hover:bg-[#800020]/10 transition-transform hover:scale-105 active:scale-95"
+                  >
+                    View Applications
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/jobs/post")}
+                    className="bg-[#800020] hover:bg-rose-800 text-white transition-transform hover:scale-105 active:scale-95"
+                  >
+                    Post New Job
+                  </Button>
+                </div>
               )}
             </div>
           </div>
