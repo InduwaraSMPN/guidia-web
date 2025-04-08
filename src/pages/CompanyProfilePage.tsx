@@ -171,36 +171,7 @@ export function CompanyProfilePage() {
         >
           {/* Company Header */}
           <div className="relative h-24 bg-[#800020]">
-            <div className="absolute top-2 right-4 text-white text-right">
-              <div className="text-lg font-semibold">
-                {format(currentDateTime, 'MM/dd/yyyy')}
-              </div>
-              <div className="text-md">
-                {format(currentDateTime, 'h:mm a')}
-              </div>
-            </div>
-            {isCurrentUser && (
-              <div className="absolute top-4 left-4 flex gap-2 z-10">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/90 hover:bg-white flex items-center gap-2"
-                  onClick={() => navigate(`/company/profile/edit/${userID}`)}
-                >
-                  <PencilIcon className="h-4 w-4" />
-                  Edit Profile
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/90 hover:bg-white flex items-center gap-2"
-                  onClick={() => navigate(`/company/profile/settings/${userID}`)}
-                >
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Button>
-              </div>
-            )}
+            {/* Profile controls moved to dropdown menu */}
           </div>
 
           <div className="px-6 pb-6">

@@ -1,13 +1,12 @@
 
 
-import { Menu, X, MessageSquare, User } from "lucide-react"
+import { Menu, X, MessageSquare } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { useSocket } from "../contexts/SocketContext"
 import { NotificationsPopover } from "./NotificationsPopover"
+import { ProfileDropdown } from "./ProfileDropdown"
 import { motion } from "framer-motion"
-import axios from 'axios'
 import { getDatabase, ref, onValue, off } from 'firebase/database'
 
 interface NavbarProps {
@@ -19,7 +18,7 @@ const ChatPopover: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  
+
   const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/messages');
 
   useEffect(() => {
@@ -27,19 +26,19 @@ const ChatPopover: React.FC = () => {
 
     const db = getDatabase();
     const messagesRef = ref(db, 'messages/conversations');
-    
-    const unreadListener = onValue(messagesRef, (snapshot) => {
+
+    onValue(messagesRef, (snapshot) => {
       const conversations = snapshot.val();
       if (!conversations) return;
 
       let unreadTotal = 0;
-      Object.entries(conversations).forEach(([convId, conv]: [string, any]) => {
+      Object.entries(conversations).forEach(([_, conv]: [string, any]) => {
         const participants = conv.participants || {};
         const isParticipant = participants[user.userID];
         if (!isParticipant) return;
 
         const messages = conv.messages || {};
-        Object.entries(messages).forEach(([msgId, msg]: [string, any]) => {
+        Object.entries(messages).forEach(([_, msg]: [string, any]) => {
           if (msg.receiver === user.userID && !msg.read) {
             unreadTotal++;
           }
@@ -105,8 +104,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   }, [isScrolled])
 
   const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout, isVerifyingToken } = useAuth()
+  const { user, isVerifyingToken } = useAuth()
   const navRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
 
@@ -169,35 +167,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     return () => window.removeEventListener("resize", updateIndicator)
   }, [activeIndex, location.pathname, navItems.length])
 
-  const handleLogout = async () => {
-    try {
-      await logout()
-      navigate("/")
-    } catch (error) {
-      console.error("Logout failed:", error)
-      // Continue with navigation even if backend logout fails
-      navigate("/auth/login")
-    }
-  }
 
-  const getProfilePath = () => {
-    if (!user) return ""
-    switch (user.userType) {
-      case "Student":
-        return `/students/profile/${user.userID}`
-      case "Company":
-        return `/company/profile/${user.userID}`
-      case "Counselor":
-        return `/counselor/profile/${user.userID}`
-      case "Admin":
-        return `/admin`
-      default:
-        return ""
-    }
-  }
-
-  // Add this near your other route-related code
-  const isProfileRoute = location.pathname === getProfilePath();
 
   return (
     <nav
@@ -256,22 +226,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 <>
                   <NotificationsPopover />
                   <ChatPopover />
-                  <Link
-                    to={user.userType === "Admin" ? "/admin" : getProfilePath()}
-                    className={`p-2 rounded-full text-neutral-600 transition-colors duration-300 ${
-                      isProfileRoute
-                        ? "bg-rose-100 text-rose-800"
-                        : "hover:bg-rose-100 hover:text-rose-800"
-                    }`}
-                  >
-                    <User className="h-6 w-6" />
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="px-5 py-2 bg-[#800020] text-white text-sm rounded-md hover:bg-rose-800 font-medium transition-all duration-200 shadow-sm hover:shadow"
-                  >
-                    Logout
-                  </button>
+                  <ProfileDropdown />
                 </>
               ) : (
                 <>
@@ -336,24 +291,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       <div className="flex items-center gap-4 mb-4">
                         <NotificationsPopover />
                         <ChatPopover />
+                        <ProfileDropdown />
                       </div>
-                      <Link
-                        to={user.userType === "Admin" ? "/admin" : getProfilePath()}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 py-3 text-sm font-medium text-neutral-700 hover:text-rose-800 transition-colors"
-                      >
-                        <User className="h-5 w-5" />
-                        {user.userType === "Admin" ? "Dashboard" : "Profile"}
-                      </Link>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false)
-                          handleLogout()
-                        }}
-                        className="block w-full text-left py-3 text-sm font-medium text-rose-800 hover:text-rose-800 transition-colors"
-                      >
-                        Logout
-                      </button>
                     </>
                   ) : (
                     <div className="flex flex-col space-y-3 pt-2">

@@ -177,16 +177,7 @@ export function StudentProfilePage() {
         {/* Card with Profile Header */}
         <div className="bg-white rounded-lg border border-gray-200 mb-8 overflow-hidden">
           {/* Header Banner */}
-          <div className="h-24 bg-[#800020] relative">
-            <div className="absolute top-2 right-4 text-white text-right">
-              <div className="text-lg font-semibold">
-                {format(currentDateTime, 'MM/dd/yyyy')}
-              </div>
-              <div className="text-md">
-                {format(currentDateTime, 'h:mm a')}
-              </div>
-            </div>
-          </div>
+          <div className="h-24 bg-[#800020] relative"></div>
 
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-8">
@@ -240,32 +231,7 @@ export function StudentProfilePage() {
                     </div>
                   </div>
 
-                  {isCurrentUser && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2 border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
-                        onClick={() =>
-                          navigate(`/students/profile/edit/${userID}`)
-                        }
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Edit Profile
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2 border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
-                        onClick={() =>
-                          navigate(`/students/profile/settings/${userID}`)
-                        }
-                      >
-                        <Settings className="h-4 w-4" />
-                        Settings
-                      </Button>
-                    </div>
-                  )}
+                  {/* Profile controls moved to dropdown menu */}
                 </div>
               </div>
             </div>

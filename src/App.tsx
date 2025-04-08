@@ -55,6 +55,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { Toaster } from './components/ui/sonner';
 import { PublicStudentProfile } from './pages/profile/PublicStudentProfile';
 import { WelcomeEditStudentProfile } from '@/pages/welcome/WelcomeEditStudentProfile';
@@ -169,6 +170,7 @@ function AppContent() {
               <Route path="post" element={<ProtectedRoute requiredRoleId={1}><PostEventPage /></ProtectedRoute>} />
               <Route path="edit/:id" element={<ProtectedRoute requiredRoleId={1}><PostEventPage /></ProtectedRoute>} />
             </Route>
+            <Route path="settings" element={<ProtectedRoute requiredRoleId={1}><AdminSettingsPage /></ProtectedRoute>} />
           </Route>
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/post" element={<PostEventPage />} />

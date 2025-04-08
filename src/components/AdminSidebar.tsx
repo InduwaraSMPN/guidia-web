@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  Settings,
 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -350,6 +351,12 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
             <div className="flex items-center gap-2 overflow-hidden">
               <Calendar size={18} className="flex-shrink-0" />
               {!collapsed && <span className="truncate">Events</span>}
+            </div>
+          </MenuItem>
+          <MenuItem component={<Link to="settings" />} active={location.pathname.includes("/settings")} className="mt-2">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Settings size={18} className="flex-shrink-0" />
+              {!collapsed && <span className="truncate">Admin Settings</span>}
             </div>
           </MenuItem>
         </Menu>
