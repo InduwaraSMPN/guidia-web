@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
+import { format } from "date-fns"
 
 interface Job {
   jobID: number
@@ -58,8 +59,18 @@ export function CompanyProfilePage() {
   const navigate = useNavigate()
   const [companyData, setCompanyData] = useState<CompanyData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentDateTime, setCurrentDateTime] = useState(new Date())
   const { user } = useAuth()
   const isCurrentUser = user?.id === userID
+
+  // Update the date and time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date())
+    }, 60000) // Update every minute
+
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const fetchCompanyProfile = async () => {
@@ -160,11 +171,19 @@ export function CompanyProfilePage() {
         >
           {/* Company Header */}
           <div className="relative h-24 bg-[#800020]">
+            <div className="absolute top-2 right-4 text-white text-right">
+              <div className="text-lg font-semibold">
+                {format(currentDateTime, 'MM/dd/yyyy')}
+              </div>
+              <div className="text-md">
+                {format(currentDateTime, 'h:mm a')}
+              </div>
+            </div>
             {isCurrentUser && (
               <Button
                 variant="outline"
                 size="sm"
-                className="absolute top-4 right-4 bg-white/90 hover:bg-white flex items-center gap-2 z-10"
+                className="absolute top-4 left-4 bg-white/90 hover:bg-white flex items-center gap-2 z-10"
                 onClick={() => navigate(`/company/profile/edit/${userID}`)}
               >
                 <PencilIcon className="h-4 w-4" />

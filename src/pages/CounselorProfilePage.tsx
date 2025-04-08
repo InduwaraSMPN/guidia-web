@@ -3,6 +3,7 @@ import { Mail, Phone, User, Pencil } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { format } from "date-fns";
 
 interface CounselorData {
   counselorID: string;
@@ -26,7 +27,17 @@ export function CounselorProfilePage() {
   const [counselorData, setCounselorData] = useState<CounselorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const isCurrentUser = user?.userType === "Counselor" && user?.userID === userID;
+
+  // Update the date and time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -95,8 +106,17 @@ export function CounselorProfilePage() {
         {/* Card with Profile Header */}
         <div className="bg-white rounded-lg border border-gray-200 mb-8 overflow-hidden">
           {/* Header Banner */}
-          <div className="h-24 bg-[#800020]"></div>
-          
+          <div className="h-24 bg-[#800020] relative">
+            <div className="absolute top-2 right-4 text-white text-right">
+              <div className="text-lg font-semibold">
+                {format(currentDateTime, 'MM/dd/yyyy')}
+              </div>
+              <div className="text-md">
+                {format(currentDateTime, 'h:mm a')}
+              </div>
+            </div>
+          </div>
+
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-8">
               {/* Profile Photo and Position - Square image */}
@@ -124,7 +144,7 @@ export function CounselorProfilePage() {
                     <p className="text-gray-500 italic mb-6">
                       {counselorData.counselorExperienceYears} years of experience · {counselorData.counselorLocation}
                     </p>
-                    
+
                     {/* Contact buttons */}
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
@@ -142,7 +162,7 @@ export function CounselorProfilePage() {
                       )}
                     </div>
                   </div>
-                  
+
                   {isCurrentUser && (
                     <Button
                       variant="outline"
@@ -188,7 +208,7 @@ export function CounselorProfilePage() {
               </Button>
             )}
           </div>
-          
+
           {counselorData.counselorLanguages && counselorData.counselorLanguages.length > 0 ? (
             <div className="flex flex-wrap gap-3">
               {counselorData.counselorLanguages.map((language, index) => (
@@ -219,7 +239,7 @@ export function CounselorProfilePage() {
               </Button>
             )}
           </div>
-          
+
           {counselorData.counselorSpecializations && counselorData.counselorSpecializations.length > 0 ? (
             <div className="flex flex-wrap gap-3">
               {counselorData.counselorSpecializations.map((specialization, index) => (

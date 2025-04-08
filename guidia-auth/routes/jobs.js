@@ -90,6 +90,70 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/jobs/saved
+// Get all saved jobs for a student
+router.get('/saved', verifyToken, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const userId = req.user.id;
+
+    // Check if the user is a student
+    const [userRole] = await pool.execute(
+      'SELECT roleID FROM users WHERE userID = ?',
+      [userId]
+    );
+
+    if (userRole.length === 0 || userRole[0].roleID !== 2) { // 2 is student role
+      return res.status(403).json({ error: 'Only students can have saved jobs' });
+    }
+
+    // Get all saved jobs
+    const [savedJobs] = await pool.execute(`
+      SELECT j.*, c.companyName, c.companyLogoPath, sj.savedAt
+      FROM saved_jobs sj
+      JOIN jobs j ON sj.jobID = j.jobID
+      LEFT JOIN companies c ON j.companyID = c.companyID
+      WHERE sj.userID = ?
+      ORDER BY sj.savedAt DESC
+    `, [userId]);
+
+    // Add an isExpired flag to each job
+    const jobsWithExpiration = savedJobs.map(job => ({
+      ...job,
+      isExpired: new Date(job.endDate) < new Date()
+    }));
+
+    res.json(jobsWithExpiration);
+  } catch (error) {
+    console.error('Error fetching saved jobs:', error);
+    res.status(500).json({ error: 'Failed to fetch saved jobs' });
+  }
+});
+
+// GET /api/jobs/is-saved/:jobId
+// Check if a job is saved by the current user
+router.get('/is-saved/:jobId', verifyToken, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const jobId = req.params.jobId;
+    const userId = req.user.id;
+
+    // Check if the job is saved
+    const [savedJob] = await pool.execute(
+      'SELECT savedJobID FROM saved_jobs WHERE userID = ? AND jobID = ?',
+      [userId, jobId]
+    );
+
+    res.json({
+      isSaved: savedJob.length > 0,
+      savedJobID: savedJob.length > 0 ? savedJob[0].savedJobID : null
+    });
+  } catch (error) {
+    console.error('Error checking if job is saved:', error);
+    res.status(500).json({ error: 'Failed to check if job is saved' });
+  }
+});
+
 // GET /api/jobs/:id
 router.get('/:id', async (req, res) => {
   const jwt = require('jsonwebtoken');
@@ -647,35 +711,93 @@ router.patch('/applications/:id/status', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/jobs/:jobId/save
+// Save a job for a student
+router.post('/:jobId/save', verifyToken, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const jobId = req.params.jobId;
+    const userId = req.user.id;
+
+    // Check if the job exists
+    const [jobExists] = await pool.execute(
+      'SELECT jobID FROM jobs WHERE jobID = ?',
+      [jobId]
+    );
+
+    if (jobExists.length === 0) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Check if the user is a student
+    const [userRole] = await pool.execute(
+      'SELECT roleID FROM users WHERE userID = ?',
+      [userId]
+    );
+
+    if (userRole.length === 0 || userRole[0].roleID !== 2) { // 2 is student role
+      return res.status(403).json({ error: 'Only students can save jobs' });
+    }
+
+    // Check if the job is already saved
+    const [savedJob] = await pool.execute(
+      'SELECT savedJobID FROM saved_jobs WHERE userID = ? AND jobID = ?',
+      [userId, jobId]
+    );
+
+    if (savedJob.length > 0) {
+      return res.status(400).json({ error: 'Job already saved', savedJobID: savedJob[0].savedJobID });
+    }
+
+    // Save the job
+    const [result] = await pool.execute(
+      'INSERT INTO saved_jobs (userID, jobID) VALUES (?, ?)',
+      [userId, jobId]
+    );
+
+    res.status(201).json({
+      message: 'Job saved successfully',
+      savedJobID: result.insertId
+    });
+  } catch (error) {
+    console.error('Error saving job:', error);
+    res.status(500).json({ error: 'Failed to save job' });
+  }
+});
+
+// DELETE /api/jobs/:jobId/save
+// Unsave a job for a student
+router.delete('/:jobId/save', verifyToken, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+    const jobId = req.params.jobId;
+    const userId = req.user.id;
+
+    // Check if the job is saved
+    const [savedJob] = await pool.execute(
+      'SELECT savedJobID FROM saved_jobs WHERE userID = ? AND jobID = ?',
+      [userId, jobId]
+    );
+
+    if (savedJob.length === 0) {
+      return res.status(404).json({ error: 'Job not saved' });
+    }
+
+    // Unsave the job
+    await pool.execute(
+      'DELETE FROM saved_jobs WHERE userID = ? AND jobID = ?',
+      [userId, jobId]
+    );
+
+    res.json({
+      message: 'Job unsaved successfully'
+    });
+  } catch (error) {
+    console.error('Error unsaving job:', error);
+    res.status(500).json({ error: 'Failed to unsave job' });
+  }
+});
+
+
+
 module.exports = router;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -2,11 +2,14 @@
 import type React from "react"
 import { format } from "date-fns";
 
-import { Building2, MapPin, Briefcase, Tag, Calendar, ArrowUpRight } from "lucide-react"
+import { Building2, MapPin, Briefcase, Tag, Calendar, ArrowUpRight, Bookmark, BookmarkCheck } from "lucide-react"
 import { Button } from "./ui/button"
 import { useNavigate, Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "../contexts/AuthContext"
+import axiosInstance from "@/lib/axios"
+import { toast } from "sonner"
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
@@ -52,8 +55,28 @@ interface JobCardProps {
 
 export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [isHovered, setIsHovered] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const isExpired = job.isExpired || (job.endDate && new Date(job.endDate) < new Date());
+  const isStudent = user?.userType === "Student"
+
+  // Check if job is saved when component mounts
+  useEffect(() => {
+    const checkIfJobIsSaved = async () => {
+      if (!user || !isStudent) return;
+
+      try {
+        const response = await axiosInstance.get(`/api/jobs/is-saved/${job.id}`);
+        setIsSaved(response.data.isSaved);
+      } catch (error) {
+        console.error('Error checking if job is saved:', error);
+      }
+    };
+
+    checkIfJobIsSaved();
+  }, [job.id, user, isStudent]);
 
   const handleCardClick = () => {
     navigate(`/jobs/${job.id}`)
@@ -65,6 +88,41 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
       navigate(`/jobs/${job.id}/edit`)
     } else {
       onApply(job.id)
+    }
+  }
+
+  const handleSaveJob = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking save button
+
+    if (!user) {
+      toast.error('Please login to save jobs');
+      return;
+    }
+
+    if (!isStudent) {
+      toast.error('Only students can save jobs');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      if (isSaved) {
+        // Unsave job
+        await axiosInstance.delete(`/api/jobs/${job.id}/save`);
+        setIsSaved(false);
+        toast.success('Job removed from saved jobs');
+      } else {
+        // Save job
+        await axiosInstance.post(`/api/jobs/${job.id}/save`);
+        setIsSaved(true);
+        toast.success('Job saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving job:', error);
+      toast.error(isSaved ? 'Failed to remove job from saved jobs' : 'Failed to save job');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -141,8 +199,8 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   {job.sector && (
                     <div className="flex flex-wrap gap-2">
                       {job.sector.split(',').map((tag, index) => (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className="flex items-center text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full text-sm"
                         >
                           <Tag className="h-3.5 w-3.5 mr-1.5 text-[#800020]" />
@@ -160,7 +218,28 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   y: isHovered ? -2 : 0,
                 }}
                 transition={{ duration: 0.2 }}
+                className="flex gap-2"
               >
+                {/* Save Job Button - Only show for students and in view mode */}
+                {isStudent && mode === "view" && (
+                  <Button
+                    onClick={handleSaveJob}
+                    size="sm"
+                    variant="outline"
+                    disabled={isLoading}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-[#800020] transition-all duration-200"
+                    title={isSaved ? "Remove from saved jobs" : "Save job"}
+                  >
+                    {isLoading ? (
+                      <span className="animate-pulse">...</span>
+                    ) : isSaved ? (
+                      <BookmarkCheck className="h-4 w-4 text-[#800020]" />
+                    ) : (
+                      <Bookmark className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+
                 <Button
                   onClick={handleButtonClick}
                   size="sm"
@@ -174,17 +253,17 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                         : "bg-[#800020] hover:bg-rose-800 text-white"
                   }`}
                 >
-                  {mode === "edit" 
-                    ? "Edit Job" 
-                    : isExpired 
-                      ? "Expired" 
+                  {mode === "edit"
+                    ? "Edit Job"
+                    : isExpired
+                      ? "Expired"
                       : "Apply Now"
                   }
                 </Button>
               </motion.div>
             </div>
 
-            <div 
+            <div
               className="mt-4 text-gray-600 line-clamp-2 text-sm leading-relaxed prose prose-sm"
               dangerouslySetInnerHTML={{ __html: job.description }}
             />

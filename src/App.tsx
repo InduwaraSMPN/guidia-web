@@ -27,6 +27,7 @@ import { CompanyProfilePage } from './pages/CompanyProfilePage';
 import { CompanyDetailsPage } from './pages/CompanyDetailsPage';
 import { CompanyJobsPage } from './pages/CompanyJobsPage';
 import { CompanyApplicationsPage } from './pages/CompanyApplicationsPage';
+import { SavedJobsPage } from './pages/SavedJobsPage';
 import { EditCareerPathways } from './pages/profile/EditCareerPathways';
 import { EditSpecializations } from './pages/profile/EditSpecializations';
 import { EditStudentProfile } from './pages/profile/EditStudentProfile';
@@ -181,6 +182,11 @@ function AppContent() {
           <Route path="/jobs/:id" element={<JobDetailsPage />} />
           <Route path="/jobs/:id/apply" element={<JobApplication />} />
           <Route path="/jobs/:id/edit" element={<EditJobPage />} />
+          <Route path="/saved-jobs" element={
+            <ProtectedRoute requiredUserType="Student">
+              <SavedJobsPage />
+            </ProtectedRoute>
+          } />
           <Route
             path="/:userType/messages"
             element={

@@ -47,6 +47,7 @@ const jobsRouter = require('./routes/jobs');
 const messagesRouter = require('./routes/messages');
 const notificationsRouter = require('./routes/notifications');
 const NotificationSocketService = require('./services/notificationSocketService');
+const Scheduler = require('./utils/scheduler');
 app.use('/api', messagesRouter);
 
 // Basic middleware
@@ -1090,4 +1091,9 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Auth service running on port ${PORT}`);
+
+  // Initialize and start the scheduler
+  const scheduler = new Scheduler(pool);
+  scheduler.start();
+  console.log('Task scheduler initialized and started');
 });

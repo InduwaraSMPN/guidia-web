@@ -1,17 +1,23 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Briefcase, Building2 } from "lucide-react";
+import { MapPin, Clock, Briefcase, Building2, Bookmark, BookmarkCheck } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { Job } from "@/components/JobCard";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function JobDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
+
+  const isStudent = user?.userType === "Student";
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -46,12 +52,61 @@ export function JobDetailsPage() {
     fetchJobDetails();
   }, [id]);
 
+  // Check if job is saved
+  useEffect(() => {
+    const checkIfJobIsSaved = async () => {
+      if (!user || !isStudent || !id) return;
+
+      try {
+        const response = await axiosInstance.get(`/api/jobs/is-saved/${id}`);
+        setIsSaved(response.data.isSaved);
+      } catch (error) {
+        console.error('Error checking if job is saved:', error);
+      }
+    };
+
+    checkIfJobIsSaved();
+  }, [id, user, isStudent]);
+
   const handleApply = () => {
     if (job?.isExpired) {
       toast.error("This job posting has expired");
       return;
     }
     navigate(`/jobs/${id}/apply`);
+  };
+
+  const handleSaveJob = async () => {
+    if (!user) {
+      toast.error('Please login to save jobs');
+      return;
+    }
+
+    if (!isStudent) {
+      toast.error('Only students can save jobs');
+      return;
+    }
+
+    setIsSaveLoading(true);
+
+    try {
+      if (isSaved) {
+        // Unsave job
+        await axiosInstance.delete(`/api/jobs/${id}/save`);
+        setIsSaved(false);
+        toast.success('Job removed from saved jobs');
+      } else {
+        // Save job
+        await axiosInstance.post(`/api/jobs/${id}/save`);
+        setIsSaved(true);
+        toast.success('Job saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving job:', error);
+      toast.error(isSaved ? 'Failed to remove job from saved jobs' : 'Failed to save job');
+    } finally {
+      setIsSaveLoading(false);
+    }
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -111,7 +166,36 @@ export function JobDetailsPage() {
               </div>
             </div>
 
-            <div>
+            <div className="flex gap-3">
+              {isStudent && (
+                <Button
+                  onClick={handleSaveJob}
+                  disabled={isSaveLoading}
+                  variant="outline"
+                  size="lg"
+                  className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-[#800020] transition-all duration-200"
+                  title={isSaved ? "Remove from saved jobs" : "Save job"}
+                >
+                  {isSaveLoading ? (
+                    <span className="animate-pulse">Saving...</span>
+                  ) : (
+                    <>
+                      {isSaved ? (
+                        <>
+                          <BookmarkCheck className="h-5 w-5 text-[#800020]" />
+                          <span>Saved</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bookmark className="h-5 w-5" />
+                          <span>Save Job</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </Button>
+              )}
+
               <Button
                 onClick={handleApply}
                 size="lg"
