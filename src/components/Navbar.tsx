@@ -65,7 +65,11 @@ const ChatPopover: React.FC = () => {
 
   const handleChatClick = () => {
     if (user) {
-      navigate(`/${userTypePath}/${user.userID}/messages`);
+      if (user.userType === 'Admin') {
+        navigate(`/admin/${user.userID}/messages`);
+      } else {
+        navigate(`/${userTypePath}/${user.userID}/messages`);
+      }
     }
   };
 

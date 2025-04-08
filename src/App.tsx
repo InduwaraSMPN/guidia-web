@@ -54,6 +54,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
+import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { Toaster } from './components/ui/sonner';
 import { PublicStudentProfile } from './pages/profile/PublicStudentProfile';
 import { WelcomeEditStudentProfile } from '@/pages/welcome/WelcomeEditStudentProfile';
@@ -217,6 +218,14 @@ function AppContent() {
             element={
               <ProtectedRoute requiredUserType="Company">
                 <CompanyMessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/:userID/messages"
+            element={
+              <ProtectedRoute requiredRoleId={1}>
+                <AdminMessagesPage />
               </ProtectedRoute>
             }
           />
