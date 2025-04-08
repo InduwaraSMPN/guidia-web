@@ -4,9 +4,11 @@ import { Menu, X, MessageSquare, User } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { useSocket } from "../contexts/SocketContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { motion } from "framer-motion"
 import axios from 'axios'
+import { getDatabase, ref, onValue, off } from 'firebase/database'
 
 interface NavbarProps {
   logoOnly?: boolean
@@ -17,58 +19,47 @@ const ChatPopover: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const userTypePath = user?.userType.toLowerCase();
-
-  // Define isChatRoute function
+  
   const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/messages');
 
-  // Listen for messagesRead event to update unread count
   useEffect(() => {
-    const handleMessagesRead = () => {
-      console.log('Messages read event received in Navbar');
-      // Decrement the unread count or refetch it
-      if (unreadCount > 0) {
-        setUnreadCount(prevCount => Math.max(0, prevCount - 1));
-      }
-    };
+    if (!user?.userID) return;
 
-    // Add event listener for messagesRead event
-    window.addEventListener('messagesRead', handleMessagesRead);
+    const db = getDatabase();
+    const messagesRef = ref(db, 'messages/conversations');
+    
+    const unreadListener = onValue(messagesRef, (snapshot) => {
+      const conversations = snapshot.val();
+      if (!conversations) return;
 
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('messagesRead', handleMessagesRead);
-    };
-  }, [unreadCount]);
+      let unreadTotal = 0;
+      Object.entries(conversations).forEach(([convId, conv]: [string, any]) => {
+        const participants = conv.participants || {};
+        const isParticipant = participants[user.userID];
+        if (!isParticipant) return;
 
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (!user?.userType) return;
-
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/${userTypePath}/messages/unread-count`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const messages = conv.messages || {};
+        Object.entries(messages).forEach(([msgId, msg]: [string, any]) => {
+          if (msg.receiver === user.userID && !msg.read) {
+            unreadTotal++;
           }
         });
-        // Type assertion to handle unknown response type
-        const responseData = response.data as any;
-        setUnreadCount(responseData?.count || 0);
-      } catch (error) {
-        console.error('Error fetching unread count:', error);
-      }
-    };
+      });
 
-    fetchUnreadCount();
-  }, [user, userTypePath]);
+      console.log('Unread messages count:', unreadTotal);
+      setUnreadCount(unreadTotal);
+    });
 
+    return () => off(messagesRef);
+  }, [user]);
+
+  // Handle click to navigate to messages
   const handleChatClick = () => {
     if (user) {
       if (user.userType === 'Admin') {
         navigate(`/admin/${user.userID}/messages`);
       } else {
-        navigate(`/${userTypePath}/${user.userID}/messages`);
+        navigate(`/${user.userType.toLowerCase()}/${user.userID}/messages`);
       }
     }
   };
@@ -84,9 +75,12 @@ const ChatPopover: React.FC = () => {
     >
       <MessageSquare className="h-6 w-6" />
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-[#800020] rounded-full">
-          {unreadCount}
-        </span>
+        <div className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-[#800020] opacity-75 animate-ping" />
+          <span className="relative inline-flex rounded-full h-4 w-4 bg-[#800020] text-[10px] text-white font-bold items-center justify-center">
+            {unreadCount}
+          </span>
+        </div>
       )}
     </button>
   );
@@ -211,7 +205,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
         isScrolled ? "bg-white/95 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-4"
       }`}
     >
-      <div className="max-w-[1216px] mx-auto px-6">
+      <div className="max-w-[1216px] mx-auto px-6 pt-2 pb-2">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
