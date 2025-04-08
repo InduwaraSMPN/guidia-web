@@ -108,6 +108,8 @@ function AppContent() {
     '/auth/reset-password',
   ].some(path => location.pathname.startsWith(path));
 
+  const is404Page = location.pathname === '/404';
+
   return (
     <div className="min-h-screen flex flex-col">
       <Toaster
@@ -126,7 +128,7 @@ function AppContent() {
           }
         }}
       />
-      <Navbar logoOnly={isAuthPage} />
+      <Navbar logoOnly={isAuthPage || is404Page} />
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -373,7 +375,8 @@ function AppContent() {
           </Route>
 
           {/* Catch-all route for 404 pages */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+          <Route path="/404" element={<NotFoundPage />} />
         </Routes>
       </div>
     </div>
