@@ -15,6 +15,24 @@ export function formatDate(input: string | number): string {
   });
 }
 
+export function formatShortDate(input: string | number): string {
+  const date = new Date(input);
+  return date.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+export function formatTimeOnly(input: string | number): string {
+  const date = new Date(input);
+  return date.toLocaleString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+}
+
 export function formatDateForDivider(input: string | number): string {
   const date = new Date(input);
   const today = new Date();

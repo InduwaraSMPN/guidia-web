@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SearchBar } from '@/components/SearchBar';
 import { Chat } from '../lib/types';
-import { cn, formatDate } from '../lib/utils';
+import { cn, formatShortDate } from '../lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { database } from '@/firebase/config';
 import { ref, onValue } from 'firebase/database';
@@ -261,15 +261,15 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
           )}
         </div>
         {chat.unread > 0 && (
-          <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#800020] flex items-center justify-center">
-            <span className="text-xs text-white">{chat.unread}</span>
+          <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[#800020] flex items-center justify-center">
+            <span className="text-xs font-bold text-white">{chat.unread}</span>
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline">
           <h3 className="font-medium truncate">{chat.name}</h3>
-          <span className="text-xs text-muted-foreground">{formatDate(chat.timestamp)}</span>
+          <span className="text-xs text-muted-foreground">{formatShortDate(chat.timestamp)}</span>
         </div>
         <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
       </div>

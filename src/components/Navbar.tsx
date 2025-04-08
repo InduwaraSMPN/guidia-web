@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { NotificationsPopover } from "./NotificationsPopover"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import axios from 'axios'
 
 interface NavbarProps {
@@ -20,10 +20,7 @@ const ChatPopover: React.FC = () => {
   const userTypePath = user?.userType.toLowerCase();
 
   // Define isChatRoute function
-  const isChatRoute = () => {
-    return location.pathname.includes('/chat') ||
-           location.pathname.includes('/messages');
-  };
+  const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/messages');
 
   // Listen for messagesRead event to update unread count
   useEffect(() => {
@@ -55,7 +52,9 @@ const ChatPopover: React.FC = () => {
             Authorization: `Bearer ${token}`
           }
         });
-        setUnreadCount(response.data.count);
+        // Type assertion to handle unknown response type
+        const responseData = response.data as any;
+        setUnreadCount(responseData?.count || 0);
       } catch (error) {
         console.error('Error fetching unread count:', error);
       }
@@ -81,7 +80,7 @@ const ChatPopover: React.FC = () => {
     >
       <MessageSquare className="h-6 w-6" />
       {unreadCount > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#800020] rounded-full">
+        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-[#800020] rounded-full">
           {unreadCount}
         </span>
       )}
@@ -201,7 +200,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
 
   // Add this near your other route-related code
   const isProfileRoute = location.pathname === getProfilePath();
-  const isChatRoute = location.pathname.includes('/messages');
 
   return (
     <nav
@@ -311,7 +309,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
       </div>
 
       {/* Mobile menu */}
-      <AnimatePresence>
         {!logoOnly && isMenuOpen && !isVerifyingToken && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -383,7 +380,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
     </nav>
   )
 }

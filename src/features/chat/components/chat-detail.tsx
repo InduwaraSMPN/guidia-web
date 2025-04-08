@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, User, Loader2 } from 'lucide-react';
 import { Message } from '../lib/types';
-import { cn, formatDate, groupMessagesByDate } from '../lib/utils';
+import { cn, formatTimeOnly, groupMessagesByDate } from '../lib/utils';
 import { stripHtmlTags } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFirebase } from '@/contexts/FirebaseContext';
@@ -214,9 +214,9 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
               alt={receiver.name}
               className={`${
                 receiver.type === 'company'
-                  ? 'w-10 h-8 object-contain'
-                  : 'w-10 h-10 object-cover rounded-full'
-              } border border-gray-200`}
+                  ? 'w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm'
+                  : 'w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm'
+              }`}
             />
           ) : (
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
@@ -348,7 +348,7 @@ function MessageBubble({ message, receiverImage, receiverName }: MessageBubblePr
             ? "text-white/80"
             : "text-gray-500"
         )}>
-          {formatDate(message.timestamp)}
+          {formatTimeOnly(message.timestamp)}
         </p>
       </div>
     </div>
