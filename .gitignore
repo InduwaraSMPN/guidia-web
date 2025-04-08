@@ -14,8 +14,7 @@ src/mocks/*
 **/mock-data/*
 
 # Environment files
-.env*
-!.env.example
+
 
 # Build output
 build/
