@@ -29,6 +29,7 @@ module.exports = {
   			]
   		},
   		colors: {
+  			/* System Colors (Shadcn compatibility) */
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
@@ -62,6 +63,51 @@ module.exports = {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
+
+  			/* Brand Color Palette */
+  			brand: {
+  				DEFAULT: 'hsl(var(--brand))',
+  				light: 'hsl(var(--brand-light))',
+  				lighter: 'hsl(var(--brand-lighter))',
+  				dark: 'hsl(var(--brand-dark))',
+  				darker: 'hsl(var(--brand-darker))'
+  			},
+
+  			/* Secondary Color Palette */
+  			teal: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				light: 'hsl(var(--secondary-light))',
+  				lighter: 'hsl(var(--secondary-lighter))',
+  				dark: 'hsl(var(--secondary-dark))',
+  				darker: 'hsl(var(--secondary-darker))'
+  			},
+
+  			/* Neutral Colors */
+  			neutral: {
+  				50: 'hsl(var(--neutral-50))',
+  				100: 'hsl(var(--neutral-100))',
+  				200: 'hsl(var(--neutral-200))',
+  				300: 'hsl(var(--neutral-300))',
+  				400: 'hsl(var(--neutral-400))',
+  				500: 'hsl(var(--neutral-500))',
+  				600: 'hsl(var(--neutral-600))',
+  				700: 'hsl(var(--neutral-700))',
+  				800: 'hsl(var(--neutral-800))',
+  				900: 'hsl(var(--neutral-900))'
+  			},
+
+  			/* Accent Colors */
+  			gold: 'hsl(var(--accent-gold))',
+  			indigo: 'hsl(var(--accent-indigo))',
+  			purple: 'hsl(var(--accent-purple))',
+
+  			/* Functional Colors */
+  			success: 'hsl(var(--success))',
+  			warning: 'hsl(var(--warning))',
+  			error: 'hsl(var(--error))',
+  			info: 'hsl(var(--info))',
+
+  			/* Chart Colors */
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
