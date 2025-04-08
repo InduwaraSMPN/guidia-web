@@ -1,3 +1,8 @@
 Companies page add new colomn company type that need to sync withprofile edit and welcome profile edit
 
-V0 chat page implement
+schedule meeting
+
+email notify job submit
+
+
+remove twst and dummy data

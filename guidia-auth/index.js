@@ -45,6 +45,7 @@ const counselorsRouter = require('./routes/counselors');
 const companiesRouter = require('./routes/companies');
 const jobsRouter = require('./routes/jobs');
 const messagesRouter = require('./routes/messages');
+const notificationsRouter = require('./routes/notifications');
 app.use('/api', messagesRouter);
 
 // Basic middleware
@@ -85,6 +86,7 @@ app.locals.pool = pool;
 app.use('/api/counselors', counselorsRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/messages', messagesRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // **Endpoints**
 

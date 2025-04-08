@@ -36,6 +36,8 @@ router.get('/', async (req, res) => {
 
 // POST /api/jobs
 router.post('/', async (req, res) => {
+  const NotificationTriggers = require('../utils/notificationTriggers');
+  const notificationTriggers = new NotificationTriggers(req.app.locals.pool);
   try {
     const pool = req.app.locals.pool;
     const {
@@ -45,14 +47,38 @@ router.post('/', async (req, res) => {
       description,
       startDate,
       endDate,
-      status,
-      companyID  // This is required but missing in your current request
+      status
+      // companyID is taken directly from req.body.companyID below
     } = req.body;
 
     const [result] = await pool.execute(
       'INSERT INTO jobs (companyID, title, tags, location, description, startDate, endDate, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [req.body.companyID, title, tags, location, description, startDate, endDate, status]
     );
+
+    // Get company details for notification
+    const [companyDetails] = await pool.execute(
+      'SELECT * FROM companies WHERE companyID = ?',
+      [req.body.companyID]
+    );
+
+    // Create job object for notification
+    const job = {
+      jobID: result.insertId,
+      title,
+      companyID: req.body.companyID
+    };
+
+    // Create company object for notification
+    const company = companyDetails.length > 0 ? companyDetails[0] : { companyID: req.body.companyID };
+
+    // Trigger notifications
+    try {
+      await notificationTriggers.newJobPosted(job, company);
+    } catch (notificationError) {
+      console.error('Error sending notification:', notificationError);
+      // Continue with the response even if notification fails
+    }
 
     res.status(201).json({
       message: 'Job posted successfully',
@@ -66,10 +92,11 @@ router.post('/', async (req, res) => {
 
 // GET /api/jobs/:id
 router.get('/:id', async (req, res) => {
+  const jwt = require('jsonwebtoken');
   try {
     const pool = req.app.locals.pool;
     const [jobs] = await pool.execute(`
-      SELECT 
+      SELECT
         j.*,
         c.companyName,
         c.companyLogoPath,
@@ -83,7 +110,38 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    res.json(jobs[0]);
+    const jobData = jobs[0];
+
+    // Track job view if user is authenticated
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userID = decoded.id;
+
+        // Record the view
+        await pool.execute(
+          'INSERT INTO job_views (jobID, userID, ipAddress) VALUES (?, ?, ?)',
+          [req.params.id, userID, req.ip]
+        );
+
+        // If the viewer is a student and the job is from a company, notify the company
+        const [userRole] = await pool.execute(
+          'SELECT roleID FROM users WHERE userID = ?',
+          [userID]
+        );
+
+        if (userRole.length > 0 && userRole[0].roleID === 2) { // Student role
+          // This could be used for analytics or notifications
+          // For now, we're just tracking the view
+        }
+      } catch (viewError) {
+        // Don't fail the request if view tracking fails
+        console.error('Error tracking job view:', viewError);
+      }
+    }
+
+    res.json(jobData);
   } catch (error) {
     console.error('Error fetching job:', error);
     res.status(500).json({ error: 'Failed to fetch job details' });
@@ -116,12 +174,12 @@ router.put('/:id', async (req, res) => {
 
     // Update the job
     await pool.execute(
-      `UPDATE jobs 
-       SET title = ?, 
-           tags = ?, 
-           location = ?, 
-           description = ?, 
-           startDate = ?, 
+      `UPDATE jobs
+       SET title = ?,
+           tags = ?,
+           location = ?,
+           description = ?,
+           startDate = ?,
            endDate = ?,
            updatedAt = CURRENT_TIMESTAMP
        WHERE jobID = ?`,
@@ -172,14 +230,16 @@ router.delete('/:id', async (req, res) => {
 
 // POST /api/jobs/applications
 router.post('/applications', upload.single('resume'), async (req, res) => {
+  const NotificationTriggers = require('../utils/notificationTriggers');
+  const notificationTriggers = new NotificationTriggers(req.app.locals.pool);
   try {
     const pool = req.app.locals.pool;
     const { jobId } = req.body;
 
     // Check if job exists and is not expired
     const [jobs] = await pool.execute(`
-      SELECT jobID, endDate 
-      FROM jobs 
+      SELECT jobID, endDate
+      FROM jobs
       WHERE jobID = ? AND status = 'active'
     `, [jobId]);
 
@@ -188,8 +248,8 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
     }
 
     // Check if job has expired
-    const job = jobs[0];
-    if (new Date(job.endDate) < new Date()) {
+    const jobItem = jobs[0];
+    if (new Date(jobItem.endDate) < new Date()) {
       return res.status(400).json({ error: 'This job posting has expired' });
     }
 
@@ -217,7 +277,7 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
     );
 
     if (existingApplication.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'You have already applied for this job'
       });
     }
@@ -236,11 +296,54 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
 
     // Insert application into database with Azure blob URL
     const [result] = await pool.execute(
-      `INSERT INTO job_applications 
-       (jobID, studentID, firstName, lastName, email, phone, resumePath) 
+      `INSERT INTO job_applications
+       (jobID, studentID, firstName, lastName, email, phone, resumePath)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [jobId, studentID, firstName, lastName, email, phone, resumePath]
     );
+
+    // Get job details for notification
+    const [jobDetails] = await pool.execute(
+      `SELECT j.*, c.companyName, c.userID as companyUserID
+       FROM jobs j
+       JOIN companies c ON j.companyID = c.companyID
+       WHERE j.jobID = ?`,
+      [jobId]
+    );
+
+    // Get student details for notification
+    const [studentDetails] = await pool.execute(
+      `SELECT s.*, u.userID
+       FROM students s
+       JOIN users u ON s.userID = u.userID
+       WHERE s.userID = ?`,
+      [studentID]
+    );
+
+    // Create application object for notification
+    const application = {
+      applicationID: result.insertId,
+      studentID,
+      jobID: jobId
+    };
+
+    // Create student object for notification if student profile exists
+    const student = studentDetails.length > 0 ? studentDetails[0] : {
+      userID: studentID,
+      firstName,
+      lastName
+    };
+
+    // Create job object for notification
+    const jobForNotification = jobDetails.length > 0 ? jobDetails[0] : { jobID: jobId, title: 'Job' };
+
+    // Trigger notifications
+    try {
+      await notificationTriggers.newJobApplication(application, student, jobForNotification);
+    } catch (notificationError) {
+      console.error('Error sending notification:', notificationError);
+      // Continue with the response even if notification fails
+    }
 
     res.status(201).json({
       message: 'Application submitted successfully',
@@ -249,14 +352,14 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
     });
   } catch (error) {
     console.error('Error submitting application:', error);
-    
+
     // Handle duplicate application error specifically
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'You have already applied for this job'
       });
     }
-    
+
     res.status(500).json({ error: error.message || 'Failed to submit application' });
   }
 });
@@ -268,7 +371,7 @@ router.get('/applications/student/:studentID', verifyToken, async (req, res) => 
     const studentID = req.params.studentID;
 
     const [applications] = await pool.execute(`
-      SELECT 
+      SELECT
         ja.applicationID,
         ja.jobID,
         ja.resumePath,
@@ -301,7 +404,7 @@ router.delete('/applications/:id', verifyToken, async (req, res) => {
 
     // Get application details including submission time and job end date
     const [application] = await pool.execute(`
-      SELECT 
+      SELECT
         ja.applicationID,
         ja.submittedAt,
         j.endDate,
@@ -313,8 +416,8 @@ router.delete('/applications/:id', verifyToken, async (req, res) => {
     `, [applicationId, userId]);
 
     if (application.length === 0) {
-      return res.status(404).json({ 
-        error: 'Application not found or you do not have permission to delete it' 
+      return res.status(404).json({
+        error: 'Application not found or you do not have permission to delete it'
       });
     }
 
@@ -365,7 +468,7 @@ router.get('/applications/:userId', verifyToken, async (req, res) => {
     const userId = req.params.userId;
 
     const [applications] = await pool.query(`
-      SELECT 
+      SELECT
         ja.applicationID,
         ja.jobID,
         j.title as jobTitle,
