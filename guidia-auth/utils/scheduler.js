@@ -1,36 +1,63 @@
+const schedule = require('node-schedule');
 const ScheduledTasks = require('./scheduledTasks');
 
 /**
- * Scheduler for running tasks at regular intervals
+ * Scheduler for running tasks at regular intervals using node-schedule
+ * This provides more reliable scheduling than setInterval
  */
 class Scheduler {
   constructor(pool) {
     this.pool = pool;
     this.scheduledTasks = new ScheduledTasks(pool);
-    this.dailyTasksInterval = null;
-    this.weeklyTasksInterval = null;
+    this.jobs = {};
   }
 
   /**
    * Start the scheduler
    */
   start() {
-    console.log('Starting scheduler...');
-    
+    console.log('Starting scheduler with node-schedule...');
+
     // Run daily tasks immediately on startup
     this.runDailyTasks();
-    
-    // Then schedule daily tasks to run every 24 hours
-    this.dailyTasksInterval = setInterval(() => {
+
+    // Schedule daily tasks to run at midnight (00:00)
+    this.jobs.daily = schedule.scheduleJob('0 0 * * *', () => {
       this.runDailyTasks();
-    }, 24 * 60 * 60 * 1000); // 24 hours
-    
-    // Run weekly tasks every 7 days
-    this.weeklyTasksInterval = setInterval(() => {
+    });
+
+    // Schedule weekly tasks to run at midnight on Sunday (00:00)
+    this.jobs.weekly = schedule.scheduleJob('0 0 * * 0', () => {
       this.runWeeklyTasks();
-    }, 7 * 24 * 60 * 60 * 1000); // 7 days
-    
-    console.log('Scheduler started');
+    });
+
+    // Schedule job application deadline check to run every 6 hours
+    this.jobs.deadlineCheck = schedule.scheduleJob('0 */6 * * *', async () => {
+      console.log(`Running job application deadline check at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.sendApplicationDeadlineReminders();
+        console.log(`Completed job application deadline check at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running deadline check:', error);
+      }
+    });
+
+    // Schedule job expiration check to run every 12 hours
+    this.jobs.expirationCheck = schedule.scheduleJob('0 */12 * * *', async () => {
+      console.log(`Running job expiration check at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.checkExpiringJobs();
+        console.log(`Completed job expiration check at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running expiration check:', error);
+      }
+    });
+
+    console.log('Scheduler started with the following schedule:');
+    console.log('- Daily tasks: Every day at midnight (00:00)');
+    console.log('- Weekly tasks: Every Sunday at midnight (00:00)');
+    console.log('- Job deadline reminders: Every 6 hours');
+    console.log('- Job expiration checks: Every 12 hours');
   }
 
   /**
@@ -38,17 +65,15 @@ class Scheduler {
    */
   stop() {
     console.log('Stopping scheduler...');
-    
-    if (this.dailyTasksInterval) {
-      clearInterval(this.dailyTasksInterval);
-      this.dailyTasksInterval = null;
-    }
-    
-    if (this.weeklyTasksInterval) {
-      clearInterval(this.weeklyTasksInterval);
-      this.weeklyTasksInterval = null;
-    }
-    
+
+    // Cancel all scheduled jobs
+    Object.values(this.jobs).forEach(job => {
+      if (job) {
+        job.cancel();
+      }
+    });
+
+    this.jobs = {};
     console.log('Scheduler stopped');
   }
 
