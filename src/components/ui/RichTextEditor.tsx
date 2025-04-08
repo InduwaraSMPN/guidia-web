@@ -64,25 +64,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         )}
       >
         <div ref={quillRef} />
-        <style>{`
-        .ql-container {
-          font-family: inherit;
-          font-size: inherit;
-          border: none !important;
-        }
-        .ql-toolbar {
-          border: none !important;
-          border-bottom: 1px solid #e5e7eb !important;
-        }
-        .ql-editor {
-          padding: 0.75rem 1rem;
-          min-height: 120px;
-        }
-        .ql-editor.ql-blank::before {
-          color: #9ca3af;
-          font-style: normal;
-        }
-      `}</style>
+        {/* Rich Text Editor styles are defined in index.css */}
       </div>
     );
   }

@@ -313,16 +313,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
             </AnimatePresence>
           </div>
 
-          {/* Add custom scrollbar styles */}
-          <style jsx global>{`
-  .custom-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  .custom-scrollbar::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
-  }
-`}</style>
+          {/* Custom scrollbar styles are defined in index.css */}
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

@@ -355,24 +355,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
         </Menu>
       </Sidebar>
 
-      {/* Add global styles for animations */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slideDown {
-          from { 
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+      {/* Animations are defined in index.css */}
     </div>
   )
 }
