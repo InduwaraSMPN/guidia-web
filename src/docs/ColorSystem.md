@@ -22,9 +22,10 @@ You can use the colors directly in your components using Tailwind classes:
 <div className="bg-brand-light">Lighter Brand</div>
 <div className="bg-brand-darker">Darker Brand</div>
 
-// Using secondary colors
-<div className="bg-teal text-white">Teal</div>
-<div className="bg-teal-light">Lighter Teal</div>
+// Using secondary colors (gray)
+<div className="bg-gray text-neutral-900">Gray</div>
+<div className="bg-gray-light text-neutral-900">Lighter Gray</div>
+<div className="bg-gray-dark text-neutral-900">Darker Gray</div>
 
 // Using neutral colors
 <div className="text-neutral-900">Dark Text</div>
@@ -68,13 +69,13 @@ You can also use the CSS variables directly in your CSS:
 - `--brand-dark`: #600018 (Darker burgundy)
 - `--brand-darker`: #400010 (Very dark burgundy)
 
-### Secondary Colors (Teal)
+### Secondary Colors (Gray)
 
-- `--secondary`: #008066 (Teal)
-- `--secondary-light`: #1A9980 (Lighter teal)
-- `--secondary-lighter`: #33B299 (Even lighter teal)
-- `--secondary-dark`: #006B55 (Darker teal)
-- `--secondary-darker`: #004D3D (Very dark teal)
+- `--secondary`: #F7F7F7 (Very light gray)
+- `--secondary-light`: #EFEFEF (Slightly darker gray)
+- `--secondary-lighter`: #E8E8E8 (Another subtle gray)
+- `--secondary-dark`: #D3D3D3 (Medium light gray)
+- `--secondary-darker`: #BFBFBF (Medium gray)
 
 ### Neutral Colors
 
@@ -115,7 +116,7 @@ You can also use the CSS variables directly in your CSS:
 - Use `bg-background` for page backgrounds
 - Use `bg-card` for cards, modals, and other UI containers
 - Use `bg-brand` for primary buttons and important UI elements
-- Use `bg-teal` for secondary actions
+- Use `bg-gray` for secondary actions and subtle UI elements
 
 ### Borders
 

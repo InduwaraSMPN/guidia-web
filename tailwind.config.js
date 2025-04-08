@@ -73,8 +73,8 @@ module.exports = {
   				darker: 'hsl(var(--brand-darker))'
   			},
 
-  			/* Secondary Color Palette */
-  			teal: {
+  			/* Secondary Color Palette (Neutral Grays) */
+  			gray: {
   				DEFAULT: 'hsl(var(--secondary))',
   				light: 'hsl(var(--secondary-light))',
   				lighter: 'hsl(var(--secondary-lighter))',

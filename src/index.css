@@ -48,12 +48,12 @@
     --brand-dark: 345 100% 19%; /* #600018 */
     --brand-darker: 345 100% 13%; /* #400010 */
 
-    /* Secondary Color Palette - Light Mode */
-    --secondary: 165 100% 25%; /* #008066 - Teal */
-    --secondary-light: 168 70% 31%; /* #1A9980 */
-    --secondary-lighter: 168 56% 40%; /* #33B299 */
-    --secondary-dark: 168 100% 21%; /* #006B55 */
-    --secondary-darker: 168 100% 15%; /* #004D3D */
+    /* Secondary Color Palette - Light Mode (Neutral Grays) */
+    --secondary: 0 0% 97%; /* #F7F7F7 - Very light gray */
+    --secondary-light: 0 0% 94%; /* #EFEFEF - Slightly darker gray */
+    --secondary-lighter: 0 0% 91%; /* #E8E8E8 - Another subtle gray */
+    --secondary-dark: 0 0% 83%; /* #D3D3D3 - Medium light gray */
+    --secondary-darker: 0 0% 75%; /* #BFBFBF - Medium gray */
 
     /* Neutral Colors - Light Mode */
     --neutral-50: 0 0% 100%; /* #FFFFFF */
@@ -126,12 +126,12 @@
     --brand-dark: 345 70% 34%; /* #901A30 */
     --brand-darker: 345 85% 24%; /* #700A20 */
 
-    /* Secondary Color Palette - Dark Mode */
-    --secondary: 168 74% 40%; /* #1AB394 - Brightened teal */
-    --secondary-light: 168 60% 48%; /* #33C3A6 */
-    --secondary-lighter: 168 50% 56%; /* #4DD3B9 */
-    --secondary-dark: 168 85% 32%; /* #0A9378 */
-    --secondary-darker: 168 100% 24%; /* #007A62 */
+    /* Secondary Color Palette - Dark Mode (Neutral Grays) */
+    --secondary: 0 0% 15%; /* #262626 - Dark gray for dark mode */
+    --secondary-light: 0 0% 18%; /* #2E2E2E - Slightly lighter gray */
+    --secondary-lighter: 0 0% 22%; /* #383838 - Another subtle dark gray */
+    --secondary-dark: 0 0% 12%; /* #1F1F1F - Darker gray */
+    --secondary-darker: 0 0% 9%; /* #171717 - Very dark gray */
 
     /* Neutral Colors - Dark Mode */
     --neutral-50: 0 0% 98%; /* #F9FAFB */

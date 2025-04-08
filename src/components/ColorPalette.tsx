@@ -9,7 +9,7 @@ interface ColorSwatchProps {
 const ColorSwatch: React.FC<ColorSwatchProps> = ({ colorClass, label, textClass = 'text-white' }) => {
   return (
     <div className="flex flex-col items-center">
-      <div 
+      <div
         className={`w-16 h-16 rounded-md shadow-md ${colorClass} flex items-center justify-center mb-2`}
       >
         <span className={`text-xs font-medium ${textClass}`}>{label}</span>
@@ -22,7 +22,7 @@ export const ColorPalette: React.FC = () => {
   return (
     <div className="p-6 bg-background text-foreground">
       <h2 className="text-2xl font-bold mb-6">Color Palette</h2>
-      
+
       <div className="space-y-8">
         {/* Brand Colors */}
         <div>
@@ -35,19 +35,19 @@ export const ColorPalette: React.FC = () => {
             <ColorSwatch colorClass="bg-brand-darker" label="Darker" />
           </div>
         </div>
-        
+
         {/* Secondary Colors */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Secondary Colors (Teal)</h3>
+          <h3 className="text-xl font-semibold mb-4">Secondary Colors (Gray)</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            <ColorSwatch colorClass="bg-teal" label="Teal" />
-            <ColorSwatch colorClass="bg-teal-light" label="Light" />
-            <ColorSwatch colorClass="bg-teal-lighter" label="Lighter" />
-            <ColorSwatch colorClass="bg-teal-dark" label="Dark" />
-            <ColorSwatch colorClass="bg-teal-darker" label="Darker" />
+            <ColorSwatch colorClass="bg-gray" label="Gray" textClass="text-neutral-900" />
+            <ColorSwatch colorClass="bg-gray-light" label="Light" textClass="text-neutral-900" />
+            <ColorSwatch colorClass="bg-gray-lighter" label="Lighter" textClass="text-neutral-900" />
+            <ColorSwatch colorClass="bg-gray-dark" label="Dark" textClass="text-neutral-900" />
+            <ColorSwatch colorClass="bg-gray-darker" label="Darker" textClass="text-neutral-900" />
           </div>
         </div>
-        
+
         {/* Neutral Colors */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Neutral Colors</h3>
@@ -64,7 +64,7 @@ export const ColorPalette: React.FC = () => {
             <ColorSwatch colorClass="bg-neutral-900" label="900" />
           </div>
         </div>
-        
+
         {/* Accent Colors */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Accent Colors</h3>
@@ -74,7 +74,7 @@ export const ColorPalette: React.FC = () => {
             <ColorSwatch colorClass="bg-purple" label="Purple" />
           </div>
         </div>
-        
+
         {/* Functional Colors */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Functional Colors</h3>
@@ -85,7 +85,7 @@ export const ColorPalette: React.FC = () => {
             <ColorSwatch colorClass="bg-info" label="Info" />
           </div>
         </div>
-        
+
         {/* Chart Colors */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Chart Colors</h3>
@@ -98,10 +98,10 @@ export const ColorPalette: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="mt-8 p-4 bg-card rounded-lg border border-border">
         <h3 className="text-xl font-semibold mb-4">Usage Examples</h3>
-        
+
         <div className="space-y-4">
           <div>
             <h4 className="font-medium mb-2">Buttons</h4>
@@ -109,7 +109,7 @@ export const ColorPalette: React.FC = () => {
               <button className="bg-brand text-white px-4 py-2 rounded-md hover:bg-brand-light">
                 Primary Button
               </button>
-              <button className="bg-teal text-white px-4 py-2 rounded-md hover:bg-teal-light">
+              <button className="bg-gray text-neutral-800 px-4 py-2 rounded-md hover:bg-gray-dark">
                 Secondary Button
               </button>
               <button className="bg-neutral-200 text-neutral-800 px-4 py-2 rounded-md hover:bg-neutral-300">
@@ -120,7 +120,7 @@ export const ColorPalette: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-medium mb-2">Alerts</h4>
             <div className="space-y-2">
@@ -138,7 +138,7 @@ export const ColorPalette: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div>
             <h4 className="font-medium mb-2">Text</h4>
             <div className="space-y-1">
