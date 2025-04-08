@@ -47,6 +47,7 @@ const jobsRouter = require('./routes/jobs');
 const messagesRouter = require('./routes/messages');
 const notificationsRouter = require('./routes/notifications');
 const adminRouter = require('./routes/admin');
+const usersRouter = require('./routes/users');
 const NotificationSocketService = require('./services/notificationSocketService');
 const Scheduler = require('./utils/scheduler');
 app.use('/api', messagesRouter);
@@ -55,7 +56,8 @@ app.use('/api', messagesRouter);
 app.use(express.json());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:1030',
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['X-CSRF-Token']
 }));
 app.use('/api/students', studentRoutes);
 app.use('/api/counselors', counselorsRouter);
@@ -90,6 +92,7 @@ app.use('/api/counselors', counselorsRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/users', usersRouter);
 
 // Initialize notification service with socket service
 app.use('/api/notifications', (req, res, next) => {
@@ -327,28 +330,17 @@ app.get('/api/counts', async (req, res) => {
   }
 });
 
-// Admin middleware
-const requireAdmin = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized - No token provided' });
-    }
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const [users] = await pool.query('SELECT roleID FROM users WHERE userID = ?', [decoded.id]);
-    if (users.length === 0 || users[0].roleID !== 1) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-    req.user = { userId: decoded.id, roleId: users[0].roleID };
-    next();
-  } catch (error) {
-    console.error('Admin authorization error:', error);
-    if (error.name === 'JsonWebTokenError') return res.status(401).json({ error: 'Invalid token' });
-    if (error.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expired' });
-    res.status(500).json({ error: 'Internal server error during authorization' });
-  }
-};
+// Import the authentication middleware
+const { verifyToken, verifyAdmin } = require('./middleware/auth');
+
+// Import rate limiters
+const { authLimiter, registrationLimiter } = require('./middleware/rateLimiter');
+
+// Import CSRF protection
+const { csrfProtection, csrfTokenGenerator } = require('./middleware/csrfProtection');
+
+// Admin middleware (for backward compatibility)
+const requireAdmin = [verifyToken, verifyAdmin];
 
 // Admin endpoints
 app.get('/api/admin/user-counts', requireAdmin, async (req, res) => {
@@ -626,7 +618,8 @@ app.patch('/api/admin/users/:userType/:id/status', requireAdmin, async (req, res
 });
 
 // Auth endpoints
-app.post('/auth/login', async (req, res) => {
+// Add CSRF token generator to login response
+app.post('/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     const [users] = await pool.query(
@@ -665,6 +658,7 @@ app.post('/auth/login', async (req, res) => {
       hasProfile = companyProfile.length > 0;
     }
 
+    // Generate access token
     const token = jwt.sign(
       {
         id: user.userID.toString(),
@@ -677,8 +671,22 @@ app.post('/auth/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    // Generate refresh token
+    const refreshToken = jwt.sign(
+      { id: user.userID.toString() },
+      process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Generate CSRF token
+    const csrfToken = require('./middleware/csrfProtection').generateCsrfToken(user.userID.toString());
+
+    // Set CSRF token in response header
+    res.set('X-CSRF-Token', csrfToken);
+
     res.json({
       token,
+      refreshToken,
       userId: user.userID.toString(),
       email: user.email,
       roleId: user.roleID,
@@ -798,7 +806,7 @@ app.post('/auth/register/verify-otp', async (req, res) => {
   }
 });
 
-app.post('/auth/register', async (req, res) => {
+app.post('/auth/register', registrationLimiter, async (req, res) => {
   try {
     const { email, username, password } = req.body;
     const [verifications] = await pool.query('SELECT * FROM otp_verifications WHERE email = ? AND verified = TRUE', [email]);
@@ -982,19 +990,11 @@ const io = new Server(server, {
 const notificationSocketService = new NotificationSocketService(io);
 notificationSocketService.initialize();
 
-// Socket.io middleware for authentication
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    return next(new Error('Authentication error'));
-  }
+// Import the socket authentication middleware
+const { socketAuth } = require('./middleware/auth');
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return next(new Error('Authentication error'));
-    socket.user = decoded;
-    next();
-  });
-});
+// Socket.io middleware for authentication
+io.use(socketAuth);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

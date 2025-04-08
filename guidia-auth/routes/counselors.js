@@ -1,24 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
+const { verifyToken, verifyCounselor, verifyOwnership } = require('../middleware/auth');
 
-// Token verification middleware
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = user;
-    next();
-  });
-};
+// Using standardized auth middleware from middleware/auth.js
 
 // Create/Update counselor profile
 router.post('/profile', verifyToken, async (req, res) => {
@@ -27,7 +11,7 @@ router.post('/profile', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
     }
@@ -39,14 +23,14 @@ router.post('/profile', verifyToken, async (req, res) => {
     );
 
     // Convert languages to JSON if it's a string
-    const languagesJson = typeof profileData.languages === 'string' 
-      ? JSON.stringify([profileData.languages]) 
+    const languagesJson = typeof profileData.languages === 'string'
+      ? JSON.stringify([profileData.languages])
       : JSON.stringify(profileData.languages);
 
     if (existing.length > 0) {
       // Update existing profile
       const updateQuery = `
-        UPDATE counselors 
+        UPDATE counselors
         SET counselorName = ?,
             counselorPosition = ?,
             counselorEducation = ?,
@@ -73,9 +57,9 @@ router.post('/profile', verifyToken, async (req, res) => {
       ];
 
       await req.app.locals.pool.execute(updateQuery, updateParams);
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         counselorID: existing[0].counselorID,
         message: 'Profile updated successfully'
       });
@@ -110,9 +94,9 @@ router.post('/profile', verifyToken, async (req, res) => {
       ];
 
       const [result] = await req.app.locals.pool.execute(insertQuery, insertParams);
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         counselorID: result.insertId,
         message: 'Profile created successfully'
       });
@@ -130,14 +114,14 @@ router.patch('/specializations', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
     }
 
     if (!Array.isArray(specializations)) {
-      return res.status(400).json({ 
-        error: 'Specializations must be an array' 
+      return res.status(400).json({
+        error: 'Specializations must be an array'
       });
     }
 
@@ -164,15 +148,15 @@ router.patch('/specializations', verifyToken, async (req, res) => {
       );
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Specializations updated successfully',
       specializations: specializations // Return the updated specializations
     });
   } catch (error) {
     console.error('Error updating specializations:', error);
-    res.status(500).json({ 
-      error: 'Failed to update specializations' 
+    res.status(500).json({
+      error: 'Failed to update specializations'
     });
   }
 });
@@ -216,7 +200,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch counselor profile',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -231,18 +215,18 @@ router.patch('/:userID', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID !== req.user.id) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
     }
 
     // Convert languages to JSON if it's an array
-    const languagesJson = Array.isArray(profileData.languages) 
+    const languagesJson = Array.isArray(profileData.languages)
       ? JSON.stringify(profileData.languages)
       : JSON.stringify([profileData.languages]);
 
     const updateQuery = `
-      UPDATE counselors 
+      UPDATE counselors
       SET counselorName = COALESCE(?, counselorName),
           counselorPosition = COALESCE(?, counselorPosition),
           counselorEducation = COALESCE(?, counselorEducation),
@@ -269,21 +253,21 @@ router.patch('/:userID', verifyToken, async (req, res) => {
     ];
 
     const [result] = await req.app.locals.pool.execute(updateQuery, updateParams);
-    
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Counselor profile not found'
       });
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Profile updated successfully'
     });
 
   } catch (error) {
     console.error('Error updating counselor profile:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update profile'
     });
   }
@@ -293,8 +277,8 @@ router.patch('/:userID', verifyToken, async (req, res) => {
 router.get('/', verifyToken, async (req, res) => {
   try {
     const [counselors] = await req.app.locals.pool.execute(`
-      SELECT c.*, u.email as counselorEmail 
-      FROM counselors c 
+      SELECT c.*, u.email as counselorEmail
+      FROM counselors c
       JOIN users u ON c.userID = u.userID
     `);
 
@@ -303,7 +287,7 @@ router.get('/', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch counselors',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -320,12 +304,12 @@ router.get('/profile/:id', verifyToken, async (req, res) => {
   try {
     // Get counselor data with joined user information
     const [counselors] = await req.app.locals.pool.execute(`
-      SELECT 
+      SELECT
         c.*,
         u.email as counselorEmail,
         JSON_UNQUOTE(c.counselorLanguages) as counselorLanguages,
         JSON_UNQUOTE(c.counselorSpecializations) as counselorSpecializations
-      FROM counselors c 
+      FROM counselors c
       JOIN users u ON c.userID = u.userID
       WHERE c.userID = ?
     `, [req.params.id]);
@@ -338,7 +322,7 @@ router.get('/profile/:id', verifyToken, async (req, res) => {
     }
 
     const counselor = counselors[0];
-    
+
     // Parse JSON fields
     try {
       counselor.counselorLanguages = JSON.parse(counselor.counselorLanguages || '[]');
@@ -359,7 +343,7 @@ router.get('/profile/:id', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch counselor profile',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });

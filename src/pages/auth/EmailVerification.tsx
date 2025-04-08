@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "../../components/ui/input";
 import { CheckCircle } from "lucide-react";
+import { API_URL } from "../../config";
 
 export function EmailVerification() {
   const [otp, setOtp] = useState("");
@@ -52,7 +53,7 @@ export function EmailVerification() {
       setError(null);
 
       const response = await fetch(
-        "http://localhost:3001/auth/register/send-otp",
+        `${API_URL}/auth/register/send-otp`,
         {
           method: "POST",
           headers: {
@@ -97,13 +98,13 @@ export function EmailVerification() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (otp.length !== 6) return; // Add length check for safety
-    
+
     try {
       setVerifyLoading(true);
       setError(null);
 
       const response = await fetch(
-        "http://localhost:3001/auth/register/verify-otp",
+        `${API_URL}/auth/register/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -141,13 +142,13 @@ export function EmailVerification() {
       // Handle pasting of multiple characters
       const pastedValue = value.replace(/\D/g, '').slice(0, 6);
       const newOtpValues = [...otpValues];
-      
+
       for (let i = 0; i < pastedValue.length; i++) {
         if (index + i < 6) {
           newOtpValues[index + i] = pastedValue[i];
         }
       }
-      
+
       setOtpValues(newOtpValues);
       setOtp(newOtpValues.join(''));
 
@@ -178,7 +179,7 @@ export function EmailVerification() {
   const handlePaste = (e: React.ClipboardEvent, index: number) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    
+
     if (!pastedData) return;
 
     const newOtpValues = [...otpValues];
@@ -187,7 +188,7 @@ export function EmailVerification() {
         newOtpValues[index + i] = pastedData[i];
       }
     }
-    
+
     setOtpValues(newOtpValues);
     setOtp(newOtpValues.join(''));
 
@@ -229,10 +230,10 @@ export function EmailVerification() {
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={(e) => handlePaste(e, index)}
                   className={`w-12 h-12 text-center text-xl font-semibold border-2 rounded-lg focus:outline-none focus:ring-1 ${
-                    verificationStatus === 'success' 
-                      ? 'border-green-500 focus:ring-green-500 focus:border-green-500' 
-                      : verificationStatus === 'error' 
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                    verificationStatus === 'success'
+                      ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                      : verificationStatus === 'error'
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                         : 'border-gray-300 focus:border-[#800020] focus:ring-[#800020]'
                   }`}
                 />

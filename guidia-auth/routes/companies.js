@@ -108,11 +108,11 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
     const { userID } = req.params;
     const {
       companyName,
+      companyEmail,
       companyCountry,
       companyCity,
       companyWebsite,
       companyContactNumber,
-      companyEmail,
       companyDescription,
       companyLogoPath
     } = req.body;
@@ -126,7 +126,7 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
 
     // First check if profile exists
     const [existing] = await pool.execute(
-      'SELECT companyID FROM companies WHERE userID = ?',
+      'SELECT * FROM companies WHERE userID = ?',
       [userID]
     );
 
@@ -136,44 +136,72 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
       });
     }
 
-    // Update the profile
+    // Only update fields that are provided
+    const updates = [];
+    const values = [];
+    
+    if (companyName) {
+      updates.push('companyName = ?');
+      values.push(companyName);
+    }
+    if (companyEmail) {
+      updates.push('companyEmail = ?');
+      values.push(companyEmail);
+    }
+    // Preserve other fields if they exist
+    if (companyCountry) {
+      updates.push('companyCountry = ?');
+      values.push(companyCountry);
+    }
+    if (companyCity) {
+      updates.push('companyCity = ?');
+      values.push(companyCity);
+    }
+    if (companyWebsite) {
+      updates.push('companyWebsite = ?');
+      values.push(companyWebsite);
+    }
+    if (companyContactNumber) {
+      updates.push('companyContactNumber = ?');
+      values.push(companyContactNumber);
+    }
+    if (companyDescription) {
+      updates.push('companyDescription = ?');
+      values.push(companyDescription);
+    }
+    if (companyLogoPath) {
+      updates.push('companyLogoPath = ?');
+      values.push(companyLogoPath);
+    }
+
+    // Add userID to values array
+    values.push(userID);
+
     const updateQuery = `
       UPDATE companies 
-      SET 
-        companyName = ?,
-        companyCountry = ?,
-        companyCity = ?,
-        companyWebsite = ?,
-        companyContactNumber = ?,
-        companyEmail = ?,
-        companyDescription = ?,
-        companyLogoPath = ?
+      SET ${updates.join(', ')}
       WHERE userID = ?
     `;
 
-    const values = [
-      companyName,
-      companyCountry,
-      companyCity,
-      companyWebsite,
-      companyContactNumber,
-      companyEmail,
-      companyDescription,
-      companyLogoPath,
-      userID
-    ];
-
     await pool.execute(updateQuery, values);
+
+    // Fetch updated profile
+    const [updated] = await pool.execute(
+      'SELECT * FROM companies WHERE userID = ?',
+      [userID]
+    );
 
     res.json({
       success: true,
-      message: 'Profile updated successfully'
+      message: 'Profile updated successfully',
+      profile: updated[0]
     });
 
   } catch (error) {
     console.error('Error updating company profile:', error);
     res.status(500).json({ 
-      error: 'Failed to update profile'
+      error: 'Failed to update profile',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

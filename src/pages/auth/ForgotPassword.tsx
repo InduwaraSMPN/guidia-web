@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "../../components/ui/input";
 import { Clock } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import { API_URL } from "../../config";
 
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ export function ForgotPassword() {
       setError(null);
 
       const response = await fetch(
-        "http://localhost:3001/auth/forgot-password",
+        `${API_URL}/auth/forgot-password`,
         {
           method: "POST",
           headers: {
@@ -76,7 +77,7 @@ export function ForgotPassword() {
       <div className="w-full max-w-sm px-4 sm:px-6">
         <div>
           <h2 className="text-3xl font-extrabold text-[#800020] text-left">Reset Password</h2>
-          
+
           {error && (
             <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}

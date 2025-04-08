@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Input } from '../../components/ui/input';
+import { API_URL } from '../../config';
 
 export function RegisterContinue() {
   const [formData, setFormData] = useState({
@@ -47,7 +48,7 @@ export function RegisterContinue() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate password
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
@@ -68,7 +69,7 @@ export function RegisterContinue() {
         const { email } = JSON.parse(storedData);
 
         // Register user
-        const response = await fetch('http://localhost:3001/auth/register', {
+        const response = await fetch(`${API_URL}/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export function RegisterContinue() {
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
       <div className="w-full max-w-sm px-4 sm:px-6">
         <h1 className="text-3xl font-bold text-[#800020] mb-8">Register</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 text-left mb-1">

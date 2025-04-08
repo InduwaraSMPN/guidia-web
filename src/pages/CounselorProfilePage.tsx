@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, User, Pencil } from "lucide-react";
+import { Mail, Phone, User, Pencil, Settings } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -164,15 +164,26 @@ export function CounselorProfilePage() {
                   </div>
 
                   {isCurrentUser && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
-                      onClick={() => navigate(`/counselor/profile/edit/${userID}`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      Edit Profile
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2 border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                        onClick={() => navigate(`/counselor/profile/edit/${userID}`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2 border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                        onClick={() => navigate(`/counselor/profile/settings/${userID}`)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

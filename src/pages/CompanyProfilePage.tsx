@@ -1,7 +1,7 @@
 
 
 import { Button } from "@/components/ui/button"
-import { PencilIcon, Building2, MapPin, Globe, Mail, Phone, Briefcase } from "lucide-react"
+import { PencilIcon, Building2, MapPin, Globe, Mail, Phone, Briefcase, Settings } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { JobCard } from "../components/JobCard"
@@ -180,15 +180,26 @@ export function CompanyProfilePage() {
               </div>
             </div>
             {isCurrentUser && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-4 left-4 bg-white/90 hover:bg-white flex items-center gap-2 z-10"
-                onClick={() => navigate(`/company/profile/edit/${userID}`)}
-              >
-                <PencilIcon className="h-4 w-4" />
-                Edit Profile
-              </Button>
+              <div className="absolute top-4 left-4 flex gap-2 z-10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/90 hover:bg-white flex items-center gap-2"
+                  onClick={() => navigate(`/company/profile/edit/${userID}`)}
+                >
+                  <PencilIcon className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/90 hover:bg-white flex items-center gap-2"
+                  onClick={() => navigate(`/company/profile/settings/${userID}`)}
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Button>
+              </div>
             )}
           </div>
 

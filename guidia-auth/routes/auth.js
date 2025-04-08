@@ -45,33 +45,8 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Token verification middleware
-const verifyToken = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const [users] = await pool.query(
-      'SELECT userID FROM users WHERE userID = ?',
-      [decoded.id]
-    );
-
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    req.user = decoded;
-    next();
-  } catch (error) {
-    console.error('Token verification error:', error);
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
+// Import the standardized auth middleware
+const { verifyToken, verifyTokenProgrammatically } = require('../middleware/auth');
 
 // Get numeric userID from email
 router.post('/get-user-id', async (req, res) => {
@@ -113,7 +88,7 @@ router.post('/profile', verifyToken, debugRequest, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
     }
@@ -157,7 +132,7 @@ router.post('/profile', verifyToken, debugRequest, async (req, res) => {
 
     if (existing.length > 0) {
       const updateQuery = `
-        UPDATE students 
+        UPDATE students
         SET studentNumber = ?,
             studentName = ?,
             studentTitle = ?,
@@ -185,9 +160,9 @@ router.post('/profile', verifyToken, debugRequest, async (req, res) => {
       ];
 
       await pool.execute(updateQuery, updateParams);
-      
-      return res.json({ 
-        success: true, 
+
+      return res.json({
+        success: true,
         studentID: existing[0].studentID,
         message: 'Profile updated successfully'
       });
@@ -221,18 +196,18 @@ router.post('/profile', verifyToken, debugRequest, async (req, res) => {
       ];
 
       const [result] = await pool.execute(insertQuery, insertParams);
-      
-      return res.json({ 
-        success: true, 
+
+      return res.json({
+        success: true,
         studentID: result.insertId,
         message: 'Profile created successfully'
       });
     }
   } catch (error) {
     console.error('Profile save error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to save profile',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -248,18 +223,155 @@ router.patch('/students/career-pathways', verifyToken, async (req, res) => {
     }
 
     const updateQuery = `
-      UPDATE students 
+      UPDATE students
       SET studentCareerPathways = ?,
           updatedAt = NOW()
       WHERE userID = ?
     `;
 
     await pool.execute(updateQuery, [JSON.stringify(pathways), userID]);
-    
+
     res.json({ success: true, message: 'Career pathways updated successfully' });
   } catch (error) {
     console.error('Career pathways update error:', error);
     res.status(500).json({ error: 'Failed to update career pathways' });
+  }
+});
+
+/**
+ * Refresh an expired token
+ * POST /api/auth/refresh
+ * Body: { refreshToken: string }
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        error: 'Bad request',
+        message: 'Refresh token is required'
+      });
+    }
+
+    // Verify the refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          error: 'Authentication expired',
+          message: 'Refresh token has expired, please log in again'
+        });
+      }
+
+      return res.status(401).json({
+        error: 'Authentication invalid',
+        message: 'Invalid refresh token'
+      });
+    }
+
+    // Get the user from the database
+    const [users] = await pool.query(
+      'SELECT userID, email, roleID FROM users WHERE userID = ?',
+      [decoded.id]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({
+        error: 'Authentication failed',
+        message: 'User not found'
+      });
+    }
+
+    const user = users[0];
+
+    // Generate new tokens
+    const accessToken = jwt.sign(
+      { id: user.userID, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    const newRefreshToken = jwt.sign(
+      { id: user.userID },
+      process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Return the new tokens
+    res.json({
+      accessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user.userID.toString(),
+        userID: user.userID.toString(),
+        userId: user.userID.toString(),
+        email: user.email,
+        roleId: user.roleID,
+        roleID: user.roleID
+      }
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to refresh token'
+    });
+  }
+});
+
+/**
+ * Verify a token and return user data
+ * GET /api/auth/verify
+ * Headers: { Authorization: 'Bearer TOKEN' }
+ */
+router.get('/verify', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Authentication required',
+        message: 'No token provided'
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+      // Use the programmatic verification function
+      const user = await verifyTokenProgrammatically(token);
+
+      res.json({
+        id: user.id.toString(),
+        userID: user.id.toString(),
+        userId: user.id.toString(),
+        email: user.email,
+        roleId: user.roleId,
+        roleID: user.roleId
+      });
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          error: 'Authentication expired',
+          message: 'Token has expired',
+          code: 'TOKEN_EXPIRED'
+        });
+      }
+
+      return res.status(401).json({
+        error: 'Authentication invalid',
+        message: 'Invalid token'
+      });
+    }
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to verify token'
+    });
   }
 });
 

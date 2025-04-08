@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth');
-const verifyAdmin = require('../middleware/verifyAdmin');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 // Get the scheduler instance
 const scheduler = require('../utils/scheduler');

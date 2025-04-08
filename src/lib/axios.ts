@@ -1,19 +1,32 @@
 import axios from 'axios';
-import type { AxiosRequestConfig } from 'axios';
-import { useAuth } from '../contexts/AuthContext';
+import { getValidToken } from './tokenRefresh';
+import { getCsrfToken } from './csrfToken';
 
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: '/'
 });
 
-// Add a request interceptor to add the token
+// Add a request interceptor to add the token and CSRF token
 axiosInstance.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
-    const token = localStorage.getItem('token');
-    if (token) {
+  async (config: any) => {
+    try {
+      // Get a valid token (will refresh if needed)
+      const token = await getValidToken();
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+
+      // Add CSRF token for mutating requests (POST, PUT, DELETE, PATCH)
+      if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase())) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+          config.headers['X-CSRF-Token'] = csrfToken;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting valid token:', error);
+      // If we can't get a valid token, proceed without it
+      // The server will return 401 and the response interceptor will handle it
     }
     return config;
   },
@@ -26,24 +39,38 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   response => response,
   async error => {
-    if (error.response?.status === 401) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Try to verify the token first
-          await verifyToken(token);
-          // If verification succeeds, retry the original request
-          return axiosInstance(error.config);
-        } catch (verifyError) {
-          // Only remove token and redirect if verification fails
+    const originalRequest = error.config;
+
+    // If the error is 401 (Unauthorized) and we haven't tried to refresh the token yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Check if the error is due to an expired token
+        const isExpiredToken = error.response?.data?.code === 'TOKEN_EXPIRED';
+
+        if (isExpiredToken) {
+          // Try to get a valid token (will refresh if needed)
+          await getValidToken();
+
+          // Retry the original request with the new token
+          return axiosInstance(originalRequest);
+        } else {
+          // For other auth errors, redirect to login
           localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
           window.location.href = '/auth/login';
+          return Promise.reject(error);
         }
-      } else {
-        // No token found, redirect to login
+      } catch (refreshError) {
+        // If token refresh fails, redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         window.location.href = '/auth/login';
+        return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   }
 );

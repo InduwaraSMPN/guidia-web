@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/ui/input';
+import { API_URL } from '../../config';
 
 type UserType = 'Student' | 'Counselor' | 'Company';
 
@@ -17,9 +18,9 @@ export function RegisterAs() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Send OTP request
-        const response = await fetch('http://localhost:3001/auth/register/send-otp', {
+        const response = await fetch(`${API_URL}/auth/register/send-otp`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -28,7 +29,7 @@ export function RegisterAs() {
         });
 
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Failed to send OTP');
         }
@@ -53,7 +54,7 @@ export function RegisterAs() {
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <h1 className="text-3xl font-bold text-[#800020] mb-8">Register As</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex gap-4 justify-center mb-8">
             {(['Student', 'Counselor', 'Company'] as UserType[]).map((type) => (

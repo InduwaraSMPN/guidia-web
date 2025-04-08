@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const { verifyToken, verifyStudent, verifyOwnership } = require('../middleware/auth');
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -81,23 +82,7 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Middleware to verify JWT token
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = user;
-    next();
-  });
-};
+// Using standardized auth middleware from middleware/auth.js
 
 // GET student documents
 router.get('/documents', verifyToken, async (req, res) => {
@@ -170,7 +155,7 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
       const containerExists = await containerClient.exists();
       if (!containerExists) {
         console.error(`Container ${containerName} does not exist`);
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: 'Storage container not found',
           details: `Container ${containerName} does not exist`
         });
@@ -178,7 +163,7 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
 
       // Generate unique blob name with the new directory structure
       const blobName = `student-profile/documents/${Date.now()}-${userID}-${file.originalname}`;
-      
+
       // Get block blob client
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
@@ -191,7 +176,7 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
 
       // Upload file with metadata
       await blockBlobClient.uploadData(file.buffer, {
-        blobHTTPHeaders: { 
+        blobHTTPHeaders: {
           blobContentType: file.mimetype,
           blobContentDisposition: `inline; filename="${file.originalname}"`
         },
@@ -201,7 +186,7 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
           uploadedBy: userID.toString()
         }
       });
-      
+
       // Get blob URL
       const url = blockBlobClient.url;
 
@@ -218,8 +203,8 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
         stack: uploadError.stack,
         details: uploadError.details || 'No additional details'
       });
-      
-      return res.status(500).json({ 
+
+      return res.status(500).json({
         error: 'Failed to upload to storage',
         details: uploadError.message,
         code: uploadError.code || 'UNKNOWN_ERROR'
@@ -227,7 +212,7 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
     }
   } catch (error) {
     console.error('Error uploading document:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to upload document',
       message: error.message || 'Unknown error'
     });
@@ -356,7 +341,7 @@ router.post('/profile', verifyToken, async (req, res) => {
     } else {
       // If student exists, update record
       [result] = await pool.execute(
-        `UPDATE students SET 
+        `UPDATE students SET
          studentNumber = ?,
          studentName = ?,
          studentTitle = ?,
@@ -464,7 +449,7 @@ router.put('/:userID', verifyToken, async (req, res) => {
     console.log('Database values:', values);
 
     const [result] = await pool.execute(
-      `UPDATE students SET 
+      `UPDATE students SET
        studentNumber = ?,
        studentName = ?,
        studentTitle = ?,
@@ -493,11 +478,11 @@ router.put('/:userID', verifyToken, async (req, res) => {
 router.get('/test-azure-connection', verifyToken, async (req, res) => {
   try {
     console.log('Testing Azure connection...');
-    
+
     // Check configuration
     if (!connectionString || !containerName) {
-      return res.status(500).json({ 
-        success: false, 
+      return res.status(500).json({
+        success: false,
         error: 'Azure configuration missing',
         config: {
           connectionStringExists: !!connectionString,
@@ -505,10 +490,10 @@ router.get('/test-azure-connection', verifyToken, async (req, res) => {
         }
       });
     }
-    
+
     // Test container existence
     const containerExists = await containerClient.exists();
-    
+
     if (!containerExists) {
       return res.status(404).json({
         success: false,
@@ -516,7 +501,7 @@ router.get('/test-azure-connection', verifyToken, async (req, res) => {
         containerName: containerName
       });
     }
-    
+
     // List a few blobs to verify permissions
     const blobs = [];
     const iterator = containerClient.listBlobsFlat();
@@ -529,7 +514,7 @@ router.get('/test-azure-connection', verifyToken, async (req, res) => {
       });
       i++;
     }
-    
+
     res.json({
       success: true,
       containerExists: true,
@@ -550,7 +535,7 @@ router.get('/test-azure-connection', verifyToken, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const [students] = await pool.query(`
-      SELECT 
+      SELECT
         s.studentID,
         s.studentNumber,
         s.studentName,
@@ -589,11 +574,11 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
       'SELECT * FROM students WHERE userID = ?',
       [req.params.userId]
     );
-    
+
     if (!student.length) {
       return res.status(404).json({ error: 'Student profile not found' });
     }
-    
+
     res.json(student[0]);
   } catch (error) {
     console.error('Error fetching student profile:', error);

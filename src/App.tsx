@@ -35,6 +35,7 @@ import { EditCompanyProfile } from './pages/profile/EditCompanyProfile';
 import { EditCounselorProfile } from './pages/profile/EditCounselorProfile';
 import { UploadDocument } from './pages/profile/UploadDocument';
 import { EditDocuments } from './pages/profile/EditDocuments';
+import { Settings } from './pages/profile/Settings';
 import { JobsPage } from './pages/JobsPage';
 import { JobApplication } from './pages/JobApplication';
 import { JobDetailsPage } from './pages/JobDetailsPage';
@@ -277,6 +278,11 @@ function AppContent() {
                 <EditDocuments />
               </ProtectedRoute>
             } />
+            <Route path="profile/settings/:userID" element={
+              <ProtectedRoute requiredUserType="Student">
+                <Settings />
+              </ProtectedRoute>
+            } />
             <Route path="profile/documents/upload/:userID" element={
               <ProtectedRoute requiredUserType="Student">
                 <UploadDocument />
@@ -312,6 +318,11 @@ function AppContent() {
                 <EditCounselorLanguages />
               </ProtectedRoute>
             } />
+            <Route path="profile/settings/:userID" element={
+              <ProtectedRoute requiredUserType="Counselor">
+                <Settings />
+              </ProtectedRoute>
+            } />
           </Route>
 
           {/* Company Profile Routes */}
@@ -337,6 +348,11 @@ function AppContent() {
             <Route path="applications/:companyID" element={
               <ProtectedRoute requiredUserType="Company">
                 <CompanyApplicationsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="profile/settings/:userID" element={
+              <ProtectedRoute requiredUserType="Company">
+                <Settings />
               </ProtectedRoute>
             } />
           </Route>

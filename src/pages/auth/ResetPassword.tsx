@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { API_URL } from '../../config';
 
 export function ResetPassword() {
   const { token } = useParams();
@@ -19,22 +20,22 @@ export function ResetPassword() {
         setTokenVerifying(false);
         return;
       }
-      
+
       try {
-        const response = await fetch('http://localhost:3001/auth/reset-password/verify-token', {
+        const response = await fetch(`${API_URL}/auth/reset-password/verify-token`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ token })
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           throw new Error(data.error || 'Invalid reset token');
         }
-        
+
         setIsValidToken(true);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Invalid reset token');
@@ -58,7 +59,7 @@ export function ResetPassword() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://localhost:3001/auth/reset-password', {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

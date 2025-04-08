@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
+import { Select } from "@/components/ui/Select";
 
 interface Application {
   applicationID: number;
@@ -23,6 +24,14 @@ interface Application {
   jobLocation: string;
   studentProfileImagePath: string | null;
 }
+
+const statusOptions = [
+  { value: "pending", label: "Pending" },
+  { value: "reviewed", label: "Reviewed" },
+  { value: "shortlisted", label: "Shortlisted" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" }
+];
 
 export function CompanyApplicationsPage() {
   const { companyID } = useParams();
@@ -218,18 +227,14 @@ export function CompanyApplicationsPage() {
             <div className="p-4 space-y-4">
               <div className="space-y-2">
                 <label htmlFor="status" className="block text-sm font-medium">Status</label>
-                <select
-                  id="status"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800020]"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="reviewed">Reviewed</option>
-                  <option value="shortlisted">Shortlisted</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
+                <Select
+                  options={statusOptions}
+                  value={newStatus ? { value: newStatus, label: newStatus.charAt(0).toUpperCase() + newStatus.slice(1) } : null}
+                  onChange={(option) => setNewStatus(option?.value || 'pending')}
+                  placeholder="Select status"
+                  isSearchable={false}
+                  disabled={isSubmitting}
+                />
               </div>
 
               <div className="space-y-2">
@@ -262,3 +267,4 @@ export function CompanyApplicationsPage() {
     </div>
   );
 }
+
