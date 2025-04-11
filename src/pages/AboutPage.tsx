@@ -1,35 +1,35 @@
 export function AboutPage() {
   return (
-    <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 pt-32">
+    <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
       <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
-          <h1 className="text-3xl font-bold text-[#800020] mb-6">
+          <h1 className="text-3xl font-bold text-brand mb-6">
             About Us
           </h1>
         </div>
-        
+
         <div className="grid md:grid-cols-2 gap-16 mb-20">
-          <div className="bg-gray-50 p-8 rounded-2xl shadow-sm transition-transform hover:transform hover:scale-102">
-            <h2 className="text-2xl font-bold text-[#800020] mb-4">Vision</h2>
-            <p className="text-gray-700 leading-relaxed text-justify">
+          <div className="bg-secondary p-8 rounded-2xl shadow-sm transition-transform hover:transform hover:scale-102">
+            <h2 className="text-2xl font-bold text-brand mb-4">Vision</h2>
+            <p className="text-foreground leading-relaxed text-justify">
               To be the pioneer center of excellence in ensuring the employability of all the graduates who complete their studies at the university.
             </p>
           </div>
 
-          <div className="bg-gray-50 p-8 rounded-2xl shadow-sm transition-transform hover:transform hover:scale-102">
-            <h2 className="text-2xl font-bold text-[#800020] mb-4">Mission</h2>
-            <p className="text-gray-700 leading-relaxed text-justify">
+          <div className="bg-secondary p-8 rounded-2xl shadow-sm transition-transform hover:transform hover:scale-102">
+            <h2 className="text-2xl font-bold text-brand mb-4">Mission</h2>
+            <p className="text-foreground leading-relaxed text-justify">
               To develop the necessary skills and professionalism of the undergraduates through counseling, consultation and internship opportunities which will help them secure employment and negotiate the demands of the work place effectively.
             </p>
           </div>
         </div>
 
-        <div className="space-y-8 text-gray-700 leading-relaxed mb-16">
+        <div className="space-y-8 text-foreground leading-relaxed mb-16">
           <div className="flex items-center space-x-4 mb-8">
-            <div className="w-12 h-1 bg-[#800020] rounded-full"></div>
+            <div className="w-12 h-1 bg-brand rounded-full"></div>
             <h2 className="text-2xl font-semibold">Our Objective</h2>
           </div>
-          
+
           <p className="text-justify">
             The objective of this unit is to prepare the students for their professional life. Making the students aware of employment opportunities available in the country and instructing them about the specific course units they should follow and soft skills they should acquire during their undergraduate life are the broad goals of this unit.
           </p>
@@ -54,3 +54,5 @@ export function AboutPage() {
     </div>
   );
 }
+
+

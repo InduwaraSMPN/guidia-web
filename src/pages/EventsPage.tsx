@@ -73,7 +73,7 @@ export function EventsPage() {
           className="flex justify-center items-center py-16"
         >
           <div className="relative w-16 h-16">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-[#800020] border-opacity-20 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-full h-full border-4 border-brand border-opacity-20 rounded-full"></div>
             <div className="absolute top-0 left-0 w-full h-full border-4 border-t-[#800020] rounded-full animate-spin"></div>
           </div>
           <span className="sr-only">Loading events...</span>
@@ -89,7 +89,7 @@ export function EventsPage() {
           className="bg-red-50 border border-red-200 rounded-lg p-6 text-center my-8"
         >
           <p className="text-red-500 text-lg font-medium">{error}</p>
-          <Button onClick={fetchEvents} className="mt-4 bg-[#800020] hover:bg-rose-800">
+          <Button onClick={fetchEvents} className="mt-4 bg-brand hover:bg-brand-dark">
             Try Again
           </Button>
         </motion.div>
@@ -101,9 +101,9 @@ export function EventsPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center my-8"
+          className="bg-secondary border border-border rounded-lg p-8 text-center my-8"
         >
-          <p className="text-gray-500 text-lg mb-4">
+          <p className="text-muted-foreground text-lg mb-4">
             No {selectedType.toLowerCase()} events found
             {searchQuery && " matching your search"}
           </p>
@@ -111,7 +111,7 @@ export function EventsPage() {
             <Button
               onClick={() => setSearchQuery("")}
               variant="outline"
-              className="border-[#800020] text-[#800020]  hover:bg-rose-800"
+              className="border-brand text-brand  hover:bg-brand-dark"
             >
               Clear Search
             </Button>
@@ -155,7 +155,7 @@ export function EventsPage() {
           <motion.h1
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-[#800020]"
+            className="text-3xl font-bold text-brand"
           >
             Events
           </motion.h1>
@@ -164,7 +164,7 @@ export function EventsPage() {
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
               <Button
                 onClick={() => navigate("/events/post")}
-                className="flex items-center gap-2 bg-[#800020] hover:bg-rose-800 transition-all duration-300 shadow-sm hover:shadow"
+                className="flex items-center gap-2 bg-brand hover:bg-brand-dark transition-all duration-300 shadow-sm hover:shadow"
               >
                 <Plus className="h-4 w-4" />
                 Post Event
@@ -183,8 +183,8 @@ export function EventsPage() {
                 whileTap={{ scale: 0.97 }}
                 className={`px-6 py-2 rounded-md text-base font-medium transition-all duration-200 ${
                   selectedType === type
-                    ? "bg-[#800020] text-white shadow-md"
-                    : "border border-[#800020] text-[#800020]  hover:bg-rose-800 hover:text-white"
+                    ? "bg-brand text-white shadow-md"
+                    : "border border-brand text-brand  hover:bg-brand-dark hover:text-white"
                 }`}
               >
                 {type} Events
@@ -202,3 +202,4 @@ export function EventsPage() {
     </div>
   )
 }
+

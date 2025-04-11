@@ -138,7 +138,7 @@ export function EditCareerPathways() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-32 pb-32 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-secondary pt-32 pb-32 px-4 sm:px-6 lg:px-8">
       <motion.div 
         className="max-w-3xl mx-auto"
         initial={{ opacity: 0, y: 20 }}
@@ -156,17 +156,17 @@ export function EditCareerPathways() {
         </Button>
 
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-[#800020]">
+          <h1 className="text-3xl font-bold text-brand">
             Your Career Pathways
           </h1>
         </header>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
           {/* Selected pathways section */}
-          <div className="p-6 border-b border-gray-100">
-            <label className="block text-sm font-medium text-gray-700 mb-4">
+          <div className="p-6 border-b border-border">
+            <label className="block text-sm font-medium text-foreground mb-4">
               Your Selected Career Pathways {selectedPaths.length > 0 && 
-                <span className="text-gray-500 font-normal">
+                <span className="text-muted-foreground font-normal">
                   ({selectedPaths.length}/10)
                 </span>
               }
@@ -174,12 +174,12 @@ export function EditCareerPathways() {
             
             {initialLoad ? (
               <div className="h-20 flex items-center justify-center">
-                <div className="animate-pulse h-4 w-32 bg-gray-200 rounded"></div>
+                <div className="animate-pulse h-4 w-32 bg-secondary-dark rounded"></div>
               </div>
             ) : selectedPaths.length === 0 ? (
-              <div className="py-8 text-center border border-dashed border-gray-200 rounded-lg bg-gray-50">
-                <p className="text-gray-500">No career pathways selected yet</p>
-                <p className="text-sm text-gray-400 mt-1">Choose from suggestions below or add your own</p>
+              <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary">
+                <p className="text-muted-foreground">No career pathways selected yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below or add your own</p>
               </div>
             ) : (
               <div className="mb-4">
@@ -197,12 +197,12 @@ export function EditCareerPathways() {
 
           {/* Suggestions section */}
           <div className="p-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">
+            <h3 className="text-sm font-medium text-foreground mb-4">
               Suggested Career Pathways:
             </h3>
             
             {filteredSuggestions.length === 0 ? (
-              <p className="text-sm text-gray-500 py-2">
+              <p className="text-sm text-muted-foreground py-2">
                 All suggested pathways have been selected. You can add custom pathways above.
               </p>
             ) : (
@@ -225,7 +225,7 @@ export function EditCareerPathways() {
                       size="sm"
                       onClick={() => handleAddPathway(pathway)}
                       disabled={selectedPaths.length >= 10}
-                      className="text-sm text-[#800020] hover:bg-rose-800 w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                      className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                     >
                       <span>{pathway}</span>
                       <Plus 
@@ -239,8 +239,8 @@ export function EditCareerPathways() {
           </div>
 
           {/* Actions footer */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+          <div className="px-6 py-4 bg-secondary border-t border-border flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
               {selectedPaths.length === 10 ? (
                 <span className="text-amber-600 flex items-center">
                   <span className="bg-amber-100 p-1 rounded-full mr-2">
@@ -292,3 +292,5 @@ export function EditCareerPathways() {
     </div>
   );
 }
+
+

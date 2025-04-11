@@ -54,28 +54,28 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, stats }) => {
   return (
     <div className="bg-white overflow-hidden border rounded-lg shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-5 border-b pb-3">{title}</h3>
+        <h3 className="text-lg font-medium text-adaptive-dark mb-5 border-b pb-3">{title}</h3>
         <ul className="space-y-3">
           {stats.map((stat, index) => (
             <li key={index} className="group">
               {/* Main List Item */}
-              <div className="flex justify-between items-center hover:bg-gray-50 p-3 rounded-lg transition-all duration-200 group-hover:translate-x-1">
-                <span className="text-sm font-medium text-gray-700">{stat.label}</span>
-                <span className="bg-gray-100 text-gray-900 text-sm px-3 py-1 rounded-full font-medium transition-all duration-200 group-hover:bg-gray-200">
+              <div className="flex justify-between items-center hover:bg-secondary p-3 rounded-lg transition-all duration-200 group-hover:translate-x-1">
+                <span className="text-sm font-medium text-foreground">{stat.label}</span>
+                <span className="bg-secondary-light text-adaptive-dark text-sm px-3 py-1 rounded-full font-medium transition-all duration-200 group-hover:bg-secondary-dark">
                   {stat.value}
                 </span>
               </div>
 
               {/* Sub Items */}
               {stat.subItems && (
-                <ul className="ml-6 mt-2 space-y-2 border-l-2 border-gray-100 pl-4">
+                <ul className="ml-6 mt-2 space-y-2 border-l-2 border-border pl-4">
                   {stat.subItems.map((subItem, subIndex) => (
                     <li
                       key={subIndex}
-                      className="flex justify-between items-center hover:bg-gray-50 p-2.5 rounded-lg transition-all duration-200 hover:translate-x-1"
+                      className="flex justify-between items-center hover:bg-secondary p-2.5 rounded-lg transition-all duration-200 hover:translate-x-1"
                     >
-                      <span className="text-sm text-gray-600">{subItem.label}</span>
-                      <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                      <span className="text-sm text-muted-foreground">{subItem.label}</span>
+                      <span className="bg-secondary-light text-foreground text-xs px-2.5 py-0.5 rounded-full font-medium">
                         {subItem.value}
                       </span>
                     </li>
@@ -191,14 +191,14 @@ export function AdminDashboard() {
                 <div className="mt-8 space-y-8">
                   {refreshing && (
                     <div className="flex justify-center items-center py-4">
-                      <Loader2 className="h-6 w-6 text-[#800020] animate-spin" />
-                      <span className="ml-2 text-sm text-gray-600">Refreshing data...</span>
+                      <Loader2 className="h-6 w-6 text-brand animate-spin" />
+                      <span className="ml-2 text-sm text-muted-foreground">Refreshing data...</span>
                     </div>
                   )}
                   {loading && !refreshing ? (
                     <div className="flex flex-col items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 text-[#800020] animate-spin mb-4" />
-                      <p className="text-gray-600">Loading dashboard data...</p>
+                      <Loader2 className="h-8 w-8 text-brand animate-spin mb-4" />
+                      <p className="text-muted-foreground">Loading dashboard data...</p>
                     </div>
                   ) : error ? (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -254,3 +254,5 @@ export function AdminDashboard() {
 }
 
 export default AdminDashboard
+
+

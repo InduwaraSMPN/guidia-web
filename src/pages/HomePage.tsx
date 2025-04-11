@@ -5,10 +5,10 @@ import { AnimatedGridPattern } from '../components/ui/animated-grid-pattern';
 
 export function HomePage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-50">
+    <div className="relative min-h-screen overflow-hidden bg-background">
       <AnimatedGridPattern
         numSquares={40}
-        maxOpacity={0.05}
+        maxOpacity={0.15}
         duration={4}
         repeatDelay={0.8}
         className="absolute top-0 left-0 w-full h-full [mask-image:linear-gradient(to_bottom,transparent,white_15%,white_85%,transparent)]"

@@ -51,9 +51,11 @@ export function MessageRedirect() {
   return (
     <div className="h-screen flex items-center justify-center">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 text-[#800020] animate-spin mx-auto mb-4" />
-        <p className="text-gray-600">Redirecting to messages...</p>
+        <Loader2 className="h-8 w-8 text-brand animate-spin mx-auto mb-4" />
+        <p className="text-muted-foreground">Redirecting to messages...</p>
       </div>
     </div>
   );
 }
+
+

@@ -127,13 +127,13 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
             {/* Enhanced header with better visual hierarchy */}
             <div className="px-4 py-2 flex justify-between items-center mb-4">
               <div className="flex items-center gap-2.5">
-                <Filter className="h-5 w-5 text-[#800020]" />
+                <Filter className="h-5 w-5 text-brand" />
                 <h2 className="font-semibold text-foreground text-xl">Filters</h2>
                 {activeFiltersCount > 0 && (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="ml-1.5 bg-[#800020] text-white text-xs font-medium rounded-full px-2.5 py-1"
+                    className="ml-1.5 bg-brand text-white text-xs font-medium rounded-full px-2.5 py-1"
                   >
                     {activeFiltersCount}
                   </motion.div>
@@ -181,7 +181,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                             <motion.span
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className="text-xs text-[#800020] font-medium"
+                              className="text-xs text-brand font-medium"
                             >
                               {section.selectedItems.length} selected
                             </motion.span>
@@ -220,11 +220,11 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                                     id={`${section.title}-${item}`}
                                     checked={section.selectedItems.includes(item)}
                                     onCheckedChange={() => section.onChange(item)}
-                                    className="data-[state=checked]:bg-[#800020] hover:border-[#800020] data-[state=checked]:border-[#800020] h-4.5 w-4.5 rounded-sm"
+                                    className="data-[state=checked]:bg-brand hover:border-brand data-[state=checked]:border-brand h-4.5 w-4.5 rounded-sm"
                                   />
                                   <Label
                                     htmlFor={`${section.title}-${item}`}
-                                    className="text-sm font-normal cursor-pointer text-muted-foreground leading-tight group-hover:text-[#800020] transition-colors"
+                                    className="text-sm font-normal cursor-pointer text-muted-foreground leading-tight group-hover:text-brand transition-colors"
                                   >
                                     {item}
                                   </Label>
@@ -234,7 +234,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                                       animate={{ scale: 1, opacity: 1 }}
                                       className="ml-auto"
                                     >
-                                      <Check className="h-3.5 w-3.5 text-[#800020]" />
+                                      <Check className="h-3.5 w-3.5 text-brand" />
                                     </motion.div>
                                   )}
                                 </motion.div>
@@ -293,7 +293,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                         variant="outline"
                         size="sm"
                         onClick={onClearAll}
-                        className="text-xs hover:border-[#800020] hover:bg-rose-800 hover:text-white transition-colors"
+                        className="text-xs hover:border-brand hover:bg-brand-dark hover:text-white transition-colors"
                       >
                         Clear All
                       </Button>
@@ -301,7 +301,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                         <Button
                           size="sm"
                           onClick={onClose}
-                          className="text-xs bg-[#800020] hover:bg-rose-800 text-white px-5"
+                          className="text-xs bg-brand hover:bg-brand-dark text-white px-5"
                         >
                           Apply Filters
                         </Button>
@@ -319,3 +319,4 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
     </Drawer.Root>
   )
 }
+

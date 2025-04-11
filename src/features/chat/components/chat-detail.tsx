@@ -202,7 +202,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
       <div className="flex items-center gap-4 border-b p-4 bg-white">
         <button
           onClick={onBack}
-          className="md:hidden rounded-full p-2 hover:bg-gray-100"
+          className="md:hidden rounded-full p-2 hover:bg-secondary-light"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -214,22 +214,22 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
               alt={receiver.name}
               className={`${
                 receiver.type === 'company'
-                  ? 'w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm'
-                  : 'w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm'
+                  ? 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
+                  : 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
               }`}
             />
           ) : (
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-gray-400" />
+            <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-muted-foreground" />
             </div>
           )}
 
           <div className="flex-1 min-w-0">
-            <h2 className="font-medium text-gray-900 truncate">
+            <h2 className="font-medium text-adaptive-dark truncate">
               {receiver?.name || 'Unknown User'}
             </h2>
             {receiver?.subtitle && (
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-muted-foreground truncate">
                 {receiver.subtitle}
               </p>
             )}
@@ -239,7 +239,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
       <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
@@ -251,7 +251,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
               <div key={group.date} className="space-y-3 mb-6">
                 {/* Date divider */}
                 <div className="flex justify-center my-4">
-                  <div className="bg-gray-200 text-gray-600 text-xs px-4 py-1.5 rounded-full font-medium">
+                  <div className="bg-secondary-dark text-muted-foreground text-xs px-4 py-1.5 rounded-full font-medium">
                     {group.date}
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
           </>
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+            <p className="text-muted-foreground text-center">No messages yet. Start the conversation!</p>
           </div>
         )}
       </div>
@@ -282,13 +282,13 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 resize-none rounded-lg border bg-gray-50 px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#800020] transition-all duration-200"
+            className="flex-1 resize-none rounded-lg border bg-secondary px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#800020] transition-all duration-200"
             rows={1}
           />
           <button
             onClick={handleSendMessage}
             disabled={!newMessage.trim() || isSending || !isFirebaseReady || !receiverInfo}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#800020] text-white disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"
           >
             {isSending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -321,7 +321,7 @@ function MessageBubble({ message, receiverImage, receiverName }: MessageBubblePr
     >
       {/* Show avatar only for non-current user messages */}
       {!message.isCurrentUser && (
-        <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-gray-200">
+        <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-secondary-dark">
           {receiverImage ? (
             <img src={receiverImage} alt="Sender" className="h-full w-full object-cover" />
           ) : (
@@ -333,20 +333,20 @@ function MessageBubble({ message, receiverImage, receiverName }: MessageBubblePr
         className={cn(
           "max-w-[80%] rounded-lg px-4 py-2",
           message.isCurrentUser
-            ? "bg-[#800020] text-white"
-            : "bg-gray-100"
+            ? "bg-brand text-white"
+            : "bg-secondary-light"
         )}
       >
         {message.content ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <p className="text-gray-400 italic">Empty message</p>
+          <p className="text-muted-foreground italic">Empty message</p>
         )}
         <p className={cn(
           "text-xs mt-1",
           message.isCurrentUser
             ? "text-white/80"
-            : "text-gray-500"
+            : "text-muted-foreground"
         )}>
           {formatTimeOnly(message.timestamp)}
         </p>
@@ -354,4 +354,7 @@ function MessageBubble({ message, receiverImage, receiverName }: MessageBubblePr
     </div>
   );
 }
+
+
+
 

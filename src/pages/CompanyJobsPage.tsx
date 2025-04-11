@@ -114,7 +114,7 @@ export function CompanyJobsPage() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Company Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-lg border border-border p-6 mb-8">
           <div className="flex items-start gap-6">
             {company.logo ? (
               <img
@@ -123,15 +123,15 @@ export function CompanyJobsPage() {
                 className="w-20 h-20 object-contain"
               />
             ) : (
-              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-10 h-10 text-gray-400" />
+              <div className="w-20 h-20 bg-secondary-light rounded-lg flex items-center justify-center">
+                <Building2 className="w-10 h-10 text-muted-foreground" />
               </div>
             )}
             
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
+              <h1 className="text-3xl font-bold text-adaptive-dark">{company.name}</h1>
               {company.description && (
-                <p className="mt-2 text-gray-600">{company.description}</p>
+                <p className="mt-2 text-muted-foreground">{company.description}</p>
               )}
             </div>
           </div>
@@ -139,11 +139,11 @@ export function CompanyJobsPage() {
 
         {/* Jobs List */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Open Positions</h2>
+          <h2 className="text-2xl font-bold text-adaptive-dark mb-6">Open Positions</h2>
           
           {jobs.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No open positions at the moment</p>
+            <div className="text-center py-12 bg-white rounded-lg border border-border">
+              <p className="text-muted-foreground">No open positions at the moment</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -161,3 +161,5 @@ export function CompanyJobsPage() {
     </div>
   );
 }
+
+

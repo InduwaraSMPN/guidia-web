@@ -78,17 +78,17 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
             <>
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#800020]">{job.title}</h2>
+                  <h2 className="text-2xl font-bold text-brand">{job.title}</h2>
                   <div className="mt-2 space-y-1">
-                    <p className="text-gray-600">{job.company}</p>
-                    <p className="text-gray-600">{job.location}</p>
-                    {job.type && <p className="text-gray-600">{job.type}</p>}
+                    <p className="text-muted-foreground">{job.company}</p>
+                    <p className="text-muted-foreground">{job.location}</p>
+                    {job.type && <p className="text-muted-foreground">{job.type}</p>}
                   </div>
                 </div>
 
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-muted-foreground hover:text-muted-foreground"
                   aria-label="Close modal"
                 >
                   <X className="h-6 w-6" />
@@ -96,27 +96,27 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900">Job Description</h3>
-                <p className="mt-2 text-gray-600 whitespace-pre-wrap">{job.description}</p>
+                <h3 className="text-lg font-semibold text-adaptive-dark">Job Description</h3>
+                <p className="mt-2 text-muted-foreground whitespace-pre-wrap">{job.description}</p>
               </div>
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900">Requirements</h3>
+                <h3 className="text-lg font-semibold text-adaptive-dark">Requirements</h3>
                 <ul className="mt-2 list-disc list-inside space-y-1">
                   {job.requirements ? (
                     job.requirements.map((req: string, index: number) => (
-                      <li key={index} className="text-gray-600">{req}</li>
+                      <li key={index} className="text-muted-foreground">{req}</li>
                     ))
                   ) : null}
                 </ul>
               </div>
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900">Functions</h3>
+                <h3 className="text-lg font-semibold text-adaptive-dark">Functions</h3>
                 <ul className="mt-2 list-disc list-inside space-y-1">
                   {job.functions ? (
                     job.functions.map((func: string, index: number) => (
-                      <li key={index} className="text-gray-600">{func}</li>
+                      <li key={index} className="text-muted-foreground">{func}</li>
                     ))
                   ) : null}
                 </ul>
@@ -141,11 +141,11 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex justify-between items-start">
-                <h2 className="text-2xl font-bold text-[#800020]">Apply for {job.title}</h2>
+                <h2 className="text-2xl font-bold text-brand">Apply for {job.title}</h2>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-muted-foreground hover:text-muted-foreground"
                   aria-label="Close modal"
                 >
                   <X className="h-6 w-6" />
@@ -153,8 +153,8 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Full Name<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Full Name<span className="text-brand">*</span>
                 </label>
                 <Input
                   name="name"
@@ -167,8 +167,8 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Email<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Email<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="email"
@@ -182,8 +182,8 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Phone Number<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Phone Number<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="tel"
@@ -197,8 +197,8 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Cover Letter<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Cover Letter<span className="text-brand">*</span>
                 </label>
                 <RichTextEditor
                   value={formData.coverLetter}
@@ -209,8 +209,8 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Resume/CV<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Resume/CV<span className="text-brand">*</span>
                 </label>
                 <FileUploader
                   acceptType="pdf"
@@ -219,18 +219,18 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
                   selectedFile={formData.resume}
                 />
                 {formData.resume && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-md p-4 flex items-center justify-between">
+                  <div className="bg-secondary border border-border rounded-md p-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-[#800020]" />
+                      <FileText className="h-5 w-5 text-brand" />
                       <div>
-                        <p className="font-medium text-gray-900">{formData.resume.name}</p>
-                        <p className="text-sm text-gray-500">{Math.round(formData.resume.size / 1024)} KB</p>
+                        <p className="font-medium text-adaptive-dark">{formData.resume.name}</p>
+                        <p className="text-sm text-muted-foreground">{Math.round(formData.resume.size / 1024)} KB</p>
                       </div>
                     </div>
                   </div>
                 )}
                 {formData.resume && pdfPreviewData && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-md p-4 mt-4">
+                  <div className="bg-secondary border border-border rounded-md p-4 mt-4">
                     <h3 className="text-lg font-semibold mb-2">Document Preview</h3>
                     <div style={{ width: '100%', height: '500px' }}>
                       <iframe
@@ -262,3 +262,6 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
     </div>
   );
 }
+
+
+

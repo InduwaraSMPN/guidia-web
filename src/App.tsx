@@ -50,6 +50,7 @@ import { CompanyMessagesPage } from './pages/CompanyMessagesPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { FirebaseProvider } from './contexts/FirebaseContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
@@ -94,7 +95,7 @@ function AppContent() {
   if (isVerifyingToken) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-[#800020] rounded-full animate-spin" />
+        <div className="w-16 h-16 border-4 border-border border-t-[#800020] rounded-full animate-spin" />
       </div>
     );
   }
@@ -115,19 +116,19 @@ function AppContent() {
   const is404Page = location.pathname === '/404';
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Toaster
         position="bottom-right"
         className="!fixed"
         toastOptions={{
           classNames: {
-            toast: '!bg-[#800020] !border-none !shadow-lg !text-white',
+            toast: '!bg-brand !border-none !shadow-lg !text-white',
             title: '!text-white font-medium text-sm',
             description: '!text-white/90 text-sm',
-            success: '!bg-[#800020] !text-white',
-            error: '!bg-[#800020] !text-white',
-            warning: '!bg-[#800020] !text-white',
-            actionButton: '!bg-white !text-[#800020] text-sm h-8 px-3 hover:!bg-gray-100 rounded-md',
+            success: '!bg-brand !text-white',
+            error: '!bg-brand !text-white',
+            warning: '!bg-brand !text-white',
+            actionButton: '!bg-white !text-brand text-sm h-8 px-3 hover:!bg-secondary rounded-md',
             cancelButton: '!bg-transparent !text-white hover:!bg-transparent text-sm h-8 px-3'
           }
         }}
@@ -422,10 +423,13 @@ export function App() {
       <BrowserRouter>
         <FirebaseProvider>
           <SocketProvider>
-            <AppContent />
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
           </SocketProvider>
         </FirebaseProvider>
       </BrowserRouter>
     </AuthProvider>
   );
 }
+

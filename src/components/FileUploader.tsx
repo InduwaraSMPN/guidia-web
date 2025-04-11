@@ -81,8 +81,8 @@ export function FileUploader({
 
   return (
     <div
-      className={`relative rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer hover:border-[#800020]
-        ${dragActive ? 'border-[#800020] bg-[#800020]/5' : 'border-gray-300'}`}
+      className={`relative rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer hover:border-brand
+        ${dragActive ? 'border-brand bg-brand/5' : 'border-border'}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
       onDragOver={handleDrag}
@@ -99,11 +99,11 @@ export function FileUploader({
         aria-label={`Upload ${label}`}
       />
       <div className="flex flex-col items-center text-center">
-        <Upload className={`h-12 w-12 ${dragActive ? 'text-[#800020]' : 'text-gray-400'}`} />
-        <p className="mt-2 text-sm text-gray-500">
+        <Upload className={`h-12 w-12 ${dragActive ? 'text-brand' : 'text-muted-foreground'}`} />
+        <p className="mt-2 text-sm text-muted-foreground">
           Click or drag {multiple ? 'files' : 'file'} to this area to upload your {label}
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Please make sure to upload {acceptType === 'pdf' ? 'a PDF' : 'a supported image format (JPG, PNG, GIF, etc)'}
         </p>
         {errorMessage && (
@@ -115,3 +115,5 @@ export function FileUploader({
     </div>
   );
 }
+
+

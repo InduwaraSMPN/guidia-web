@@ -131,7 +131,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`relative bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300 ${isExpired ? 'opacity-75' : ''}`}
+      className={`relative bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 ${isExpired ? 'opacity-75' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
@@ -140,7 +140,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
       }}
       whileTap={{ scale: 0.99 }}
     >
-      <div className="h-1 w-full bg-gradient-to-r from-[#800020] to-[#800020]/70" />
+      <div className="h-1 w-full bg-gradient-to-r from-brand to-brand/70" />
 
       <div className="p-6">
         <div className="flex flex-col sm:flex-row gap-5">
@@ -157,11 +157,11 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                 <img
                   src={job.logo || "/placeholder.svg"}
                   alt={job.company}
-                  className="w-16 h-16 object-contain rounded-lg border border-gray-100 p-1 bg-white"
+                  className="w-16 h-16 object-contain rounded-lg border border-border p-1 bg-card"
                 />
               ) : (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                  <Building2 className="w-8 h-8 text-gray-400" />
+                <div className="w-16 h-16 bg-secondary rounded-lg flex items-center justify-center border border-border">
+                  <Building2 className="w-8 h-8 text-muted-foreground" />
                 </div>
               )}
             </motion.div>
@@ -171,14 +171,14 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
             <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
               <div>
                 <motion.h3
-                  className="text-xl font-bold text-gray-900"
+                  className="text-xl font-bold text-card-foreground"
                 >
                   {job.title}
                 </motion.h3>
 
                 <Link
                   to={`/companies/${job.companyId || "1"}/details`}
-                  className="text-[#800020] font-medium mt-1 hover:underline inline-flex items-center"
+                  className="text-brand font-medium mt-1 hover:underline inline-flex items-center"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Building2 className="h-4 w-4 mr-1" />
@@ -186,13 +186,13 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                 </Link>
 
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <div className="flex items-center text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full text-sm">
-                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-[#800020]" />
+                  <div className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-brand" />
                     <span>{job.location}</span>
                   </div>
                   {job.type && (
-                    <div className="flex items-center text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full text-sm">
-                      <Briefcase className="h-3.5 w-3.5 mr-1.5 text-[#800020]" />
+                    <div className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm">
+                      <Briefcase className="h-3.5 w-3.5 mr-1.5 text-brand" />
                       <span>{job.type}</span>
                     </div>
                   )}
@@ -201,9 +201,9 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                       {job.sector.split(',').map((tag, index) => (
                         <div
                           key={index}
-                          className="flex items-center text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full text-sm"
+                          className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm"
                         >
-                          <Tag className="h-3.5 w-3.5 mr-1.5 text-[#800020]" />
+                          <Tag className="h-3.5 w-3.5 mr-1.5 text-brand" />
                           <span>{tag.trim()}</span>
                         </div>
                       ))}
@@ -227,13 +227,13 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                     size="sm"
                     variant="outline"
                     disabled={isLoading}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-[#800020] transition-all duration-200"
+                    className="border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200"
                     title={isSaved ? "Remove from saved jobs" : "Save job"}
                   >
                     {isLoading ? (
                       <span className="animate-pulse">...</span>
                     ) : isSaved ? (
-                      <BookmarkCheck className="h-4 w-4 text-[#800020]" />
+                      <BookmarkCheck className="h-4 w-4 text-brand" />
                     ) : (
                       <Bookmark className="h-4 w-4" />
                     )}
@@ -247,10 +247,10 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   disabled={isExpired && mode !== "edit"}
                   className={`min-w-[120px] transition-all duration-200 ${
                     mode === "edit"
-                      ? "hover:bg-gray-100 border-[#800020] text-[#800020] hover:text-[#800020]"
+                      ? "hover:bg-secondary border-brand text-brand hover:text-brand"
                       : isExpired
-                        ? "bg-[#800020] hover:bg-rose-800 cursor-not-allowed opacity-50"
-                        : "bg-[#800020] hover:bg-rose-800 text-white"
+                        ? "bg-brand hover:bg-brand-light cursor-not-allowed opacity-50"
+                        : "bg-brand hover:bg-brand-light text-white"
                   }`}
                 >
                   {mode === "edit"
@@ -264,13 +264,13 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
             </div>
 
             <div
-              className="mt-4 text-gray-600 line-clamp-2 text-sm leading-relaxed prose prose-sm"
+              className="mt-4 text-muted-foreground line-clamp-2 text-sm leading-relaxed prose prose-sm"
               dangerouslySetInnerHTML={{ __html: job.description }}
             />
 
             {(job.startDate || job.endDate) && (
-              <div className="mt-4 flex items-center text-sm text-gray-500">
-                <Calendar className="h-4 w-4 mr-2 text-[#800020]" />
+              <div className="mt-4 flex items-center text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4 mr-2 text-brand" />
                 <span>
                   {job.startDate && `Start Date: ${formatDate(job.startDate)}`}
                   {job.endDate && job.startDate && " | "}
@@ -284,7 +284,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
 
       {/* View details indicator */}
       <motion.div
-        className="absolute bottom-3 right-3 text-xs text-gray-400 flex items-center"
+        className="absolute bottom-3 right-3 text-xs text-muted-foreground flex items-center"
         animate={{
           opacity: isHovered ? 1 : 0,
           x: isHovered ? 0 : 10,
@@ -296,3 +296,4 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
     </motion.div>
   )
 }
+

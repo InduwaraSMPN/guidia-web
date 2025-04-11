@@ -54,14 +54,14 @@ export function SavedJobsPage() {
     <div className="container pt-32 pb-32 max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Bookmark className="h-6 w-6 mr-2 text-[#800020]" />
+          <Bookmark className="h-6 w-6 mr-2 text-brand" />
           <h1 className="text-2xl font-bold">Saved Jobs</h1>
         </div>
 
         {user && (
           <Button
             variant="ghost"
-            className="flex items-center gap-2 text-gray-600 hover:text-[#800020]"
+            className="flex items-center gap-2 text-muted-foreground hover:text-brand"
             onClick={() => navigate(`/students/profile/${user.userID}`)}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -75,19 +75,19 @@ export function SavedJobsPage() {
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white p-6 rounded-lg shadow">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-secondary-dark rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-secondary-dark rounded w-1/2"></div>
             </div>
           ))}
         </div>
       ) : savedJobs.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             You haven't saved any jobs yet.
           </p>
           <Button
             onClick={() => navigate("/jobs")}
-            className="bg-[#800020] hover:bg-rose-800 text-white"
+            className="bg-brand hover:bg-brand-dark text-white"
           >
             Browse Jobs
           </Button>
@@ -107,3 +107,5 @@ export function SavedJobsPage() {
     </div>
   );
 }
+
+

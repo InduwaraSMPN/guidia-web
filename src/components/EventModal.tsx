@@ -15,17 +15,17 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-[#800020]">{event.title}</h2>
+            <h2 className="text-2xl font-bold text-brand">{event.title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-muted-foreground hover:text-muted-foreground"
               aria-label="Close modal"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 mb-4">{new Date(event.eventDate).toLocaleDateString('en-US', {
+          <p className="text-sm text-muted-foreground mb-4">{new Date(event.eventDate).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -45,3 +45,5 @@ export function EventModal({ isOpen, onClose, event }: EventModalProps) {
     </div>
   );
 }
+
+

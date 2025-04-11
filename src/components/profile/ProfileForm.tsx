@@ -49,7 +49,7 @@ export function ProfileForm({
         {sections.map((section, index) => (
           <div key={index} className="space-y-6">
             {section.title && (
-              <h2 className="text-xl font-semibold text-[#800020]">
+              <h2 className="text-xl font-semibold text-brand">
                 {section.title}
               </h2>
             )}
@@ -99,3 +99,4 @@ export function ProfileForm({
     </form>
   );
 }
+

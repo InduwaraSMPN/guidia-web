@@ -42,7 +42,7 @@ export function FixConversationButton() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-border">
         <h3 className="text-sm font-medium mb-2">Fix Conversation</h3>
         <Button
           onClick={handleCreateConversation}
@@ -66,3 +66,4 @@ export function FixConversationButton() {
     </div>
   );
 }
+

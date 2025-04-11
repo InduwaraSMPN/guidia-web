@@ -21,8 +21,8 @@ export function ChatMessage({
       <div
         className={`max-w-[70%] rounded-lg px-5 py-3.5 shadow-sm transition-all duration-200 ${
           isSender
-            ? "bg-[#800020] text-white hover:bg-[#8a0024]"
-            : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+            ? "bg-brand text-white hover:bg-[#8a0024]"
+            : "bg-secondary-light text-adaptive-dark hover:bg-secondary-dark"
         }`}
         style={{
           borderBottomRightRadius: isSender ? 0 : undefined,
@@ -39,7 +39,7 @@ export function ChatMessage({
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{message}</p>
         <p
           className={`text-xs mt-2 opacity-80 ${
-            isSender ? "text-gray-200" : "text-gray-500"
+            isSender ? "text-gray-200" : "text-muted-foreground"
           }`}
         >
           {timestamp}
@@ -66,3 +66,6 @@ export function ChatMessage({
     </div>
   );
 }
+
+
+

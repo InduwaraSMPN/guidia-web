@@ -13,6 +13,7 @@ interface CsvExporterProps {
   columns: Column[];
   tableName: string;
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 export const CsvExporter: React.FC<CsvExporterProps> = ({
@@ -20,6 +21,7 @@ export const CsvExporter: React.FC<CsvExporterProps> = ({
   columns,
   tableName,
   isLoading = false,
+  children,
 }) => {
   const formattedDate = useMemo(() => {
     const date = new Date();
@@ -44,15 +46,17 @@ export const CsvExporter: React.FC<CsvExporterProps> = ({
       filename={filename}
       extension=".csv"
     >
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={isLoading || data.length === 0}
-        className="flex items-center gap-2"
-      >
-        <Download className="h-4 w-4" />
-        Export CSV
-      </Button>
+      {children || (
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isLoading || data.length === 0}
+          className="flex items-center gap-2 border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200 group"
+        >
+          <Download className="h-4 w-4 text-foreground group-hover:text-brand dark:group-hover:text-foreground transition-colors duration-200" />
+          Export CSV
+        </Button>
+      )}
     </CsvDownloader>
   );
 };

@@ -216,13 +216,13 @@ export function JobsPage() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-center"
         >
-          <div className="inline-flex items-center justify-center mb-4 bg-[#800020]/10 p-3 rounded-full">
-            <Briefcase className="h-6 w-6 text-[#800020]" />
+          <div className="inline-flex items-center justify-center mb-4 bg-brand/10 p-3 rounded-full">
+            <Briefcase className="h-6 w-6 text-brand" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Find Your Next <span className="text-[#800020]">Career</span>
+          <h1 className="text-4xl font-bold text-adaptive-dark mb-3">
+            Find Your Next <span className="text-brand">Career</span>
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Discover opportunities that match your skills and aspirations. Browse through our curated list of job
             openings.
           </p>
@@ -232,13 +232,13 @@ export function JobsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white rounded-lg border border-gray-200 p-6 mb-8 shadow-sm"
+          className="bg-white rounded-lg border border-border p-6 mb-8 shadow-sm"
         >
           <JobSearchForm onSearch={handleSearch} />
         </motion.div>
 
         <div className="mb-6 flex justify-between items-center relative">
-          <div className="text-gray-700">
+          <div className="text-foreground">
             {!isLoading && searchPerformed && (
               <p>
                 Showing <span className="font-medium">{filteredJobs.length}</span> job
@@ -249,14 +249,14 @@ export function JobsPage() {
           <div className="relative">
             <button
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                isOpen || activeFilterCount > 0 ? "bg-[#800020] text-white" : "text-gray-700 hover:bg-gray-100"
+                isOpen || activeFilterCount > 0 ? "bg-brand text-white" : "text-foreground hover:bg-secondary-light"
               }`}
               onClick={() => setIsOpen(true)}
             >
               <SlidersHorizontal className="h-4 w-4" />
               <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="bg-white text-[#800020] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="bg-white text-brand text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -280,8 +280,8 @@ export function JobsPage() {
               exit={{ opacity: 0 }}
               className="text-center py-16"
             >
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#800020] mx-auto"></div>
-              <p className="text-gray-500 mt-4 font-medium">Searching for opportunities...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
+              <p className="text-muted-foreground mt-4 font-medium">Searching for opportunities...</p>
             </motion.div>
           ) : filteredJobs.length > 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
@@ -294,13 +294,13 @@ export function JobsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200"
+              className="text-center py-16 bg-secondary rounded-lg border border-border"
             >
               <div className="bg-white p-4 rounded-full inline-flex items-center justify-center mb-4 shadow-sm">
-                <Filter className="h-6 w-6 text-gray-400" />
+                <Filter className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 mb-2">No matching jobs found</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <h3 className="text-xl font-medium text-adaptive-dark mb-2">No matching jobs found</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
                 Try adjusting your search criteria or explore other opportunities.
               </p>
               <button
@@ -308,7 +308,7 @@ export function JobsPage() {
                   clearFilters()
                   handleSearch("", "")
                 }}
-                className="mt-6 text-[#800020] hover:underline font-medium"
+                className="mt-6 text-brand hover:underline font-medium"
               >
                 View all jobs
               </button>
@@ -319,4 +319,7 @@ export function JobsPage() {
     </div>
   )
 }
+
+
+
 

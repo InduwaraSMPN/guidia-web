@@ -60,18 +60,18 @@ export function SpecializationSelector({
         <div className="relative">
           <button
             onClick={handleToggle}
-            className="w-full px-4 py-2 text-left border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#800020]"
+            className="w-full px-4 py-2 text-left border border-border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#800020]"
           >
             Select Your Specializations
           </button>
           
           {isOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+            <div className="absolute z-10 w-full mt-1 bg-white border border-border rounded-md shadow-lg">
               <ul className="py-1 max-h-60 overflow-auto">
                 {AVAILABLE_SPECIALIZATIONS.map((specialization) => (
                   <li
                     key={specialization}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="px-4 py-2 hover:bg-secondary-light cursor-pointer"
                     onClick={() => handleSelect(specialization)}
                   >
                     {specialization}
@@ -86,12 +86,12 @@ export function SpecializationSelector({
           {selectedSpecializations.map((specialization) => (
             <div
               key={specialization}
-              className="flex items-center justify-between bg-[#800020] text-white px-4 py-2 rounded-md"
+              className="flex items-center justify-between bg-brand text-white px-4 py-2 rounded-md"
             >
               <span>{specialization}</span>
               <button
                 onClick={() => handleRemove(specialization)}
-                className="text-white hover:text-gray-200"
+                className="text-white hover:text-muted-foreground"
                 title="Remove specialization"
               >
                 <Trash2 className="h-4 w-4" />
@@ -110,3 +110,5 @@ export function SpecializationSelector({
     </>
   );
 }
+
+

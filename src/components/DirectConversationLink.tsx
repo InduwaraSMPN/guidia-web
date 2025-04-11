@@ -16,7 +16,7 @@ export function DirectConversationLink() {
 
   return (
     <div 
-      className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-t"
+      className="p-4 hover:bg-secondary cursor-pointer transition-colors duration-150 border-t"
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -28,12 +28,12 @@ export function DirectConversationLink() {
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-[#800020]/10 rounded-full flex items-center justify-center">
-          <MessageCircle className="w-6 h-6 text-[#800020]" />
+        <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center">
+          <MessageCircle className="w-6 h-6 text-brand" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium text-[#800020]">CloudLink Sri Lanka</h3>
-          <p className="text-sm text-gray-600 truncate">
+          <h3 className="font-medium text-brand">CloudLink Sri Lanka</h3>
+          <p className="text-sm text-muted-foreground truncate">
             Direct link to conversation with Nimali
           </p>
         </div>
@@ -41,3 +41,5 @@ export function DirectConversationLink() {
     </div>
   );
 }
+
+

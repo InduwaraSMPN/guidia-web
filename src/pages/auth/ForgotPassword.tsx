@@ -50,11 +50,11 @@ export function ForgotPassword() {
       <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
         <div className="w-full max-w-sm px-4 sm:px-6 text-center">
           <div className="mb-8 flex justify-center">
-            <Clock className="h-16 w-16 text-[#800020]" />
+            <Clock className="h-16 w-16 text-brand" />
           </div>
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">Check Your Email</h1>
+          <h1 className="text-3xl font-bold text-brand mb-4">Check Your Email</h1>
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               If an account exists with the email address you entered, you will
               receive password reset instructions.
             </p>
@@ -76,7 +76,7 @@ export function ForgotPassword() {
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
       <div className="w-full max-w-sm px-4 sm:px-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#800020] text-left">Reset Password</h2>
+          <h2 className="text-3xl font-extrabold text-brand text-left">Reset Password</h2>
 
           {error && (
             <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -87,8 +87,8 @@ export function ForgotPassword() {
           <div className="mt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-1">
-                  Email Address<span className="text-[#800020]">*</span>
+                <label htmlFor="email" className="block text-sm font-medium text-foreground text-left mb-1">
+                  Email Address<span className="text-brand">*</span>
                 </label>
                 <div className="mt-1">
                   <Input
@@ -111,7 +111,7 @@ export function ForgotPassword() {
                 variant="outline"
                 size="lg"
                 onClick={() => navigate("/auth/login")}
-                className="border-[#800020] text-[#800020] bg-background hover:bg-rose-800 hover:text-white w-full"
+                className="border-brand text-brand bg-background hover:bg-brand-dark hover:text-white w-full"
               >
                 Back to Sign In
               </Button>
@@ -122,4 +122,6 @@ export function ForgotPassword() {
     </div>
   );
 }
+
+
 

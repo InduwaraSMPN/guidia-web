@@ -73,7 +73,7 @@ export function Login() {
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
       <div className="w-full max-w-sm px-4 sm:px-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#800020] text-left">Login</h2>
+          <h2 className="text-3xl font-extrabold text-brand text-left">Login</h2>
           
           {error && (
             <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -84,8 +84,8 @@ export function Login() {
           <div className="mt-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-1">
-                  Email Address<span className="text-[#800020]">*</span>
+                <label htmlFor="email" className="block text-sm font-medium text-foreground text-left mb-1">
+                  Email Address<span className="text-brand">*</span>
                 </label>
                 <div className="mt-1">
                   <Input
@@ -100,8 +100,8 @@ export function Login() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 text-left mb-1">
-                  Password<span className="text-[#800020]">*</span>
+                <label htmlFor="password" className="block text-sm font-medium text-foreground text-left mb-1">
+                  Password<span className="text-brand">*</span>
                 </label>
                 <div className="mt-1 relative">
                   <Input
@@ -118,16 +118,16 @@ export function Login() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-5 w-5 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
+                      <Eye className="h-5 w-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>
                 <div className="mt-1 text-right">
                   <Link 
                     to="/auth/forgot-password" 
-                    className="text-sm text-[#800020] hover:text-rose-800"
+                    className="text-sm text-brand hover:text-brand-dark"
                   >
                     forgot password?
                   </Link>
@@ -140,11 +140,11 @@ export function Login() {
             </form>
 
             <div className="mt-6">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Don't Have an account?{' '}
                 <Link 
                   to="/auth/register" 
-                  className="font-medium text-[#800020] hover:text-rose-800"
+                  className="font-medium text-brand hover:text-brand-dark"
                 >
                   Register Now
                 </Link>
@@ -156,3 +156,5 @@ export function Login() {
     </div>
   );
 }
+
+

@@ -80,7 +80,7 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
         type="button"
         onClick={toggleDropdown}
         className={cn(
-          "w-full h-[42px] px-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#800020]",
+          "w-full h-[42px] px-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[#800020]",
           "flex items-center justify-between text-left",
           "dark:bg-gray-800 dark:border-gray-700",
           loading ? "cursor-not-allowed opacity-75" : "cursor-pointer",
@@ -105,7 +105,7 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
             <span>{selectedCountry.name.common}</span>
           </div>
         ) : (
-          <span className="block text-sm font-medium text-gray-700">{placeholder}</span>
+          <span className="block text-sm font-medium text-foreground">{placeholder}</span>
         )}
         <ChevronDown
           className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "transform rotate-180" : "")}
@@ -117,11 +117,11 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
       )}
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-700">
-          <div className="sticky top-0 z-10 bg-white p-2 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-border rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-700">
+          <div className="sticky top-0 z-10 bg-white p-2 dark:bg-gray-800 border-b border-border dark:border-gray-700">
             <input
               type="text"
-              className="w-full h-[42px] px-3 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#800020]"
+              className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[#800020]"
               placeholder="Search countries..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -137,8 +137,8 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
                   role="option"
                   aria-selected={selectedCountry?.cca2 === country.cca2}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
-                    selectedCountry?.cca2 === country.cca2 ? "bg-gray-100 dark:bg-gray-700" : "",
+                    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-secondary-light dark:hover:bg-gray-700",
+                    selectedCountry?.cca2 === country.cca2 ? "bg-secondary-light dark:bg-gray-700" : "",
                   )}
                   onClick={() => handleSelectCountry(country)}
                 >
@@ -148,11 +148,11 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
                     className="w-5 h-3.5 object-cover"
                   />
                   <span className="flex-1">{country.name.common}</span>
-                  {selectedCountry?.cca2 === country.cca2 && <Check className="w-4 h-4 text-[#800020]" />}
+                  {selectedCountry?.cca2 === country.cca2 && <Check className="w-4 h-4 text-brand" />}
                 </li>
               ))
             ) : (
-              <li className="px-3 py-2 block text-sm font-medium text-gray-700">No countries found</li>
+              <li className="px-3 py-2 block text-sm font-medium text-foreground">No countries found</li>
             )}
           </ul>
         </div>
@@ -160,3 +160,5 @@ export default function CountrySelect({ onCountryChange, placeholder = "Select a
     </div>
   )
 }
+
+

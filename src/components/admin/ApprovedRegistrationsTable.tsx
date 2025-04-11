@@ -88,7 +88,7 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
   const SortableHeader = ({ field, label }: { field: keyof Registration; label: string }) => (
     <th
       scope="col"
-      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-100"
+      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-secondary-light"
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center gap-2 font-medium">
@@ -101,8 +101,8 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
   );
 
   return (
-    <div className="rounded-lg border border-gray-200 shadow-sm overflow-hidden bg-white">
-      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-200 bg-white">
+    <div className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
         <CsvExporter 
           data={csvData}
           columns={csvColumns}
@@ -112,7 +112,7 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#800020]/20"
+            className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20"
           >
             <Download className="w-4 h-4 mr-2" />
             Export CSV
@@ -121,8 +121,8 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+        <table className="w-full text-sm text-left text-muted-foreground">
+          <thead className="text-xs text-foreground uppercase bg-secondary">
             <tr>
               <SortableHeader field="penRegID" label="ID" />
               <SortableHeader field="email" label="Email" />
@@ -137,13 +137,13 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
                 return (
                   <motion.tr
                     key={registration.penRegID}
-                    className="bg-white hover:bg-gray-50"
+                    className="bg-white hover:bg-secondary"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-6 py-4 font-medium text-adaptive-dark">
                       {registration.penRegID}
                     </td>
                     <td className="px-6 py-4">
@@ -181,3 +181,5 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
 }
 
 export default ApprovedRegistrationsTable;
+
+

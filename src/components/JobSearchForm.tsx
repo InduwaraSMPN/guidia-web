@@ -41,11 +41,11 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
   return (
     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <form onSubmit={handleSubmit} className="w-full">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-border">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative group">
-              <label htmlFor="keywords" className="text-sm font-medium text-gray-700 mb-2 block">
-                <Briefcase className="h-4 w-4 inline-block mr-2 text-[#800020]" />
+              <label htmlFor="keywords" className="text-sm font-medium text-foreground mb-2 block">
+                <Briefcase className="h-4 w-4 inline-block mr-2 text-brand" />
                 Job Title or Keywords
               </label>
               <div className="relative">
@@ -65,9 +65,9 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                     onFocus={() => setIsFocused("keywords")}
                     onBlur={() => setIsFocused(null)}
                     placeholder="e.g. Software Engineer, Marketing"
-                    className="h-12 pl-10 pr-10 transition-all duration-200 border-gray-300 focus:border-[#800020] focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
+                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
                   />
-                  <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
                   <AnimatePresence>
                     {keywords && (
                       <motion.button
@@ -76,7 +76,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                         exit={{ opacity: 0, scale: 0.8 }}
                         type="button"
                         onClick={() => setKeywords("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
                         aria-label="Clear keywords"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -88,8 +88,8 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
             </div>
 
             <div className="flex-1 relative group">
-              <label htmlFor="location" className="text-sm font-medium text-gray-700 mb-2 block">
-                <MapPin className="h-4 w-4 inline-block mr-2 text-[#800020]" />
+              <label htmlFor="location" className="text-sm font-medium text-foreground mb-2 block">
+                <MapPin className="h-4 w-4 inline-block mr-2 text-brand" />
                 Location
               </label>
               <div className="relative">
@@ -109,9 +109,9 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                     onFocus={() => setIsFocused("location")}
                     onBlur={() => setIsFocused(null)}
                     placeholder="e.g. New York, Remote"
-                    className="h-12 pl-10 pr-10 transition-all duration-200 border-gray-300 focus:border-[#800020] focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
+                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
                   />
-                  <MapPin className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <MapPin className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
                   <AnimatePresence>
                     {location && (
                       <motion.button
@@ -120,7 +120,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                         exit={{ opacity: 0, scale: 0.8 }}
                         type="button"
                         onClick={() => setLocation("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-gray-100 rounded-full w-6 h-6 flex items-center justify-center"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
                         aria-label="Clear location"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -135,7 +135,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <Button
                   type="submit"
-                  className="h-12 px-8 min-w-[120px] bg-[#800020] hover:bg-rose-800 text-white transition-all duration-200"
+                  className="h-12 px-8 min-w-[120px] bg-brand hover:bg-brand-dark text-white transition-all duration-200"
                 >
                   <Search className="h-5 w-5 mr-2" />
                   Search
@@ -155,7 +155,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                       type="button"
                       variant="outline"
                       onClick={handleClear}
-                      className="h-12 px-4 transition-all duration-200 border-[#800020] text-[#800020]"
+                      className="h-12 px-4 transition-all duration-200 border-brand text-brand"
                     >
                       <X className="h-4 w-4 mr-2" />
                       Clear
@@ -172,23 +172,23 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-4 pt-4 border-t border-gray-100"
+                className="mt-4 pt-4 border-t border-border"
               >
-                <div className="flex items-center text-sm text-gray-500">
-                  <Filter className="h-4 w-4 mr-2 text-[#800020]" />
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Filter className="h-4 w-4 mr-2 text-brand" />
                   <span>Active filters:</span>
                   {keywords && (
-                    <span className="ml-2 bg-[#800020]/10 text-[#800020] px-2 py-1 rounded-full text-xs flex items-center">
+                    <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
                       Keywords: {keywords}
-                      <button onClick={() => setKeywords("")} className="ml-1 hover:text-rose-800">
+                      <button onClick={() => setKeywords("")} className="ml-1 hover:text-brand-dark">
                         <X className="h-3 w-3" />
                       </button>
                     </span>
                   )}
                   {location && (
-                    <span className="ml-2 bg-[#800020]/10 text-[#800020] px-2 py-1 rounded-full text-xs flex items-center">
+                    <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
                       Location: {location}
-                      <button onClick={() => setLocation("")} className="ml-1 hover:text-rose-800">
+                      <button onClick={() => setLocation("")} className="ml-1 hover:text-brand-dark">
                         <X className="h-3 w-3" />
                       </button>
                     </span>
@@ -202,4 +202,6 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
     </motion.div>
   )
 }
+
+
 

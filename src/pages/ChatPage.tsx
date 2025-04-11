@@ -314,9 +314,9 @@ export function ChatPage(): JSX.Element {
   if (!user) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-6">
+    <div className="min-h-screen bg-secondary pt-20 pb-6">
       <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transition-shadow duration-300 hover:shadow-xl">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-border transition-shadow duration-300 hover:shadow-xl">
           {/* Enhanced Header with better visual hierarchy */}
           <div className="border-b p-4 sticky top-0 bg-white z-10 backdrop-blur-sm bg-white/95">
             <div className="flex items-center gap-4">
@@ -324,7 +324,7 @@ export function ChatPage(): JSX.Element {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(-1)}
-                className="shrink-0 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:ring-2 focus:ring-gray-200"
+                className="shrink-0 rounded-full hover:bg-secondary-light transition-colors duration-200 focus:ring-2 focus:ring-gray-200"
                 aria-label="Go back"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -332,10 +332,10 @@ export function ChatPage(): JSX.Element {
 
               {isLoading ? (
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="w-10 h-10 bg-secondary-dark rounded-full animate-pulse"></div>
                   <div className="space-y-2">
-                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-24 bg-secondary-dark rounded animate-pulse"></div>
+                    <div className="h-3 w-32 bg-secondary-dark rounded animate-pulse"></div>
                   </div>
                 </div>
               ) : receiver ? (
@@ -347,20 +347,20 @@ export function ChatPage(): JSX.Element {
                       className={`${
                         receiver.type === "company"
                           ? "w-10 h-8 object-contain"
-                          : "w-10 h-10 object-cover rounded-full border border-gray-200 shadow-sm"
+                          : "w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                       }`}
                     />
                   ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shadow-sm">
-                      <User className="w-5 h-5 text-gray-400" />
+                    <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center shadow-sm">
+                      <User className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
                   <div>
-                    <h2 className="font-semibold text-gray-900 text-base">
+                    <h2 className="font-semibold text-adaptive-dark text-base">
                       {receiver.name}
                     </h2>
                     {receiver.subtitle && (
-                      <p className="text-sm text-gray-500 line-clamp-1">
+                      <p className="text-sm text-muted-foreground line-clamp-1">
                         {receiver.subtitle}
                       </p>
                     )}
@@ -368,7 +368,7 @@ export function ChatPage(): JSX.Element {
                 </div>
               ) : (
                 <div className="flex-1">
-                  <p className="text-gray-500">User not found</p>
+                  <p className="text-muted-foreground">User not found</p>
                 </div>
               )}
             </div>
@@ -386,15 +386,15 @@ export function ChatPage(): JSX.Element {
               )}
               {isLoading ? (
                 <div className="h-full flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+                  <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
                 </div>
               ) : messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-3 py-10">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-2 shadow-inner">
-                    <Send className="h-6 w-6 text-gray-400" />
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-3 py-10">
+                  <div className="w-16 h-16 rounded-full bg-secondary-light flex items-center justify-center mb-2 shadow-inner">
+                    <Send className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <p className="text-center font-medium">No messages yet</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     Start a conversation with {receiver?.name || "this user"}!
                   </p>
                 </div>
@@ -422,7 +422,7 @@ export function ChatPage(): JSX.Element {
               <div className="flex gap-3 items-center">
                 <div className="flex-1 relative">
                   {isTyping && (
-                    <div className="absolute -top-6 left-4 text-xs text-gray-500">
+                    <div className="absolute -top-6 left-4 text-xs text-muted-foreground">
                       {receiver?.name} is typing...
                     </div>
                   )}
@@ -434,7 +434,7 @@ export function ChatPage(): JSX.Element {
                       handleTyping();
                     }}
                     placeholder="Type a message..."
-                    className="w-full py-6 px-4 focus-visible:ring-[#800020]/30 transition-all duration-200 border-gray-200"
+                    className="w-full py-6 px-4 focus-visible:ring-[#800020]/30 transition-all duration-200 border-border"
                     disabled={isLoading || !receiver || !isFirebaseReady}
                   />
                 </div>
@@ -464,3 +464,4 @@ export function ChatPage(): JSX.Element {
     </div>
   );
 }
+

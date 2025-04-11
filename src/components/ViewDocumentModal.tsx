@@ -287,9 +287,9 @@ export function ViewDocumentModal({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center">
-                <FileText className="h-5 w-5 text-[#800020] mr-2" />
+                <FileText className="h-5 w-5 text-brand mr-2" />
                 <h2 className="text-xl font-semibold truncate max-w-[300px]" title={documentName}>
                   {documentName}
                 </h2>
@@ -298,7 +298,7 @@ export function ViewDocumentModal({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-1 transition-all hover:bg-rose-800 hover:text-white"
+                  className="flex items-center gap-1 transition-all hover:bg-brand-dark hover:text-white"
                   onClick={handleDownload}
                 >
                   <Download className="h-4 w-4" />
@@ -307,14 +307,14 @@ export function ViewDocumentModal({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center transition-all hover:bg-rose-800 hover:text-white"
+                  className="flex items-center transition-all hover:bg-brand-dark hover:text-white"
                   onClick={toggleFullscreen}
                 >
                   {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                 </Button>
                 <button
                   onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-secondary-light transition-colors"
                   title="Close"
                 >
                   <X className="h-5 w-5" />
@@ -323,10 +323,10 @@ export function ViewDocumentModal({
             </div>
 
             {/* Document Content */}
-            <div className="flex-1 overflow-hidden bg-gray-100 relative">
+            <div className="flex-1 overflow-hidden bg-secondary-light relative">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#800020]"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
                 </div>
               ) : pdfData ? (
                 isImage ? (
@@ -361,7 +361,7 @@ export function ViewDocumentModal({
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-[75vh] overflow-auto flex justify-center bg-gray-50">
+                  <div className="w-full h-[75vh] overflow-auto flex justify-center bg-secondary">
                     <iframe
                       ref={iframeRef}
                       src={pdfData}
@@ -384,8 +384,8 @@ export function ViewDocumentModal({
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center p-8">
-                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">Unable to load document.</p>
+                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Unable to load document.</p>
                     <Button
                       variant="outline"
                       className="mt-4"
@@ -402,32 +402,32 @@ export function ViewDocumentModal({
             </div>
 
             {/* Controls */}
-            <div className="p-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+            <div className="p-3 bg-secondary border-t border-border flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleZoomOut}
                   disabled={scale <= 0.5}
-                  className="h-8 w-8 p-0 transition-all hover:bg-gray-100"
+                  className="h-8 w-8 p-0 transition-all hover:bg-secondary-light"
                   title="Zoom Out"
                 >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <span className="text-sm text-gray-500 min-w-[50px] text-center">{Math.round(scale * 100)}%</span>
+                <span className="text-sm text-muted-foreground min-w-[50px] text-center">{Math.round(scale * 100)}%</span>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleZoomIn}
                   disabled={scale >= 2.5}
-                  className="h-8 w-8 p-0 transition-all hover:bg-gray-100"
+                  className="h-8 w-8 p-0 transition-all hover:bg-secondary-light"
                   title="Zoom In"
                 >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
               </div>
 
-              <div className="text-xs text-gray-400">{isImage ? "Image" : documentType.toUpperCase()} Document</div>
+              <div className="text-xs text-muted-foreground">{isImage ? "Image" : documentType.toUpperCase()} Document</div>
             </div>
           </motion.div>
         </motion.div>
@@ -435,3 +435,5 @@ export function ViewDocumentModal({
     </AnimatePresence>
   )
 }
+
+

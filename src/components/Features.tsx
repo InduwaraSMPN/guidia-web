@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 
 export function Features() {
   const navigate = useNavigate();
-  
+
   const features = [
     {
       name: "Build Connections",
@@ -54,10 +54,10 @@ export function Features() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             How Guidia Helps You Succeed
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Our platform provides the tools and resources you need to navigate
             your career journey with confidence.
           </p>
@@ -74,15 +74,15 @@ export function Features() {
             <motion.div
               key={feature.name}
               variants={item}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow duration-300"
+              className="bg-card rounded-2xl p-8 shadow-sm border border-border hover:shadow-md transition-shadow duration-300"
             >
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-lg bg-rose-50 text-[#800020] mb-5">
+              <div className="inline-flex items-center justify-center h-12 w-12 rounded-lg bg-brand/10 text-brand mb-5">
                 <feature.icon className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-semibold text-neutral-900 mb-3">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
                 {feature.name}
               </h3>
-              <p className="text-neutral-600">{feature.description}</p>
+              <p className="text-muted-foreground">{feature.description}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -92,19 +92,19 @@ export function Features() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 bg-[#800020] rounded-2xl p-10 md:p-12 text-white text-center"
+          className="mt-16 bg-brand rounded-2xl p-10 md:p-12 text-white text-center"
         >
           <h3 className="text-2xl md:text-3xl font-bold mb-4">
             Ready to start your journey?
           </h3>
-          <p className="text-rose-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-white/80 mb-8 max-w-2xl mx-auto">
             Join thousands of students and professionals who have found their
             path with Guidia.
           </p>
           <Button
             size="lg"
             onClick={() => navigate("/auth/register")}
-            className="bg-white text-[#800020] hover:bg-neutral-50 px-8 py-3 rounded-md font-medium transition-all duration-300 group"
+            className="bg-white dark:bg-neutral-200 text-brand hover:bg-secondary dark:hover:bg-neutral-300 px-8 py-3 rounded-md font-medium transition-all duration-300 group"
           >
             Create a Free Account
             <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -114,3 +114,4 @@ export function Features() {
     </section>
   );
 }
+

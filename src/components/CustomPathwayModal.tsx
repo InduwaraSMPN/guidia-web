@@ -43,7 +43,7 @@ export function CustomPathwayModal({
           <h2 className="text-xl font-semibold">{title}</h2>
           <button 
             onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted-foreground hover:text-foreground"
             title="Close modal"
           >
             <X className="h-5 w-5" />
@@ -52,8 +52,8 @@ export function CustomPathwayModal({
         
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {label}<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              {label}<span className="text-brand">*</span>
             </label>
             <Input
               value={value}
@@ -76,3 +76,5 @@ export function CustomPathwayModal({
     </div>
   );
 }
+
+

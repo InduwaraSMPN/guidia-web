@@ -266,18 +266,18 @@ export function EditStudentProfile() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#800020]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
         </div>
       ) : (
         <div className="max-w-3xl mx-auto mb-16">
-          <h1 className="text-3xl font-bold text-[#800020] mb-8">
+          <h1 className="text-3xl font-bold text-brand mb-8">
             Edit Profile
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Student Number<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Student Number<span className="text-brand">*</span>
               </label>
               <Input
                 type="text"
@@ -292,8 +292,8 @@ export function EditStudentProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Student Name<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Student Name<span className="text-brand">*</span>
               </label>
               <Input
                 type="text"
@@ -309,8 +309,8 @@ export function EditStudentProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Title<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Title<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="text"
@@ -325,8 +325,8 @@ export function EditStudentProfile() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Contact Number<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Contact Number<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="tel"
@@ -342,8 +342,8 @@ export function EditStudentProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Student E-Mail<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Student E-Mail<span className="text-brand">*</span>
               </label>
               <Input
                 type="email"
@@ -359,8 +359,8 @@ export function EditStudentProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Study Level<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Study Level<span className="text-brand">*</span>
                 </label>
                 <Select
                   options={[
@@ -390,8 +390,8 @@ export function EditStudentProfile() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Course Level<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Course Level<span className="text-brand">*</span>
                 </label>
                 <Select
                   options={
@@ -425,8 +425,8 @@ export function EditStudentProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Description<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Description<span className="text-brand">*</span>
               </label>
               <RichTextEditor
                 value={formData.description}
@@ -437,8 +437,8 @@ export function EditStudentProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Image<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Image<span className="text-brand">*</span>
               </label>
               {showFileUploader && (
                 <FileUploader
@@ -487,14 +487,14 @@ export function EditStudentProfile() {
                           variant="secondary"
                           size="sm"
                           onClick={handleRemoveImage}
-                          className="flex items-center gap-1 bg-[#800020] text-white hover:bg-rose-800"
+                          className="flex items-center gap-1 bg-brand text-white hover:bg-brand-dark"
                         >
                           Remove
                         </Button>
                       </div>
                     </div>
                   </div>
-                  <span className="text-sm text-gray-600 mt-2 block">
+                  <span className="text-sm text-muted-foreground mt-2 block">
                     {formData.image?.name ||
                       (previewUrl && previewUrl.split("/").pop()) ||
                       "Profile Picture"}
@@ -530,3 +530,5 @@ export function EditStudentProfile() {
     </div>
   );
 }
+
+

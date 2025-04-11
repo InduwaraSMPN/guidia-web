@@ -138,16 +138,16 @@ export function ChatList() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-32 pb-32 pb-6">
+    <div className="min-h-screen bg-secondary pt-32 pb-32 pb-6">
       <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-          <div className="p-4 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow-lg border border-border">
+          <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
+              <h3 className="text-lg font-semibold text-adaptive-dark">Messages</h3>
               {totalUnreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-sm text-[#800020] hover:text-rose-800 flex items-center gap-1"
+                  className="text-sm text-brand hover:text-brand-dark flex items-center gap-1"
                 >
                   <CheckCheck className="h-4 w-4" />
                   Mark all as read
@@ -162,15 +162,15 @@ export function ChatList() {
             </div>
           ) : isLoading ? (
             <div className="h-64 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
             </div>
           ) : chats.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-500">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <User className="h-8 w-8 text-gray-400" />
+            <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-secondary-light flex items-center justify-center mb-4">
+                <User className="h-8 w-8 text-muted-foreground" />
               </div>
               <p>No messages yet</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Start a conversation from profiles
               </p>
             </div>
@@ -180,7 +180,7 @@ export function ChatList() {
                 <div
                   key={chat.userId}
                   onClick={() => handleChatClick(chat)}
-                  className="p-4 hover:bg-gray-100 cursor-pointer transition-colors"
+                  className="p-4 hover:bg-secondary-light cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     {chat.image ? (
@@ -191,28 +191,28 @@ export function ChatList() {
                           chat.type === 'company'
                             ? 'w-12 h-10 object-contain'
                             : 'w-12 h-12 object-cover rounded-full'
-                        } border border-gray-200`}
+                        } border border-border`}
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-secondary-light rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-muted-foreground" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h2 className="font-medium text-gray-900 truncate">
+                        <h2 className="font-medium text-adaptive-dark truncate">
                           {chat.name || 'Unknown User'}
                         </h2>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {formatTime(chat.timestamp)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="text-sm text-muted-foreground truncate">
                         {chat.lastMessage}
                       </p>
                     </div>
                     {chat.unreadCount ? (
-                      <div className="ml-2 bg-[#800020] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <div className="ml-2 bg-brand text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {chat.unreadCount}
                       </div>
                     ) : null}
@@ -226,6 +226,9 @@ export function ChatList() {
     </div>
   );
 }
+
+
+
 
 
 

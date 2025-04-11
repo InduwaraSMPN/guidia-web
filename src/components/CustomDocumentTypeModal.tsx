@@ -29,15 +29,15 @@ export function CustomDocumentTypeModal({
       <div className="bg-white rounded-lg w-full max-w-sm px-4 sm:px-6">
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-semibold">Custom Document Type</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
         
         <div className="p-4 space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              What type of document is this?<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              What type of document is this?<span className="text-brand">*</span>
             </label>
             <Input
               value={documentType}
@@ -64,3 +64,5 @@ export function CustomDocumentTypeModal({
     </div>
   );
 }
+
+

@@ -65,8 +65,8 @@ export function NewsPage() {
           <header className="mb-16">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
               <div className="flex items-center gap-3">
-                <Newspaper className="h-8 w-8 text-[#800020]" />
-                <h1 className="text-4xl font-bold text-[#800020]">News</h1>
+                <Newspaper className="h-8 w-8 text-brand" />
+                <h1 className="text-4xl font-bold text-brand">News</h1>
               </div>
 
               <div className="flex items-center gap-4">
@@ -78,7 +78,7 @@ export function NewsPage() {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
                       onClick={() => navigate("/news/post")}
-                      className="flex items-center gap-2 bg-[#800020] hover:bg-rose-800 transition-colors"
+                      className="flex items-center gap-2 bg-brand hover:bg-brand-dark transition-colors"
                     >
                       <Plus className="h-4 w-4" />
                       Post News
@@ -98,8 +98,8 @@ export function NewsPage() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center justify-center py-16"
               >
-                <div className="w-16 h-16 border-4 border-gray-200 border-t-[#800020] rounded-full animate-spin mb-4" />
-                <p className="text-gray-500 text-lg">Loading the latest news...</p>
+                <div className="w-16 h-16 border-4 border-border border-t-[#800020] rounded-full animate-spin mb-4" />
+                <p className="text-muted-foreground text-lg">Loading the latest news...</p>
               </motion.div>
             ) : error ? (
               <motion.div
@@ -124,9 +124,9 @@ export function NewsPage() {
                 exit={{ opacity: 0 }}
                 className="text-center py-16"
               >
-                <div className="bg-gray-50 p-8 rounded-xl max-w-md mx-auto">
+                <div className="bg-secondary p-8 rounded-xl max-w-md mx-auto">
                   <Newspaper className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-2">
+                  <p className="text-muted-foreground text-lg mb-2">
                     No news found
                     {searchQuery && " matching your search"}
                   </p>
@@ -165,4 +165,6 @@ export function NewsPage() {
     </div>
   )
 }
+
+
 

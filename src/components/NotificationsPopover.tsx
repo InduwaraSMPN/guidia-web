@@ -142,11 +142,11 @@ export function NotificationsPopover() {
       {/* Notification Bell */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full text-neutral-600 hover:bg-rose-100 hover:text-rose-800 transition-colors duration-300"
+        className="relative p-2 rounded-full text-muted-foreground hover:bg-brand/10 hover:text-brand transition-colors duration-300"
       >
         <Bell className="h-6 w-6" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-[#800020] rounded-full">
+          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-brand rounded-full">
             {unreadCount}
           </span>
         )}
@@ -154,14 +154,14 @@ export function NotificationsPopover() {
 
       {/* Notifications Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-4 border-b border-gray-200">
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-border z-50">
+          <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+              <h3 className="text-lg font-semibold text-adaptive-dark">Notifications</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-sm text-[#800020] hover:text-rose-800 flex items-center gap-1"
+                  className="text-sm text-brand hover:text-brand-dark flex items-center gap-1"
                 >
                   <CheckCheck className="h-4 w-4" />
                   Mark all as read
@@ -172,15 +172,15 @@ export function NotificationsPopover() {
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading && notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 Loading notifications...
               </div>
             ) : error ? (
-              <div className="p-4 text-center text-red-500">
+              <div className="p-4 text-center text-error">
                 {error}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 No notifications
               </div>
             ) : (
@@ -193,18 +193,18 @@ export function NotificationsPopover() {
 
                 // Determine priority color
                 const priorityColors = {
-                  low: 'bg-gray-100',
-                  medium: 'bg-blue-100',
-                  high: 'bg-orange-100',
-                  urgent: 'bg-red-100'
+                  low: 'bg-secondary',
+                  medium: 'bg-info/20',
+                  high: 'bg-warning/20',
+                  urgent: 'bg-error/20'
                 };
 
                 return (
                   <div
                     key={notification.notificationID}
                     className={cn(
-                      "p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer",
-                      !notification.isRead && "bg-gray-50"
+                      "p-4 border-b border-border hover:bg-secondary transition-colors cursor-pointer",
+                      !notification.isRead && "bg-secondary"
                     )}
                     onClick={async () => {
                       if (!notification.isRead) {
@@ -249,24 +249,24 @@ export function NotificationsPopover() {
                     <div className="flex justify-between items-start">
                       <div className="flex items-center">
                         {!notification.isRead && (
-                          <span className="w-2 h-2 bg-[#800020] rounded-full mr-2"></span>
+                          <span className="w-2 h-2 bg-brand rounded-full mr-2"></span>
                         )}
                         <h4 className={cn(
                           "text-sm font-medium",
-                          notification.isRead ? "text-gray-900" : "text-[#800020]"
+                          notification.isRead ? "text-adaptive-dark" : "text-brand"
                         )}>
                           {notification.title}
                         </h4>
                       </div>
-                      <span className="text-xs text-gray-500 ml-2">{relativeTime}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{relativeTime}</span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
 
                     {/* Priority indicator */}
                     <div className="mt-2 flex justify-between items-center">
                       <span className={cn(
                         "text-xs px-2 py-1 rounded-full",
-                        priorityColors[notification.priority] || 'bg-gray-100'
+                        priorityColors[notification.priority] || 'bg-secondary-light'
                       )}>
                         {notification.notificationType.replace(/_/g, ' ').toLowerCase()}
                       </span>
@@ -281,3 +281,5 @@ export function NotificationsPopover() {
     </div>
   );
 }
+
+

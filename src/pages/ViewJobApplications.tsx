@@ -188,19 +188,19 @@ export function ViewJobApplications() {
               }}
             />
           ) : (
-            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-secondary-light rounded-lg flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-8 h-8 text-muted-foreground" />
             </div>
           )}
 
           {/* Job Details - Middle */}
           <div className="flex-grow">
-            <h3 className="text-xl font-semibold text-gray-800">
+            <h3 className="text-xl font-semibold text-foreground">
               {application.jobTitle}
             </h3>
-            <p className="text-gray-600">{application.companyName}</p>
-            <p className="text-gray-500">{application.jobLocation}</p>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="text-muted-foreground">{application.companyName}</p>
+            <p className="text-muted-foreground">{application.jobLocation}</p>
+            <p className="text-muted-foreground text-sm mt-2">
               Applied on: {formatDate(application.submittedAt)}
             </p>
           </div>
@@ -230,7 +230,7 @@ export function ViewJobApplications() {
                 deletingId === application.applicationID ||
                 !canDeleteApplication(application)
               }
-              className="flex items-center gap-1 px-5 py-2 bg-[#800020] text-white text-sm rounded-md hover:bg-rose-800 font-medium transition-all duration-200 shadow-sm hover:shadow"
+              className="flex items-center gap-1 px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-dark font-medium transition-all duration-200 shadow-sm hover:shadow"
             >
               {deletingId === application.applicationID ? (
                 <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent" />
@@ -246,9 +246,9 @@ export function ViewJobApplications() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-32 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-secondary pt-32 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold text-adaptive-dark mb-8">
           My Job Applications
         </h1>
 
@@ -256,14 +256,14 @@ export function ViewJobApplications() {
           <div className="animate-pulse space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-white p-6 rounded-lg shadow">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-6 bg-secondary-dark rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-secondary-dark rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : applications.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               You haven't submitted any job applications yet.
             </p>
           </div>
@@ -291,3 +291,6 @@ export function ViewJobApplications() {
     </div>
   );
 }
+
+
+

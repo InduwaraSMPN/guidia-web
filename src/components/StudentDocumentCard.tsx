@@ -26,9 +26,9 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
 
   return (
     <>
-      <div className={`p-6 rounded-lg ${isUploaded ? 'bg-[#800020]' : 'bg-gray-100'}`}>
+      <div className={`p-6 rounded-lg ${isUploaded ? 'bg-brand' : 'bg-secondary-light'}`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-lg font-semibold ${isUploaded ? 'text-white' : 'text-gray-900'}`}>
+          <h3 className={`text-lg font-semibold ${isUploaded ? 'text-white' : 'text-adaptive-dark'}`}>
             {title}
           </h3>
         </div>
@@ -37,7 +37,7 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
           <div className="flex gap-2 mt-3 justify-end">
             <button 
               onClick={handleViewDocument}
-              className="flex items-center gap-1 px-3 py-1.5 rounded bg-white text-[#800020] text-sm hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded bg-white text-brand text-sm hover:bg-secondary-light transition-colors"
             >
               <Eye className="h-3.5 w-3.5" /> View
             </button>
@@ -57,3 +57,6 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
     </>
   );
 }
+
+
+

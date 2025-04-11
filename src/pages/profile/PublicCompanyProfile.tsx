@@ -355,7 +355,7 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
                     {job.type} · {job.location}
                   </p>
                   <motion.div
-                    className="mt-4 text-[#800020] text-sm font-medium"
+                    className="mt-4 text-brand text-sm font-medium"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: hoveredJobId === job.jobID ? 1 : 0 }}
                     transition={{ duration: 0.2 }}
@@ -384,3 +384,4 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
     </motion.div>
   );
 }
+

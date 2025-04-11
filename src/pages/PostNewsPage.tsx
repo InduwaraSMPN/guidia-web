@@ -227,13 +227,13 @@ export function PostNewsPage() {
   return (
     <div className="container mx-auto pt-32 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">{id ? 'Edit News' : 'Post News'}</h1>
+        <h1 className="text-3xl font-bold text-brand mb-8">{id ? 'Edit News' : 'Post News'}</h1>
         
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Title<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Title<span className="text-brand">*</span>
               </label>
               <Input
                 type="text"
@@ -247,8 +247,8 @@ export function PostNewsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Content<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Content<span className="text-brand">*</span>
               </label>
               <RichTextEditor
                 value={formData.content}
@@ -260,8 +260,8 @@ export function PostNewsPage() {
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  News Images<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  News Images<span className="text-brand">*</span>
                 </label>
               </div>
               
@@ -339,3 +339,5 @@ export function PostNewsPage() {
     </div>
   );
 }
+
+

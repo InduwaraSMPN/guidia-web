@@ -105,7 +105,7 @@ export function CompanyApplicationsPage() {
 
     switch (status) {
       case 'pending':
-        bgColor = 'bg-gray-500';
+        bgColor = 'bg-secondary0';
         break;
       case 'reviewed':
         bgColor = 'bg-blue-500';
@@ -120,7 +120,7 @@ export function CompanyApplicationsPage() {
         bgColor = 'bg-red-500';
         break;
       default:
-        bgColor = 'bg-gray-500';
+        bgColor = 'bg-secondary0';
     }
 
     return (
@@ -138,14 +138,14 @@ export function CompanyApplicationsPage() {
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white p-6 rounded-lg shadow">
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-6 bg-secondary-dark rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-secondary-dark rounded w-1/2"></div>
             </div>
           ))}
         </div>
       ) : applications.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             You haven't received any job applications yet.
           </p>
         </div>
@@ -153,11 +153,11 @@ export function CompanyApplicationsPage() {
         <div className="space-y-4">
           {applications.map((application) => (
             <div key={application.applicationID} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-4 border-b border-gray-100">
+              <div className="p-4 border-b border-border">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-lg font-semibold">{application.firstName} {application.lastName}</h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Applied for: <span className="font-medium">{application.jobTitle}</span> ({application.jobLocation})
                     </p>
                   </div>
@@ -168,13 +168,13 @@ export function CompanyApplicationsPage() {
               <div className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Email: {application.email}</p>
-                    <p className="text-sm text-gray-500">Phone: {application.phone}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">Email: {application.email}</p>
+                    <p className="text-sm text-muted-foreground">Phone: {application.phone}</p>
+                    <p className="text-sm text-muted-foreground">
                       Applied: {formatDistanceToNow(new Date(application.submittedAt), { addSuffix: true })}
                     </p>
                     {application.statusUpdatedAt && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         Status updated: {formatDistanceToNow(new Date(application.statusUpdatedAt), { addSuffix: true })}
                       </p>
                     )}
@@ -183,14 +183,14 @@ export function CompanyApplicationsPage() {
                     {application.notes && (
                       <div className="mt-2">
                         <p className="text-sm font-medium">Notes:</p>
-                        <p className="text-sm text-gray-600">{application.notes}</p>
+                        <p className="text-sm text-muted-foreground">{application.notes}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="px-4 py-3 bg-gray-50 flex justify-between">
+              <div className="px-4 py-3 bg-secondary flex justify-between">
                 <Button
                   variant="outline"
                   size="sm"
@@ -216,9 +216,9 @@ export function CompanyApplicationsPage() {
       {isModalOpen && selectedApplication && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b border-gray-200">
+            <div className="p-4 border-b border-border">
               <h2 className="text-xl font-semibold">Update Application Status</h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Update status for {selectedApplication.firstName} {selectedApplication.lastName}'s application
                 for {selectedApplication.jobTitle}
               </p>
@@ -245,12 +245,12 @@ export function CompanyApplicationsPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add notes about this application"
                   rows={4}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#800020]"
+                  className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#800020]"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 flex justify-end space-x-2">
+            <div className="p-4 bg-secondary flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                 Cancel
               </Button>
@@ -267,4 +267,5 @@ export function CompanyApplicationsPage() {
     </div>
   );
 }
+
 

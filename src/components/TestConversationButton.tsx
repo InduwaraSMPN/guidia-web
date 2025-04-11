@@ -50,7 +50,7 @@ export function TestConversationButton() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-border">
         <h3 className="text-sm font-medium mb-2">Development Tools</h3>
         <Button
           onClick={handleCreateTestConversation}
@@ -74,3 +74,4 @@ export function TestConversationButton() {
     </div>
   );
 }
+

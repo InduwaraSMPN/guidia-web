@@ -77,7 +77,7 @@ export function AdminNewsPage() {
   return (
     <div className="p-6 max-w-[1216px] mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#800020]">News Management</h1>
+        <h1 className="text-2xl font-bold text-brand">News Management</h1>
       </div>
 
       <div className="mb-6">
@@ -105,3 +105,4 @@ export function AdminNewsPage() {
     </div>
   );
 }
+

@@ -179,7 +179,7 @@ export function ProfileDropdown() {
     const size = type === "button" ? "h-full w-full" : "h-10 w-10"
 
     if (isLoading) {
-      return <div className={`${size} bg-gray-200 rounded-full animate-pulse`}></div>
+      return <div className={`${size} bg-secondary-dark rounded-full animate-pulse`}></div>
     }
 
     if (profileData) {
@@ -211,7 +211,7 @@ export function ProfileDropdown() {
       {/* Profile Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full text-neutral-600 hover:bg-rose-100 hover:text-rose-800 transition-colors duration-300"
+        className="p-2 rounded-full text-muted-foreground hover:bg-brand/10 hover:text-brand transition-colors duration-300"
         aria-label="Profile menu"
       >
         <div className="w-6 h-6 flex items-center justify-center overflow-hidden rounded-full">
@@ -221,18 +221,18 @@ export function ProfileDropdown() {
 
       {/* Profile Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border z-50">
           {/* Header with user info */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                 {getProfileImage("dropdown")}
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">
+                <h3 className="text-sm font-semibold text-foreground">
                   {getUserName()}
                 </h3>
-                <p className="text-xs text-gray-500">{user?.userType || "User"}</p>
+                <p className="text-xs text-muted-foreground">{user?.userType || "User"}</p>
               </div>
             </div>
           </div>
@@ -242,9 +242,9 @@ export function ProfileDropdown() {
             <Link
               to={getProfilePath()}
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
-              <User className="h-4 w-4 text-gray-500" />
+              <User className="h-4 w-4 text-muted-foreground" />
               Profile
             </Link>
 
@@ -252,9 +252,9 @@ export function ProfileDropdown() {
               <Link
                 to={getEditProfilePath()}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
               >
-                <Edit className="h-4 w-4 text-gray-500" />
+                <Edit className="h-4 w-4 text-muted-foreground" />
                 Edit Profile
               </Link>
             )}
@@ -263,9 +263,9 @@ export function ProfileDropdown() {
               <Link
                 to="/admin/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
               >
-                <Settings className="h-4 w-4 text-gray-500" />
+                <Settings className="h-4 w-4 text-muted-foreground" />
                 Admin Settings
               </Link>
             )}
@@ -274,9 +274,9 @@ export function ProfileDropdown() {
               <Link
                 to={getSettingsPath()}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary-light transition-colors"
               >
-                <Settings className="h-4 w-4 text-gray-500" />
+                <Settings className="h-4 w-4 text-muted-foreground" />
                 Settings
               </Link>
             )}
@@ -286,21 +286,21 @@ export function ProfileDropdown() {
                 setIsOpen(false)
                 handleLogout()
               }}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
-              <LogOut className="h-4 w-4 text-gray-500" />
+              <LogOut className="h-4 w-4 text-muted-foreground" />
               Logout
             </button>
           </div>
 
           {/* Theme Toggle */}
-          <div className="px-4 py-2 border-t border-gray-200">
+          <div className="px-4 py-2 border-t border-border">
             <ThemeToggle />
           </div>
 
           {/* Date and Time */}
-          <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="p-3 border-t border-border bg-secondary rounded-b-lg">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <div>
                 <div className="text-xs font-medium">
@@ -317,3 +317,4 @@ export function ProfileDropdown() {
     </div>
   )
 }
+

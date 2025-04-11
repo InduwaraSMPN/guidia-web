@@ -49,14 +49,14 @@ export function MultipleInput({
         {items.map((item, index) => (
           <div
             key={index}
-            className="flex items-center bg-gray-100 rounded-md px-3 py-1.5 text-sm text-gray-800 h-[44px]"
+            className="flex items-center bg-secondary-light rounded-md px-3 py-1.5 text-sm text-foreground h-[44px]"
           >
             {" "}
             <span>{item}</span>
             <button
               type="button"
               onClick={() => handleRemoveItem(item)}
-              className="ml-2 text-gray-500 hover:text-gray-700"
+              className="ml-2 text-muted-foreground hover:text-foreground"
             >
               {" "}
               <X className="h-3 w-3" />
@@ -75,7 +75,7 @@ export function MultipleInput({
           <button
             type="button"
             onClick={handleAddItem}
-            className="flex items-center justify-center h-[44px] w-[44px] text-[#800020]"
+            className="flex items-center justify-center h-[44px] w-[44px] text-brand"
           >
             <Plus className="h-5 w-5" />
           </button>
@@ -84,3 +84,5 @@ export function MultipleInput({
     </div>
   );
 }
+
+

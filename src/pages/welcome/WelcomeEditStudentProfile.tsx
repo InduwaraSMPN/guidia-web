@@ -237,10 +237,10 @@ export function WelcomeEditStudentProfile() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">
+          <h1 className="text-3xl font-bold text-brand mb-4">
             01. Welcome to <span className="font-grillmaster">Guidia</span>
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Let's get started by setting up your student profile
           </p>
         </div>
@@ -258,3 +258,5 @@ export function WelcomeEditStudentProfile() {
     </div>
   );
 }
+
+

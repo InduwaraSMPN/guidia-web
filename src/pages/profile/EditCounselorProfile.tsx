@@ -273,14 +273,14 @@ export function EditCounselorProfile() {
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto mb-16">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">
+        <h1 className="text-3xl font-bold text-brand mb-8">
           Edit Profile
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Counselor Name<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Counselor Name<span className="text-brand">*</span>
             </label>
             <Input
               name="counselorName"
@@ -292,8 +292,8 @@ export function EditCounselorProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Position<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Position<span className="text-brand">*</span>
             </label>
             <Input
               name="position"
@@ -305,8 +305,8 @@ export function EditCounselorProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Education<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Education<span className="text-brand">*</span>
             </label>
             <Input
               name="education"
@@ -319,8 +319,8 @@ export function EditCounselorProfile() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Contact Number<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Contact Number<span className="text-brand">*</span>
               </label>
               <Input
                 type="tel"
@@ -337,8 +337,8 @@ export function EditCounselorProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Email<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Email<span className="text-brand">*</span>
               </label>
               <Input
                 name="emailMail"
@@ -353,8 +353,8 @@ export function EditCounselorProfile() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Years of Experience<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Years of Experience<span className="text-brand">*</span>
               </label>
               <Input
                 name="yearsOfExperience"
@@ -368,8 +368,8 @@ export function EditCounselorProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Location<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Location<span className="text-brand">*</span>
               </label>
               <Input
                 name="location"
@@ -382,8 +382,8 @@ export function EditCounselorProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Languages<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Languages<span className="text-brand">*</span>
             </label>
             <MultipleInput
               items={formData.languages}
@@ -394,8 +394,8 @@ export function EditCounselorProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Description<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Description<span className="text-brand">*</span>
             </label>
             <RichTextEditor
               value={formData.description}
@@ -404,8 +404,8 @@ export function EditCounselorProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Image<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Image<span className="text-brand">*</span>
             </label>
             {showFileUploader && (
               <FileUploader
@@ -454,14 +454,14 @@ export function EditCounselorProfile() {
                         variant="secondary"
                         size="sm"
                         onClick={handleRemoveImage}
-                        className="flex items-center gap-1 bg-[#800020] text-white hover:bg-rose-800"
+                        className="flex items-center gap-1 bg-brand text-white hover:bg-brand-dark"
                       >
                         Remove
                       </Button>
                     </div>
                   </div>
                 </div>
-                <span className="text-sm text-gray-600 mt-2 block">
+                <span className="text-sm text-muted-foreground mt-2 block">
                   {formData.image?.name || (previewUrl && previewUrl.split('/').pop()) || 'Profile Picture'}
                 </span>
               </div>
@@ -488,7 +488,7 @@ export function EditCounselorProfile() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-[#800020] text-white hover:bg-rose-800"
+              className="bg-brand text-white hover:bg-brand-dark"
             >
               {isLoading ? (
                 <>
@@ -515,3 +515,5 @@ export function EditCounselorProfile() {
     </div>
   );
 }
+
+

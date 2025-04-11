@@ -59,7 +59,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     return (
       <div
         className={cn(
-          "relative rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-[#800020] focus-within:border-[#800020]",
+          "relative rounded-md border border-border focus-within:ring-2 focus-within:ring-[#800020] focus-within:border-brand",
           className
         )}
       >
@@ -73,3 +73,5 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 RichTextEditor.displayName = "RichTextEditor";
 
 export { RichTextEditor };
+
+

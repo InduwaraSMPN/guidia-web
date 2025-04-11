@@ -127,12 +127,12 @@ export function RegisterContinue() {
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
       <div className="w-full max-w-sm px-4 sm:px-6">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">Register</h1>
+        <h1 className="text-3xl font-bold text-brand mb-8">Register</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left mb-1">
-              Username<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground text-left mb-1">
+              Username<span className="text-brand">*</span>
             </label>
             <Input
               type="text"
@@ -144,8 +144,8 @@ export function RegisterContinue() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left mb-1">
-              Password<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground text-left mb-1">
+              Password<span className="text-brand">*</span>
             </label>
             <div className="relative">
               <Input
@@ -161,17 +161,17 @@ export function RegisterContinue() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
+                  <Eye className="h-5 w-5 text-muted-foreground" />
                 )}
               </button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left mb-1">
-              Retype Password<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground text-left mb-1">
+              Retype Password<span className="text-brand">*</span>
             </label>
             <div className="relative">
               <Input
@@ -187,9 +187,9 @@ export function RegisterContinue() {
                 onClick={() => setShowRetypePassword(!showRetypePassword)}
               >
                 {showRetypePassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
+                  <Eye className="h-5 w-5 text-muted-foreground" />
                 )}
               </button>
             </div>
@@ -204,12 +204,12 @@ export function RegisterContinue() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#800020] text-white py-3 rounded-md font-medium hover:bg-rose-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand text-white py-3 rounded-md font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Account...' : 'Register'}
           </button>
 
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-muted-foreground">
             <p>Password must contain:</p>
             <ul className="list-disc list-inside">
               <li>At least 8 characters</li>
@@ -224,4 +224,6 @@ export function RegisterContinue() {
     </div>
   );
 }
+
+
 

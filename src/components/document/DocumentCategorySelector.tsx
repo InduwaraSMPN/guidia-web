@@ -54,28 +54,28 @@ export function DocumentCategorySelector({
 
   return (
     <div className={className}>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         {/* Selected category section */}
-        <div className="p-6 border-b border-gray-100">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
-            Document Category<span className="text-[#800020]">*</span>
+        <div className="p-6 border-b border-border">
+          <label className="block text-sm font-medium text-foreground mb-4">
+            Document Category<span className="text-brand">*</span>
           </label>
           
           {!selectedCategory ? (
-            <div className="py-8 text-center border border-dashed border-gray-200 rounded-lg bg-gray-50">
-              <p className="text-gray-500">No category selected</p>
-              <p className="text-sm text-gray-400 mt-1">Choose from suggestions below</p>
+            <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary">
+              <p className="text-muted-foreground">No category selected</p>
+              <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="flex items-center justify-between bg-[#800020] text-white px-4 py-2 rounded-md">
+              <div className="flex items-center justify-between bg-brand text-white px-4 py-2 rounded-md">
                 <span>{selectedCategory}</span>
                 <button
                   onClick={() => {
                     onCategorySelect('');
                     onCustomTypeSelect('');
                   }}
-                  className="text-white hover:text-gray-200"
+                  className="text-white hover:text-muted-foreground"
                   title="Remove category"
                 >
                   <X className="h-4 w-4" />
@@ -83,9 +83,9 @@ export function DocumentCategorySelector({
               </div>
               
               {selectedCategory === 'Other' && customDocumentType && (
-                <div className="mt-2 bg-gray-50 border border-gray-200 rounded-md p-3 text-sm">
+                <div className="mt-2 bg-secondary border border-border rounded-md p-3 text-sm">
                   <span className="font-medium">Custom document type: </span> 
-                  <span className="text-[#800020]">{customDocumentType}</span>
+                  <span className="text-brand">{customDocumentType}</span>
                 </div>
               )}
             </div>
@@ -94,12 +94,12 @@ export function DocumentCategorySelector({
 
         {/* Available categories section */}
         <div className="p-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-4">
+          <h3 className="text-sm font-medium text-foreground mb-4">
             Available Categories:
           </h3>
           
           {filteredCategories.length === 0 ? (
-            <p className="text-sm text-gray-500 py-2">
+            <p className="text-sm text-muted-foreground py-2">
               Please clear the current selection to choose a different category.
             </p>
           ) : (
@@ -122,7 +122,7 @@ export function DocumentCategorySelector({
                     size="sm"
                     onClick={() => handleCategorySelect(category)}
                     disabled={disabled}
-                    className="text-sm text-[#800020] hover:bg-rose-800 w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                    className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                   >
                     <span>{category}</span>
                     <Plus className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-white" />
@@ -147,3 +147,5 @@ export function DocumentCategorySelector({
     </div>
   );
 }
+
+

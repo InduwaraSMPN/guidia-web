@@ -129,8 +129,8 @@ export function AdminSettingsPage() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center items-center py-8">
-                    <Loader2 className="h-6 w-6 text-[#800020] animate-spin" />
-                    <span className="ml-2 text-sm text-gray-600">Loading scheduler status...</span>
+                    <Loader2 className="h-6 w-6 text-brand animate-spin" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading scheduler status...</span>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -147,15 +147,15 @@ export function AdminSettingsPage() {
                       <h4 className="text-sm font-medium mb-2">Scheduled Jobs</h4>
                       <div className="space-y-2">
                         {schedulerStatus?.scheduledJobs.length === 0 && (
-                          <p className="text-sm text-gray-500">No scheduled jobs found</p>
+                          <p className="text-sm text-muted-foreground">No scheduled jobs found</p>
                         )}
                         {schedulerStatus?.scheduledJobs.map((job, index) => (
-                          <div key={index} className="bg-gray-50 p-3 rounded-md">
+                          <div key={index} className="bg-secondary p-3 rounded-md">
                             <div className="flex items-center gap-2">
                               {getTaskIcon(job.name)}
                               <span className="text-sm font-medium">{job.name}</span>
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               Next run: {formatDate(job.nextInvocation)}
                             </div>
                           </div>
@@ -256,7 +256,7 @@ export function AdminSettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="job-deadline-notifications" className="block">Job Deadline Notifications</Label>
-                    <p className="text-sm text-gray-500">Send reminders for approaching job application deadlines</p>
+                    <p className="text-sm text-muted-foreground">Send reminders for approaching job application deadlines</p>
                   </div>
                   <Switch id="job-deadline-notifications" defaultChecked />
                 </div>
@@ -264,7 +264,7 @@ export function AdminSettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="job-expiry-notifications" className="block">Job Expiry Notifications</Label>
-                    <p className="text-sm text-gray-500">Notify companies when their job postings are about to expire</p>
+                    <p className="text-sm text-muted-foreground">Notify companies when their job postings are about to expire</p>
                   </div>
                   <Switch id="job-expiry-notifications" defaultChecked />
                 </div>
@@ -272,7 +272,7 @@ export function AdminSettingsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="profile-completion-notifications" className="block">Profile Completion Reminders</Label>
-                    <p className="text-sm text-gray-500">Remind users to complete their profiles</p>
+                    <p className="text-sm text-muted-foreground">Remind users to complete their profiles</p>
                   </div>
                   <Switch id="profile-completion-notifications" defaultChecked />
                 </div>
@@ -324,7 +324,7 @@ export function AdminSettingsPage() {
                 <div>
                   <Label htmlFor="maintenance-mode" className="block">Maintenance Mode</Label>
                   <div className="flex items-center justify-between mt-2">
-                    <p className="text-sm text-gray-500">Put the site in maintenance mode</p>
+                    <p className="text-sm text-muted-foreground">Put the site in maintenance mode</p>
                     <Switch id="maintenance-mode" />
                   </div>
                 </div>
@@ -339,3 +339,5 @@ export function AdminSettingsPage() {
     </div>
   );
 }
+
+

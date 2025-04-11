@@ -96,19 +96,19 @@ export function UploadDocument() {
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">
+        <h1 className="text-3xl font-bold text-brand mb-8">
           Upload Documents
         </h1>
 
         {availableCategories.length === 0 && !availableCategories.includes('Other') ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               You have already uploaded all required documents. 
               You can still upload additional documents using the 'Other' category.
             </p>
             <button
               onClick={() => navigate(`/students/profile/documents/${userID}`)}
-              className="mt-4 text-[#800020] hover:underline"
+              className="mt-4 text-brand hover:underline"
             >
               Return to Documents
             </button>
@@ -125,3 +125,5 @@ export function UploadDocument() {
     </div>
   );
 }
+
+

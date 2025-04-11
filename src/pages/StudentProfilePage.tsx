@@ -162,7 +162,7 @@ export function StudentProfilePage() {
     return (
       <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-adaptive-dark">
             {error ||
               (!userID ? "Invalid profile URL" : "Student profile not found")}
           </h2>
@@ -175,9 +175,9 @@ export function StudentProfilePage() {
     <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Card with Profile Header */}
-        <div className="bg-white rounded-lg border border-gray-200 mb-8 overflow-hidden">
+        <div className="bg-white rounded-lg border border-border mb-8 overflow-hidden">
           {/* Header Banner */}
-          <div className="h-24 bg-[#800020] relative"></div>
+          <div className="h-24 bg-brand relative"></div>
 
           <div className="p-6">
             <div className="flex flex-col md:flex-row gap-8">
@@ -190,7 +190,7 @@ export function StudentProfilePage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="inline-block px-4 py-2 bg-[#800020] text-white font-semibold mt-4 text-center w-full rounded-lg">
+                <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-4 text-center w-full rounded-lg">
                   {studentData.studentNumber}
                 </div>
               </div>
@@ -199,14 +199,14 @@ export function StudentProfilePage() {
               <div className="flex-1 pt-4 md:pt-0">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-adaptive-dark">
                       {studentData.studentName}
                     </h1>
-                    <p className="text-lg text-[#800020] font-medium">
+                    <p className="text-lg text-brand font-medium">
                       {studentData.studentCategory} · {studentData.studentLevel}
                     </p>
                     {studentData.studentTitle && (
-                      <p className="text-gray-500 italic mb-6">
+                      <p className="text-muted-foreground italic mb-6">
                         {studentData.studentTitle}
                       </p>
                     )}
@@ -215,16 +215,16 @@ export function StudentProfilePage() {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
                         href={`mailto:${studentData.studentEmail}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors"
                       >
-                        <Mail className="w-4 h-4 text-[#800020]" />
+                        <Mail className="w-4 h-4 text-brand" />
                         <span className="truncate max-w-[180px]">
                           {studentData.studentEmail}
                         </span>
                       </a>
                       {studentData.studentContactNumber && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-md text-sm font-medium text-gray-700">
-                          <Phone className="w-4 h-4 text-[#800020]" />
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-md text-sm font-medium text-foreground">
+                          <Phone className="w-4 h-4 text-brand" />
                           <span>{studentData.studentContactNumber}</span>
                         </div>
                       )}
@@ -238,13 +238,13 @@ export function StudentProfilePage() {
 
             {/* About section - Aligned with profile image */}
             {studentData.studentDescription && (
-              <div className="mt-8 bg-gray-50 rounded-md p-6 border border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <User className="w-5 h-5 text-[#800020]" />
+              <div className="mt-8 bg-secondary rounded-md p-6 border border-border">
+                <h2 className="text-lg font-semibold text-adaptive-dark mb-3 flex items-center gap-2">
+                  <User className="w-5 h-5 text-brand" />
                   About Me
                 </h2>
                 <div
-                  className="prose max-w-none text-gray-600 text-sm leading-relaxed"
+                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: studentData.studentDescription,
                   }}
@@ -257,13 +257,13 @@ export function StudentProfilePage() {
         {/* Career Pathways - Card Layout */}
         <div className="bg-white pt-8 mb-8">
           <div className="flex justify-between items-center mb-4 ">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-adaptive-dark">
               Career Pathways
             </h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                className="border-brand text-brand hover:bg-brand-dark hover:text-white"
                 onClick={() =>
                   navigate(`/students/profile/career-pathways/edit/${userID}`)
                 }
@@ -279,14 +279,14 @@ export function StudentProfilePage() {
               {studentData.studentCareerPathways.map((pathway, index) => (
                 <div
                   key={index}
-                  className="px-6 py-3 bg-[#800020] text-white rounded-lg font-semibold"
+                  className="px-6 py-3 bg-brand text-white rounded-lg font-semibold"
                 >
                   {pathway}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">
+            <p className="text-muted-foreground italic">
               No career pathways added yet.
             </p>
           )}
@@ -295,11 +295,11 @@ export function StudentProfilePage() {
         {/* Documents - Card Layout with Better Grid */}
         <div className="bg-white pt-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Documents</h2>
+            <h2 className="text-2xl font-bold text-adaptive-dark">Documents</h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                className="border-brand text-brand hover:bg-brand-dark hover:text-white"
                 onClick={() =>
                   navigate(`/students/profile/documents/edit/${userID}`)
                 }
@@ -326,21 +326,21 @@ export function StudentProfilePage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">No documents uploaded yet.</p>
+            <p className="text-muted-foreground italic">No documents uploaded yet.</p>
           )}
         </div>
 
         {/* Job Applications section */}
         <div className="bg-white pt-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Briefcase className="w-6 h-6 text-[#800020]" />
+            <h2 className="text-2xl font-bold text-adaptive-dark flex items-center gap-2">
+              <Briefcase className="w-6 h-6 text-brand" />
               Job Applications
             </h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                className="border-brand text-brand hover:bg-brand-dark hover:text-white"
                 onClick={() => navigate(`/profile/jobs-applications/edit/${userID}`)}
               >
                 View All Applications
@@ -353,7 +353,7 @@ export function StudentProfilePage() {
               {jobApplications.map((application) => (
                 <div
                   key={application.applicationID}
-                  className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start gap-3">
                     {application.companyLogoPath ? (
@@ -363,25 +363,25 @@ export function StudentProfilePage() {
                         className="w-12 h-12 object-contain rounded"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-secondary-light rounded flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-muted-foreground" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-gray-900 truncate">
+                      <h3 className="text-sm font-semibold text-adaptive-dark truncate">
                         {application.jobTitle}
                       </h3>
-                      <p className="text-sm text-gray-600 truncate">
+                      <p className="text-sm text-muted-foreground truncate">
                         {application.companyName}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Applied on: {formatDate(application.submittedAt)}
                       </p>
                       <a
                         href={application.resumePath}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#800020] hover:text-rose-700 text-xs font-medium mt-2 inline-block"
+                        className="text-brand hover:text-brand-dark text-xs font-medium mt-2 inline-block"
                       >
                         View Resume
                       </a>
@@ -391,7 +391,7 @@ export function StudentProfilePage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">
+            <p className="text-muted-foreground italic">
               No job applications submitted yet.
             </p>
           )}
@@ -401,13 +401,13 @@ export function StudentProfilePage() {
         {isCurrentUser && (
           <div className="bg-white pt-8 mt-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Bookmark className="w-6 h-6 text-[#800020]" />
+              <h2 className="text-2xl font-bold text-adaptive-dark flex items-center gap-2">
+                <Bookmark className="w-6 h-6 text-brand" />
                 Saved Jobs
               </h2>
               <Button
                 variant="outline"
-                className="border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white"
+                className="border-brand text-brand hover:bg-brand-dark hover:text-white"
                 onClick={() => navigate(`/saved-jobs`)}
               >
                 View All Saved Jobs
@@ -416,14 +416,14 @@ export function StudentProfilePage() {
 
             {loadingSavedJobs ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#800020]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
               </div>
             ) : savedJobs.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {savedJobs.map((job) => (
                   <div
                     key={job.jobID}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-white rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => navigate(`/jobs/${job.jobID}`)}
                   >
                     <div className="flex items-start gap-3">
@@ -434,18 +434,18 @@ export function StudentProfilePage() {
                           className="w-12 h-12 object-contain rounded"
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                          <Building2 className="w-6 h-6 text-gray-400" />
+                        <div className="w-12 h-12 bg-secondary-light rounded flex items-center justify-center">
+                          <Building2 className="w-6 h-6 text-muted-foreground" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm font-semibold text-adaptive-dark truncate">
                           {job.title}
                         </h3>
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className="text-sm text-muted-foreground truncate">
                           {job.companyName}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           Deadline: {formatDate(job.endDate)}
                         </p>
                         {job.isExpired && (
@@ -459,15 +459,15 @@ export function StudentProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <div className="text-center py-8 bg-secondary rounded-lg">
                 <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 mb-2">No saved jobs yet</p>
-                <p className="text-gray-400 text-sm mb-4">
+                <p className="text-muted-foreground mb-2">No saved jobs yet</p>
+                <p className="text-muted-foreground text-sm mb-4">
                   Save jobs you're interested in to receive notifications about application deadlines.
                 </p>
                 <Button
                   onClick={() => navigate('/jobs')}
-                  className="bg-[#800020] hover:bg-rose-800 text-white"
+                  className="bg-brand hover:bg-brand-dark text-white"
                 >
                   Browse Jobs
                 </Button>
@@ -479,3 +479,6 @@ export function StudentProfilePage() {
     </div>
   );
 }
+
+
+

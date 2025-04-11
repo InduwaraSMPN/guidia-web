@@ -27,14 +27,14 @@ const statusOptions: Option[] = [
   { value: "blocked", label: "Blocked" },
 ];
 
-export function AdminsTable({ 
-  users, 
-  roleID, 
-  onAdd, 
-  onEdit, 
-  onDelete, 
+export function AdminsTable({
+  users,
+  roleID,
+  onAdd,
+  onEdit,
+  onDelete,
   onStatusChange,
-  isLoading = false 
+  isLoading = false
 }: AdminsTableProps) {
   const [sortField, setSortField] = useState<keyof User>('email');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -56,8 +56,8 @@ export function AdminsTable({
     return [...filteredUsers].sort((a, b) => {
       const aValue = a[sortField]?.toString().toLowerCase() ?? '';
       const bValue = b[sortField]?.toString().toLowerCase() ?? '';
-      
-      return sortDirection === 'asc' 
+
+      return sortDirection === 'asc'
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     });
@@ -101,9 +101,9 @@ export function AdminsTable({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+              className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200 focus:ring-2 focus:ring-brand/20 focus:outline-none group"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4 mr-2 text-foreground group-hover:text-brand dark:group-hover:text-foreground transition-colors duration-200" />
               Export CSV
             </motion.button>
           </CsvExporter>
@@ -149,7 +149,7 @@ export function AdminsTable({
                   onMouseEnter={() => setHoveredRow(user.userID)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900">{user.email}</td>
+                  <td className="px-6 py-4 font-medium text-adaptive-dark">{user.email}</td>
                   <td className="px-6 py-4">{user.username}</td>
                   <td className="px-6 py-4">
                     <Select

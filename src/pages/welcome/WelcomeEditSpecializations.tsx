@@ -68,15 +68,15 @@ export function WelcomeEditSpecializations() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">
+          <h1 className="text-3xl font-bold text-brand mb-4">
             02. Select Your Specializations
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Choose the areas you specialize in counseling
           </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-border p-6">
           <SpecializationSelector
             selectedSpecializations={selectedSpecializations}
             onSpecializationsChange={handleSpecializationsChange}
@@ -102,4 +102,6 @@ export function WelcomeEditSpecializations() {
     </div>
   );
 }
+
+
 

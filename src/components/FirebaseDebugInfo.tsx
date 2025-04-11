@@ -26,7 +26,7 @@ export function FirebaseDebugInfo() {
 
   return (
     <div className="fixed top-20 right-4 z-50">
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-md">
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-border max-w-md">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-medium">Firebase Debug Info</h3>
           <Button
@@ -106,3 +106,4 @@ export function FirebaseDebugInfo() {
     </div>
   );
 }
+

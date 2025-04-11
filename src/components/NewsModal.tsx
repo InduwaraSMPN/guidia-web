@@ -15,10 +15,10 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
-            <h2 className="text-2xl font-bold text-[#800020]">{news.title}</h2>
+            <h2 className="text-2xl font-bold text-brand">{news.title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-muted-foreground hover:text-muted-foreground"
               aria-label="Close news modal"
               title="Close"
             >
@@ -26,7 +26,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 mb-4">{news.date}</p>
+          <p className="text-sm text-muted-foreground mb-4">{news.date}</p>
 
           {news.images && news.images.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -43,7 +43,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
           )}
 
           <div
-            className="prose max-w-none text-gray-700"
+            className="prose max-w-none text-foreground"
             dangerouslySetInnerHTML={{ __html: news.description }}
           />
         </div>
@@ -51,3 +51,5 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     </div>
   );
 }
+
+

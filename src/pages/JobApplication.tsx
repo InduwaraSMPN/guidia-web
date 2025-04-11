@@ -159,8 +159,8 @@ export function JobApplication() {
     return (
       <div className="min-h-screen bg-white pt-32  px-6 lg:px-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#800020] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading job details...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading job details...</p>
         </div>
       </div>
     );
@@ -170,8 +170,8 @@ export function JobApplication() {
     return (
       <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Job not found</h2>
-          <p className="mt-2 text-gray-600">The job you're looking for doesn't exist or has been removed.</p>
+          <h2 className="text-xl font-semibold text-adaptive-dark">Job not found</h2>
+          <p className="mt-2 text-muted-foreground">The job you're looking for doesn't exist or has been removed.</p>
           <Button onClick={() => navigate('/jobs')} className="mt-4">
             View All Jobs
           </Button>
@@ -184,7 +184,7 @@ export function JobApplication() {
     <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Job Details Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-lg border border-border p-6 mb-8">
           <div className="flex gap-4 items-start">
             {job.logo ? (
               <img
@@ -193,14 +193,14 @@ export function JobApplication() {
                 className="w-16 h-16 object-contain rounded-lg"
               />
             ) : (
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-secondary-light rounded-lg flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-muted-foreground" />
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
-              <p className="text-lg text-gray-600">{job.company}</p>
-              <p className="text-sm text-gray-500 mt-1">{job.location}</p>
+              <h1 className="text-2xl font-bold text-adaptive-dark">{job.title}</h1>
+              <p className="text-lg text-muted-foreground">{job.company}</p>
+              <p className="text-sm text-muted-foreground mt-1">{job.location}</p>
             </div>
           </div>
         </div>
@@ -216,14 +216,14 @@ export function JobApplication() {
         </div>
 
         {/* Application Form */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Application Form</h2>
+        <div className="bg-white rounded-lg border border-border p-6">
+          <h2 className="text-xl font-bold text-adaptive-dark mb-6">Application Form</h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  First Name<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  First Name<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="text"
@@ -237,8 +237,8 @@ export function JobApplication() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Last Name<span className="text-[#800020]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Last Name<span className="text-brand">*</span>
                 </label>
                 <Input
                   type="text"
@@ -254,8 +254,8 @@ export function JobApplication() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Email<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Email<span className="text-brand">*</span>
               </label>
               <Input
                 type="email"
@@ -270,8 +270,8 @@ export function JobApplication() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Phone<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Phone<span className="text-brand">*</span>
               </label>
               <Input
                 type="tel"
@@ -286,8 +286,8 @@ export function JobApplication() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Resume (PDF only)<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Resume (PDF only)<span className="text-brand">*</span>
               </label>
               
               {!formData.resume ? (
@@ -347,6 +347,9 @@ export function JobApplication() {
     </div>
   );
 }
+
+
+
 
 
 

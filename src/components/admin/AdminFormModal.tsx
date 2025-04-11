@@ -127,12 +127,12 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-2xl font-bold text-[#800020]">{title}</h2>
+              <h2 className="text-2xl font-bold text-brand">{title}</h2>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-secondary-light transition-colors duration-200"
                 aria-label="Close modal"
               >
                 <X size={20} />
@@ -145,10 +145,10 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
                   <div className="space-y-2">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 flex items-center gap-1.5"
+                      className="block text-sm font-medium text-foreground flex items-center gap-1.5"
                     >
-                      <Mail size={16} className="text-gray-500" />
-                      Email<span className="text-[#800020]">*</span>
+                      <Mail size={16} className="text-muted-foreground" />
+                      Email<span className="text-brand">*</span>
                     </label>
                     <div className="relative">
                       <Input
@@ -182,10 +182,10 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
                   <div className="space-y-2">
                     <label
                       htmlFor="username"
-                      className="block text-sm font-medium text-gray-700 flex items-center gap-1.5"
+                      className="block text-sm font-medium text-foreground flex items-center gap-1.5"
                     >
-                      <User size={16} className="text-gray-500" />
-                      Username<span className="text-[#800020]">*</span>
+                      <User size={16} className="text-muted-foreground" />
+                      Username<span className="text-brand">*</span>
                     </label>
                     <div className="relative">
                       <Input
@@ -219,10 +219,10 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
                   <div className="space-y-2">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-gray-700 flex items-center gap-1.5"
+                      className="block text-sm font-medium text-foreground flex items-center gap-1.5"
                     >
-                      <Lock size={16} className="text-gray-500" />
-                      Password{!initialData && <span className="text-[#800020]">*</span>}
+                      <Lock size={16} className="text-muted-foreground" />
+                      Password{!initialData && <span className="text-brand">*</span>}
                     </label>
                     <div className="relative">
                       <Input
@@ -256,7 +256,7 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
                       <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="mt-1.5 text-sm text-gray-500 flex items-center gap-1"
+                        className="mt-1.5 text-sm text-muted-foreground flex items-center gap-1"
                       >
                         <AlertCircle size={14} />
                         Leave blank to keep the current password
@@ -272,7 +272,7 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
                     </Button>
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="submit" className="bg-[#800020] hover:bg-rose-800 text-white px-5">
+                    <Button type="submit" className="bg-brand hover:bg-brand-dark text-white px-5">
                       {initialData ? "Update" : "Create"}
                     </Button>
                   </motion.div>
@@ -287,3 +287,4 @@ export function AdminFormModal({ isOpen, onClose, onSubmit, initialData, title }
 }
 
 export default AdminFormModal
+

@@ -200,22 +200,22 @@ export function EmailVerification() {
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
       <div className="w-full max-w-sm px-4 sm:px-6">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">
+        <h1 className="text-3xl font-bold text-brand mb-8">
           Verify Your Email
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left mb-1">
-              Email Address<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground text-left mb-1">
+              Email Address<span className="text-brand">*</span>
             </label>
-            <Input type="email" value={email} disabled className="bg-gray-50" />
+            <Input type="email" value={email} disabled className="bg-secondary" />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left mb-1">
+            <label className="block text-sm font-medium text-foreground text-left mb-1">
               Enter one-time password (OTP)
-              <span className="text-[#800020]">*</span>
+              <span className="text-brand">*</span>
             </label>
             <div className="flex gap-2 justify-between">
               {otpValues.map((value, index) => (
@@ -234,13 +234,13 @@ export function EmailVerification() {
                       ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
                       : verificationStatus === 'error'
                         ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:border-[#800020] focus:ring-[#800020]'
+                        : 'border-border focus:border-brand focus:ring-[#800020]'
                   }`}
                 />
               ))}
             </div>
-            <p className="text-sm text-gray-500 flex items-center gap-2 pt-2 italic">
-              <CheckCircle className="h-4 w-4 text-gray-400" />
+            <p className="text-sm text-muted-foreground flex items-center gap-2 pt-2 italic">
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
               We've sent a verification code to your email.
             </p>
           </div>
@@ -251,7 +251,7 @@ export function EmailVerification() {
             <button
               type="submit"
               disabled={!otp || verifyLoading}
-              className="w-full bg-[#800020] text-white py-3 rounded-md font-medium hover:bg-rose-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-white py-3 rounded-md font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {verifyLoading ? "Verifying..." : "Verify"}
             </button>
@@ -260,7 +260,7 @@ export function EmailVerification() {
               type="button"
               onClick={handleResendOTP}
               disabled={resendDisabled || resendLoading}
-              className="w-full border border-[#800020] text-[#800020] py-3 rounded-md font-medium hover:bg-rose-800 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full border border-brand text-brand py-3 rounded-md font-medium hover:bg-brand-dark hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {resendLoading
                 ? "Sending..."
@@ -276,3 +276,5 @@ export function EmailVerification() {
     </div>
   );
 }
+
+

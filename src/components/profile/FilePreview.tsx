@@ -50,7 +50,7 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
                     variant="secondary"
                     size="sm"
                     onClick={onPreview}
-                    className="bg-white/90 hover:bg-white text-gray-800 rounded-full w-8 h-8 p-0"
+                    className="bg-white/90 hover:bg-white text-foreground rounded-full w-8 h-8 p-0"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -74,27 +74,27 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
             </motion.div>
           </div>
           <div className="mt-2">
-            <p className="text-sm text-gray-700 font-medium truncate" title={file.name}>
+            <p className="text-sm text-foreground font-medium truncate" title={file.name}>
               {file.name}
             </p>
-            <p className="text-xs text-gray-500">{fileSize}</p>
+            <p className="text-xs text-muted-foreground">{fileSize}</p>
           </div>
         </motion.div>
       ) : (
         <motion.div
-          className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-all"
+          className="bg-secondary border border-border rounded-lg p-4 hover:border-border transition-all"
           whileHover={{ y: -2, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-start gap-3">
-              <div className="bg-[#800020]/10 p-2 rounded-md">
-                <FileText className="h-6 w-6 text-[#800020]" />
+              <div className="bg-brand/10 p-2 rounded-md">
+                <FileText className="h-6 w-6 text-brand" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 mb-1 break-all pr-4">{file.name}</p>
+                <p className="font-medium text-adaptive-dark mb-1 break-all pr-4">{file.name}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-0.5 bg-gray-200 rounded-full text-gray-700">{fileExtension}</span>
-                  <p className="text-sm text-gray-500">{fileSize}</p>
+                  <span className="text-xs px-2 py-0.5 bg-secondary-dark rounded-full text-foreground">{fileExtension}</span>
+                  <p className="text-sm text-muted-foreground">{fileSize}</p>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
                 variant="outline"
                 size="sm"
                 onClick={onPreview}
-                className="flex items-center gap-1 transition-all hover:bg-gray-100"
+                className="flex items-center gap-1 transition-all hover:bg-secondary-light"
               >
                 <Eye className="h-4 w-4" />
                 <span className="hidden sm:inline">Preview</span>
@@ -114,7 +114,7 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
                 variant="outline"
                 size="sm"
                 onClick={onRemove}
-                className="flex items-center gap-1 bg-[#800020] text-white hover:bg-rose-800 transition-colors"
+                className="flex items-center gap-1 bg-brand text-white hover:bg-brand-dark transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Remove</span>
@@ -126,4 +126,7 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
     </motion.div>
   )
 }
+
+
+
 

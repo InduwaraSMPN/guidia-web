@@ -380,18 +380,18 @@ export function WelcomeEditCompanyProfile() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">
+          <h1 className="text-3xl font-bold text-brand mb-4">
             Welcome to <span className="font-grillmaster">Guidia</span>
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Let's get started by setting up your company profile
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Company Name<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Company Name<span className="text-brand">*</span>
             </label>
             <Input
               name="companyName"
@@ -408,8 +408,8 @@ export function WelcomeEditCompanyProfile() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Country<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Country<span className="text-brand">*</span>
               </label>
               <CountrySelect
                 onCountryChange={(country) => {
@@ -429,8 +429,8 @@ export function WelcomeEditCompanyProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                City<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                City<span className="text-brand">*</span>
               </label>
               <Input
                 name="city"
@@ -445,8 +445,8 @@ export function WelcomeEditCompanyProfile() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Website<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Website<span className="text-brand">*</span>
               </label>
               <Input
                 type="url"
@@ -463,8 +463,8 @@ export function WelcomeEditCompanyProfile() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Contact Number<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Contact Number<span className="text-brand">*</span>
               </label>
               <Input
                 type="tel"
@@ -482,8 +482,8 @@ export function WelcomeEditCompanyProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Company Email<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Company Email<span className="text-brand">*</span>
             </label>
             <Input
               type="email"
@@ -500,8 +500,8 @@ export function WelcomeEditCompanyProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Description<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Description<span className="text-brand">*</span>
             </label>
             <RichTextEditor
               value={formData.description}
@@ -517,8 +517,8 @@ export function WelcomeEditCompanyProfile() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Company Logo<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Company Logo<span className="text-brand">*</span>
             </label>
             {showFileUploader && (
               <FileUploader
@@ -561,7 +561,7 @@ export function WelcomeEditCompanyProfile() {
                         variant="secondary"
                         size="sm"
                         onClick={handleRemoveImage}
-                        className="flex items-center gap-1 bg-[#800020] text-white hover:bg-rose-800"
+                        className="flex items-center gap-1 bg-brand text-white hover:bg-brand-dark"
                       >
                         Remove
                       </Button>
@@ -576,7 +576,7 @@ export function WelcomeEditCompanyProfile() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-[#800020] text-white hover:bg-rose-800"
+              className="bg-brand text-white hover:bg-brand-dark"
             >
               {isLoading ? "Saving..." : "Continue to Profile"}
             </Button>
@@ -596,3 +596,5 @@ export function WelcomeEditCompanyProfile() {
     </div>
   );
 }
+
+

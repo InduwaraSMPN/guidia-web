@@ -162,12 +162,12 @@ export function PostEventPage() {
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">{id ? 'Edit Event' : 'Post an Event'}</h1>
+        <h1 className="text-3xl font-bold text-brand mb-8">{id ? 'Edit Event' : 'Post an Event'}</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Title<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Title<span className="text-brand">*</span>
             </label>
             <Input
               name="title"
@@ -180,8 +180,8 @@ export function PostEventPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Date<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Date<span className="text-brand">*</span>
             </label>
             <Input
               type="date"
@@ -194,8 +194,8 @@ export function PostEventPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Image<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Image<span className="text-brand">*</span>
             </label>
             {showFileUploader ? (
               <FileUploader
@@ -239,14 +239,14 @@ export function PostEventPage() {
                         variant="secondary"
                         size="sm"
                         onClick={handleRemoveImage}
-                        className="flex items-center gap-1 bg-[#800020] text-white hover:bg-rose-800"
+                        className="flex items-center gap-1 bg-brand text-white hover:bg-brand-dark"
                       >
                         Remove
                       </Button>
                     </div>
                   </div>
                 </div>
-                <span className="text-sm text-gray-600 mt-2 block">
+                <span className="text-sm text-muted-foreground mt-2 block">
                   {formData.image?.name || 'Current Event Image'}
                 </span>
               </div>
@@ -275,6 +275,8 @@ export function PostEventPage() {
     </div>
   );
 }
+
+
 
 
 

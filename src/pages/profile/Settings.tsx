@@ -190,12 +190,12 @@ export function Settings() {
 
           {isLoading && !error ? (
             <div className="flex justify-center items-center py-8">
-              <div className="w-10 h-10 border-4 border-gray-200 border-t-[#800020] rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-border border-t-[#800020] rounded-full animate-spin"></div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1">
                   {user?.userType === 'Student' ? 'Full Name' :
                    user?.userType === 'Counselor' ? 'Counselor Name' :
                    user?.userType === 'Company' ? 'Company Name' : 'Username'}
@@ -214,7 +214,7 @@ export function Settings() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
                   Email Address
                 </label>
                 <Input
@@ -246,5 +246,6 @@ export function Settings() {
     </div>
   );
 }
+
 
 

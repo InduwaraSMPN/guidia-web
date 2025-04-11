@@ -117,7 +117,7 @@ export function PendingRegistrationsCard({ registrations, onApprove, onReject }:
     <div className="bg-white overflow-hidden">
       <div className="p-5 border rounded-lg">
         {registrations.length === 0 ? (
-          <p className="text-gray-500">No pending registrations</p>
+          <p className="text-muted-foreground">No pending registrations</p>
         ) : (
           <div className="space-y-4">
             {registrations.map((reg) => {
@@ -127,9 +127,9 @@ export function PendingRegistrationsCard({ registrations, onApprove, onReject }:
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="font-medium">{userData.username}</p>
-                      <p className="text-sm text-gray-500">{userData.email}</p>
-                      <p className="text-sm text-gray-500">{userData.userType}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-sm text-muted-foreground">{userData.email}</p>
+                      <p className="text-sm text-muted-foreground">{userData.userType}</p>
+                      <p className="text-xs text-muted-foreground">
                         Requested: {new Date(reg.createdAt).toLocaleString('en-US', {
                           dateStyle: 'medium',
                           timeStyle: 'short'
@@ -178,7 +178,7 @@ export function PendingRegistrationsCard({ registrations, onApprove, onReject }:
                               setRejectionReason('');
                               setSelectedRegistration(null);
                           }}
-                          className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                          className="px-4 py-2 text-muted-foreground hover:text-foreground"
                       >
                           Cancel
                       </button>
@@ -196,3 +196,4 @@ export function PendingRegistrationsCard({ registrations, onApprove, onReject }:
     </div>
   );
 }
+

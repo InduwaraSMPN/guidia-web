@@ -189,7 +189,7 @@ export function EditDocuments() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-[#800020]">
+          <h1 className="text-3xl font-bold text-brand">
             Edit/Add Documents
           </h1>
           
@@ -198,7 +198,7 @@ export function EditDocuments() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-border p-6">
           <DocumentList
             documents={documents}
             onDelete={handleDelete}
@@ -210,14 +210,14 @@ export function EditDocuments() {
           <div className="mt-8 flex justify-between">
             <button
               onClick={() => navigate(getProfilePath())}
-              className="px-4 py-2 text-sm font-medium text-[#800020] hover:text-rose-800"
+              className="px-4 py-2 text-sm font-medium text-brand hover:text-brand-dark"
             >
               Back
             </button>
             <button
               onClick={() => handleSave(documents)}
               disabled={isLoading || !hasChanges}
-              className={`px-4 py-2 bg-[#800020] text-white rounded-md hover:bg-rose-800 disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isLoading ? 'Uploading...' : 'Save Changes'}
             </button>
@@ -235,3 +235,5 @@ export function EditDocuments() {
     </div>
   );
 }
+
+

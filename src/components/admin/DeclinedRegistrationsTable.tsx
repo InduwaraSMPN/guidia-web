@@ -91,7 +91,7 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
   const SortableHeader = ({ field, label }: { field: keyof Registration; label: string }) => (
     <th
       scope="col"
-      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-100"
+      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-secondary-light"
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center gap-2 font-medium">
@@ -104,8 +104,8 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
   );
 
   return (
-    <div ref={tableRef} className="rounded-lg border border-gray-200 shadow-sm overflow-hidden bg-white">
-      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-200 bg-white">
+    <div ref={tableRef} className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
         <div className="flex items-center space-x-4">
           <CsvExporter 
             data={csvData}
@@ -116,7 +116,7 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+              className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
             >
               <Download className="w-4 h-4 mr-2" />
               Export CSV
@@ -126,8 +126,8 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+        <table className="w-full text-sm text-left text-muted-foreground">
+          <thead className="text-xs text-foreground uppercase bg-secondary sticky top-0">
             <tr>
               <SortableHeader field="penRegID" label="ID" />
               <SortableHeader field="email" label="Email" />
@@ -147,13 +147,13 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className={`hover:bg-gray-50 transition-colors duration-200 ${
-                      hoveredRow === registration.penRegID ? "bg-gray-50" : "bg-white"
+                    className={`hover:bg-secondary transition-colors duration-200 ${
+                      hoveredRow === registration.penRegID ? "bg-secondary" : "bg-white"
                     }`}
                     onMouseEnter={() => setHoveredRow(registration.penRegID)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <td className="px-6 py-4 font-medium text-adaptive-dark">
                       {registration.penRegID}
                     </td>
                     <td className="px-6 py-4">{registration.email}</td>
@@ -164,7 +164,7 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
                         </div>
                         <div>
                           <span className="font-medium">User Type:</span>{' '}
-                          <span className="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-gray-100 text-gray-800">
+                          <span className="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-secondary-light text-foreground">
                             {userData.userType}
                           </span>
                         </div>
@@ -183,3 +183,5 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
 }
 
 export default DeclinedRegistrationsTable;
+
+

@@ -91,7 +91,7 @@ export function ChatLayout({ userID }: ChatLayoutProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <p className="text-gray-500">Select a chat to start messaging</p>
+              <p className="text-muted-foreground">Select a chat to start messaging</p>
             </div>
           )}
         </div>
@@ -99,3 +99,4 @@ export function ChatLayout({ userID }: ChatLayoutProps) {
     </div>
   );
 }
+

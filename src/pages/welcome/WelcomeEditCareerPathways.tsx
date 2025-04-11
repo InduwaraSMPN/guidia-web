@@ -47,10 +47,10 @@ export function WelcomeEditCareerPathways() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">
+          <h1 className="text-3xl font-bold text-brand mb-4">
             02. Select Your Career Pathways
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Choose the career paths you're interested in pursuing
           </p>
         </div>
@@ -88,3 +88,5 @@ export function WelcomeEditCareerPathways() {
     </div>
   );
 }
+
+

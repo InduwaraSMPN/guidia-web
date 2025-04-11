@@ -3,6 +3,7 @@
 import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar"
 import { Link, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
+import { useThemeContext } from "../contexts/ThemeContext"
 import {
   LayoutDashboard,
   UserPlus,
@@ -56,26 +57,29 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
     onToggle(newCollapsedState)
   }
 
-  // Color scheme variables - easy to modify
+  // Using theme variables instead of hardcoded colors
+  const { isDark } = useThemeContext();
+
+  // Color scheme variables - using sidebar-specific theme variables
   const colorScheme = {
-    // Main colors
-    primary: "#800020", // Burgundy (wine color)
-    primaryLight: "#600018", // Lighter burgundy for hover effects
-    primaryDark: "#600010", // Darker burgundy for pressed states
+    // Main colors - using brand color variables
+    primary: "var(--brand)",
+    primaryLight: "var(--brand-light)",
+    primaryDark: "var(--brand-dark)",
 
-    // Background colors
-    bgMain: "white", // Main background
-    bgActive: "bg-gray-50", // Light pink for active items
-    bgHover: "#f9fafb", // Very light pink for hover
+    // Background colors - using sidebar-specific theme variables
+    bgMain: "var(--sidebar-background)",
+    bgActive: "var(--sidebar-accent)",
+    bgHover: isDark ? "var(--secondary-light)" : "var(--secondary-light)",
 
-    // Text colors
-    textPrimary: "#374151", // Main text color (gray-700)
-    textActive: "#800020", // Active text color (same as primary)
-    textMuted: "#6B7280", // Muted text (gray-500)
+    // Text colors - using sidebar-specific theme variables
+    textPrimary: "var(--sidebar-foreground)",
+    textActive: "var(--brand)",
+    textMuted: "var(--muted-foreground)",
 
-    // Border colors
-    border: "#E5E7EB", // Border color (gray-200)
-    activeBorder: "#800020", // Active border indicator
+    // Border colors - using sidebar-specific theme variables
+    border: "var(--sidebar-border)",
+    activeBorder: "var(--brand)",
   }
 
   return (
@@ -84,7 +88,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
         collapsed={collapsed}
         rootStyles={{
           height: "100vh",
-          backgroundColor: colorScheme.bgMain,
+          backgroundColor: `hsl(var(--sidebar-background))`,
           position: "fixed",
           top: 0,
           left: 0,
@@ -99,17 +103,17 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           willChange: "transform",
           ".ps-sidebar-container": {
-            backgroundColor: colorScheme.bgMain,
+            backgroundColor: `hsl(var(--sidebar-background))`,
             overflow: collapsed ? "visible" : "hidden",
             transform: "translateZ(0)",
           },
           ".ps-menu-button:hover": {
-            backgroundColor: `${colorScheme.bgHover} !important`,
-            color: `${colorScheme.textActive} !important`,
+            backgroundColor: `hsl(var(--sidebar-accent)) !important`,
+            color: `hsl(var(--brand)) !important`,
             transform: "translateX(4px)",
           },
           ".ps-submenu-content": {
-            backgroundColor: `${colorScheme.bgMain} !important`,
+            backgroundColor: `hsl(var(--sidebar-background)) !important`,
             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
           },
           ".ps-submenu-content .ps-menu-button": {
@@ -124,16 +128,16 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
         <Menu
           menuItemStyles={{
             button: ({ level, active }) => ({
-              backgroundColor: active ? colorScheme.bgActive : undefined,
-              color: active ? colorScheme.textActive : colorScheme.textPrimary,
+              backgroundColor: active ? `hsl(var(--sidebar-accent))` : undefined,
+              color: active ? `hsl(var(--brand))` : `hsl(var(--sidebar-foreground))`,
               fontWeight: active ? "600" : "500",
               transition: "all 0.2s ease-in-out",
               fontSize: "0.875rem",
               overflow: "hidden",
               whiteSpace: "nowrap",
               "&:hover": {
-                backgroundColor: colorScheme.bgHover,
-                color: colorScheme.textActive,
+                backgroundColor: `hsl(var(--sidebar-accent))`,
+                color: `hsl(var(--brand))`,
               },
               paddingLeft: level === 0 ? "24px" : "36px",
               paddingTop: "0.75rem",
@@ -147,7 +151,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                     top: "20%",
                     bottom: "20%",
                     width: "3px",
-                    backgroundColor: colorScheme.activeBorder,
+                    backgroundColor: `hsl(var(--brand))`,
                     borderRadius: "0 2px 2px 0",
                     transition: "all 0.2s ease-in-out",
                   }
@@ -160,13 +164,13 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               whiteSpace: "nowrap",
             }),
             subMenuContent: () => ({
-              backgroundColor: colorScheme.bgMain,
+              backgroundColor: `hsl(var(--sidebar-background))`,
               padding: "4px 0",
               overflow: "hidden",
               borderRadius: "0 0 6px 6px",
             }),
             SubMenuExpandIcon: {
-              color: colorScheme.textMuted,
+              color: `hsl(var(--muted-foreground))`,
               width: "1rem",
               height: "1rem",
               transition: "transform 0.3s ease",
@@ -185,13 +189,13 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
           <div className="px-4 py-3 mb-2">
             <button
               onClick={toggleSidebar}
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-all duration-200"
+              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-secondary transition-all duration-200"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
-                <ChevronRight size={18} className="text-gray-500 transition-transform duration-200 hover:scale-110" />
+                <ChevronRight size={18} className="text-muted-foreground transition-transform duration-200 hover:scale-110" />
               ) : (
-                <ChevronLeft size={18} className="text-gray-500 transition-transform duration-200 hover:scale-110" />
+                <ChevronLeft size={18} className="text-muted-foreground transition-transform duration-200 hover:scale-110" />
               )}
             </button>
           </div>
@@ -234,9 +238,9 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                 left: collapsed ? "100%" : "0",
                 top: collapsed ? "0" : "auto",
                 minWidth: "200px",
-                backgroundColor: "white",
+                backgroundColor: `hsl(var(--sidebar-background))`,
                 boxShadow: collapsed ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none",
-                border: collapsed ? "1px solid #E5E7EB" : "none",
+                border: collapsed ? `1px solid hsl(var(--sidebar-border))` : "none",
                 borderRadius: collapsed ? "0 6px 6px 0" : "0 0 6px 6px",
                 zIndex: 100,
                 animation: collapsed ? "fadeIn 0.2s ease-in-out" : "slideDown 0.2s ease-in-out",
@@ -303,9 +307,9 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                 left: collapsed ? "100%" : "0",
                 top: collapsed ? "0" : "auto",
                 minWidth: "200px",
-                backgroundColor: "white",
+                backgroundColor: `hsl(var(--sidebar-background))`,
                 boxShadow: collapsed ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none",
-                border: collapsed ? "1px solid #E5E7EB" : "none",
+                border: collapsed ? `1px solid hsl(var(--sidebar-border))` : "none",
                 borderRadius: collapsed ? "0 6px 6px 0" : "0 0 6px 6px",
                 zIndex: 100,
                 animation: collapsed ? "fadeIn 0.2s ease-in-out" : "slideDown 0.2s ease-in-out",

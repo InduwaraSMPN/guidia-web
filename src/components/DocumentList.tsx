@@ -20,7 +20,7 @@ export function DocumentList({ documents, onDelete, onDocumentSelect }: Document
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="flex items-center justify-between bg-[#800020] text-white px-4 py-2 rounded-md"
+          className="flex items-center justify-between bg-brand text-white px-4 py-2 rounded-md"
           onClick={() => onDocumentSelect(doc)}
         >
           <div>
@@ -34,7 +34,7 @@ export function DocumentList({ documents, onDelete, onDocumentSelect }: Document
               e.stopPropagation();
               onDelete(doc.id);
             }}
-            className="text-white hover:text-gray-200"
+            className="text-white hover:text-muted-foreground"
             title="Delete Document"
           >
             <Trash2 className="h-4 w-4" />
@@ -44,3 +44,5 @@ export function DocumentList({ documents, onDelete, onDocumentSelect }: Document
     </div>
   );
 }
+
+

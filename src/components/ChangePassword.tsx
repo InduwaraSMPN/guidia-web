@@ -141,7 +141,7 @@ export function ChangePassword() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-1">
             Current Password
           </label>
           <div className="relative">
@@ -159,16 +159,16 @@ export function ChangePassword() {
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
             >
               {showCurrentPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400" />
+                <EyeOff className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <Eye className="h-5 w-5 text-gray-400" />
+                <Eye className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-1">
             New Password
           </label>
           <div className="relative">
@@ -186,16 +186,16 @@ export function ChangePassword() {
               onClick={() => setShowNewPassword(!showNewPassword)}
             >
               {showNewPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400" />
+                <EyeOff className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <Eye className="h-5 w-5 text-gray-400" />
+                <Eye className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1">
             Confirm New Password
           </label>
           <div className="relative">
@@ -213,9 +213,9 @@ export function ChangePassword() {
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400" />
+                <EyeOff className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <Eye className="h-5 w-5 text-gray-400" />
+                <Eye className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
           </div>
@@ -232,3 +232,4 @@ export function ChangePassword() {
     </div>
   );
 }
+

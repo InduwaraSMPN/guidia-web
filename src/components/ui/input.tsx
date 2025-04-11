@@ -12,11 +12,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "w-full px-4 py-2.5 rounded-lg border bg-gray-50 focus:outline-none transition-all duration-200",
+          "w-full px-4 py-2.5 rounded-lg border bg-secondary focus:outline-none transition-all duration-200",
           {
-            "border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500": error,
-            "border-emerald-300 bg-emerald-50 focus:ring-emerald-500 focus:border-emerald-500": success && !error,
-            "border-0 focus:ring-1 focus:ring-[#800020] shadow-xs": !error && !success,
+            "border-red-300 bg-red-50 focus:ring-error focus:border-error": error,
+            "border-emerald-300 bg-emerald-50 focus:ring-success focus:border-success": success && !error,
+            "border-0 focus:ring-1 focus:ring-brand shadow-xs": !error && !success,
           },
           className
         )}

@@ -153,12 +153,12 @@ export function PostJobPage() {
   return (
     <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold font-montserrat text-[#800020] mb-8">Post a Job</h1>
+        <h1 className="text-3xl font-bold font-montserrat text-brand mb-8">Post a Job</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Title/Position<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Title/Position<span className="text-brand">*</span>
             </label>
             <Input
               type="text"
@@ -176,8 +176,8 @@ export function PostJobPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Tags<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Tags<span className="text-brand">*</span>
               </label>
               <Input
                 type="text"
@@ -190,12 +190,12 @@ export function PostJobPage() {
                 aria-label="Job Tags"
                 disabled={isSubmitting}
               />
-              <p className="text-xs text-gray-500">Separate tags with commas</p>
+              <p className="text-xs text-muted-foreground">Separate tags with commas</p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Location<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Location<span className="text-brand">*</span>
               </label>
               <Input
                 type="text"
@@ -212,8 +212,8 @@ export function PostJobPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Description<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground">
+              Description<span className="text-brand">*</span>
             </label>
             <RichTextEditor
               value={formData.description}
@@ -226,8 +226,8 @@ export function PostJobPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Start Date<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                Start Date<span className="text-brand">*</span>
               </label>
               <Input
                 type="date"
@@ -243,8 +243,8 @@ export function PostJobPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                End Date<span className="text-[#800020]">*</span>
+              <label className="block text-sm font-medium text-foreground">
+                End Date<span className="text-brand">*</span>
               </label>
               <Input
                 type="date"
@@ -263,7 +263,7 @@ export function PostJobPage() {
           <div className="flex justify-start">
             <button
               type="submit"
-              className="bg-[#800020] text-white px-12 py-3 rounded-md font-medium hover:bg-rose-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-brand text-white px-12 py-3 rounded-md font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Posting...' : 'Post Job'}
@@ -274,3 +274,5 @@ export function PostJobPage() {
     </div>
   );
 }
+
+

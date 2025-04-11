@@ -131,11 +131,13 @@ export function ProfileInput({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-foreground">
         {field.label}
-        {field.required && <span className="text-[#800020]">*</span>}
+        {field.required && <span className="text-brand">*</span>}
       </label>
       {renderInput()}
     </div>
   );
 }
+
+

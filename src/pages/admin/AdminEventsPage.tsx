@@ -75,7 +75,7 @@ export function AdminEventsPage() {
   return (
     <div className="p-6 max-w-[1216px] mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#800020]">Events Management</h1>
+        <h1 className="text-2xl font-bold text-brand">Events Management</h1>
       </div>
 
       <div className="mb-6">
@@ -103,3 +103,4 @@ export function AdminEventsPage() {
     </div>
   );
 }
+

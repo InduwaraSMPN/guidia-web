@@ -109,10 +109,10 @@ export function WelcomeUploadDocument() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-[#800020] mb-4">
+          <h1 className="text-3xl font-bold text-brand mb-4">
             03. Final Step
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Upload your CV/Resume and any other relevant documents to complete your profile
           </p>
         </div>
@@ -125,12 +125,12 @@ export function WelcomeUploadDocument() {
               {uploadedDocs.map((doc) => (
                 <div
                   key={doc.stuDocName}
-                  className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200"
+                  className="flex items-center justify-between bg-secondary p-4 rounded-lg border border-border"
                 >
                   <div className="flex items-center justify-between w-full">
                     <div>
-                      <p className="font-medium text-gray-900">{doc.stuDocName}</p>
-                      <p className="text-sm text-gray-500">Category: {doc.stuDocType}</p>
+                      <p className="font-medium text-adaptive-dark">{doc.stuDocName}</p>
+                      <p className="text-sm text-muted-foreground">Category: {doc.stuDocType}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -174,7 +174,7 @@ export function WelcomeUploadDocument() {
         </form>
 
         <div className="mt-8 flex justify-between items-center mb-8">
-          <p className="text-sm text-gray-500 italic">
+          <p className="text-sm text-muted-foreground italic">
             *You can always update your documents later from your profile page
           </p>
           <div className="flex gap-4">
@@ -197,3 +197,6 @@ export function WelcomeUploadDocument() {
     </div>
   );
 }
+
+
+

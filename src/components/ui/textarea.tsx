@@ -9,7 +9,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <textarea
         className={cn(
-          "w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#800020]",
+          "w-full px-4 py-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-[#800020]",
           className
         )}
         ref={ref}
@@ -21,3 +21,4 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea"
 
 export { Textarea }
+

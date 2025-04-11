@@ -18,7 +18,7 @@ export function Hero() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <div className="inline-flex items-center rounded-full bg-neutral-100 px-4 py-1.5 text-sm font-medium text-neutral-800 border border-gray-200">
+            <div className="inline-flex items-center rounded-full bg-secondary-light px-4 py-1.5 text-sm font-medium text-foreground border border-border">
               <span className="relative flex h-2 w-2 mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-300 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#800020]"></span>
@@ -26,14 +26,14 @@ export function Hero() {
               Launching May 2025
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-neutral-900 leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
               Unlock Your Future
               <span className="block mt-2 text-[#800020]">
                 with <span className="font-grillmaster">Guidia</span>
               </span>
             </h1>
 
-            <p className="text-lg text-neutral-600 max-w-xl leading-relaxed">
+            <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
               Connect seamlessly with students, career counselors, and employers through our innovative platform,
               designed to streamline career guidance.
             </p>
@@ -67,4 +67,5 @@ export function Hero() {
     </section>
   )
 }
+
 

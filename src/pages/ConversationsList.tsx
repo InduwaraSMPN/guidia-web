@@ -150,19 +150,19 @@ export function ConversationsList() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20 pb-6">
+      <div className="min-h-screen bg-secondary pt-20 pb-6">
         <div className="max-w-3xl mx-auto px-4">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-border">
             <div className="p-4 border-b">
-              <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
+              <h1 className="text-xl font-semibold text-adaptive-dark">Messages</h1>
             </div>
             <div className="p-4 space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center gap-3 p-3 animate-pulse">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                  <div className="w-12 h-12 bg-secondary-dark rounded-full"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-secondary-dark rounded w-1/3"></div>
+                    <div className="h-3 bg-secondary-dark rounded w-1/2"></div>
                   </div>
                 </div>
               ))}
@@ -174,15 +174,15 @@ export function ConversationsList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-6">
+    <div className="min-h-screen bg-secondary pt-20 pb-6">
       <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-border">
           <div className="p-4 border-b">
-            <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
+            <h1 className="text-xl font-semibold text-adaptive-dark">Messages</h1>
           </div>
 
           {conversations.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-muted-foreground">
               <MessageCircle className="mx-auto h-12 w-12 text-gray-300 mb-3" />
               <p className="font-medium">No conversations yet</p>
               <p className="text-sm mt-1">Start chatting with students, companies, or counselors</p>
@@ -192,7 +192,7 @@ export function ConversationsList() {
               {conversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                  className="p-4 hover:bg-secondary cursor-pointer transition-colors duration-150"
                   onClick={() => handleConversationClick(conversation)}
                 >
                   <div className="flex items-start gap-3">
@@ -203,27 +203,27 @@ export function ConversationsList() {
                         className={`${
                           conversation.userType === "company"
                             ? "w-12 h-10 object-contain"
-                            : "w-12 h-12 object-cover rounded-full border border-gray-200"
+                            : "w-12 h-12 object-cover rounded-full border border-border"
                         }`}
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-secondary-light rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-muted-foreground" />
                       </div>
                     )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-gray-900 truncate">
+                        <h3 className="font-medium text-adaptive-dark truncate">
                           {conversation.userName}
                         </h3>
-                        <span className="text-xs text-gray-500 flex items-center whitespace-nowrap ml-2">
+                        <span className="text-xs text-muted-foreground flex items-center whitespace-nowrap ml-2">
                           <Clock className="w-3 h-3 mr-1" />
                           {formatDistanceToNow(conversation.timestamp, { addSuffix: true })}
                         </span>
                       </div>
 
-                      <p className="text-sm text-gray-600 truncate mt-1">
+                      <p className="text-sm text-muted-foreground truncate mt-1">
                         {conversation.lastMessage}
                       </p>
                     </div>
@@ -243,3 +243,5 @@ export function ConversationsList() {
     </div>
   );
 }
+
+

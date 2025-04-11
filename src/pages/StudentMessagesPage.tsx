@@ -17,7 +17,7 @@ export function StudentMessagesPage() {
 
   return (
     <div className="h-[calc(100vh-64px)] bg-white pt-32 pb-32">
-      <div className="max-w-[1216px] h-full mx-auto border border-gray-200 rounded-lg overflow-hidden">
+      <div className="max-w-[1216px] h-full mx-auto border border-border rounded-lg overflow-hidden">
         <ChatLayout userID={userID} />
       </div>
     </div>

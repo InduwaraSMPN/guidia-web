@@ -160,18 +160,18 @@ export function CompaniesPage() {
     return (
       <div className={`min-h-screen bg-white ${location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"}`}>
         <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-[#800020] mb-8">Companies</h1>
+          <h1 className="text-3xl font-bold text-brand mb-8">Companies</h1>
           <div className="relative mb-12 max-w-lg ml-auto">
-            <div className="h-12 bg-gray-200 rounded-md animate-pulse"></div>
+            <div className="h-12 bg-secondary-dark rounded-md animate-pulse"></div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, index) => (
               <div key={index} className="bg-white rounded-lg shadow-xs p-4 h-28 animate-pulse">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
+                  <div className="w-14 h-14 bg-secondary-dark rounded-lg"></div>
                   <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-secondary-dark rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-secondary-dark rounded w-1/2"></div>
                   </div>
                 </div>
               </div>
@@ -186,13 +186,13 @@ export function CompaniesPage() {
     return (
       <div className={`min-h-screen bg-white ${location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"}`}>
         <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-[#800020] mb-8">Companies</h1>
+          <h1 className="text-3xl font-bold text-brand mb-8">Companies</h1>
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <h2 className="text-xl font-semibold text-red-700 mb-2">Oops! Something went wrong</h2>
             <p className="text-red-600 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-[#800020] text-white rounded-md hover:bg-rose-800 transition-colors"
+              className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark transition-colors"
             >
               Try Again
             </button>
@@ -228,8 +228,8 @@ export function CompaniesPage() {
           <header className="mb-16">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
               <div className="flex items-center gap-3">
-                <Building2 className="h-8 w-8 text-[#800020]" />
-                <h1 className="text-4xl font-bold text-[#800020]">Companies</h1>
+                <Building2 className="h-8 w-8 text-brand" />
+                <h1 className="text-4xl font-bold text-brand">Companies</h1>
               </div>
 
               <div className="flex items-center gap-4">
@@ -241,14 +241,14 @@ export function CompaniesPage() {
                 <div className="relative">
                   <button
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                      isOpen || activeFilterCount > 0 ? "bg-[#800020] text-white" : "text-gray-700 hover:bg-gray-100"
+                      isOpen || activeFilterCount > 0 ? "bg-brand text-white" : "text-foreground hover:bg-secondary-light"
                     }`}
                     onClick={() => setIsOpen(true)}
                   >
                     <SlidersHorizontal className="h-4 w-4" />
                     <span>Filters</span>
                     {activeFilterCount > 0 && (
-                      <span className="bg-white text-[#800020] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="bg-white text-brand text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {activeFilterCount}
                       </span>
                     )}
@@ -272,10 +272,10 @@ export function CompaniesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-center py-16 bg-gray-50 rounded-lg"
+            className="text-center py-16 bg-secondary rounded-lg"
           >
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No companies found</h2>
-            <p className="text-gray-500">Try adjusting your search criteria</p>
+            <h2 className="text-xl font-semibold text-foreground mb-2">No companies found</h2>
+            <p className="text-muted-foreground">Try adjusting your search criteria</p>
           </motion.div>
         ) : (
           <motion.div
@@ -303,3 +303,5 @@ export function CompaniesPage() {
     </div>
   )
 }
+
+

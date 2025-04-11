@@ -83,7 +83,7 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
         }}
         transition={{ duration: 0.2 }}
         onClick={() => setIsModalOpen(true)}
-        className="rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-all cursor-pointer relative group h-full flex flex-col"
+        className="rounded-lg border border-border overflow-hidden hover:border-border transition-all cursor-pointer relative group h-full flex flex-col"
       >
         {news.images?.[0] && (
           <div className="w-full h-48 overflow-hidden">
@@ -96,22 +96,22 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
         )}
 
         <div className="p-5 flex-1 flex flex-col">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <Calendar className="h-4 w-4" />
             <span>{news.date}</span>
           </div>
 
-          <h3 className="text-xl font-medium text-gray-900 mb-3 line-clamp-2 group-hover:text-[#800020] transition-colors">
+          <h3 className="text-xl font-medium text-adaptive-dark mb-3 line-clamp-2 group-hover:text-brand transition-colors">
             {news.title}
           </h3>
 
           <div
-            className="prose max-w-none text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-1"
+            className="prose max-w-none text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4 flex-1"
             dangerouslySetInnerHTML={{ __html: news.description }}
           />
 
           <div className="mt-auto">
-            <span className="text-sm font-medium text-[#800020] group-hover:underline">
+            <span className="text-sm font-medium text-brand group-hover:underline">
               Read more
             </span>
           </div>
@@ -129,7 +129,7 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
               size="sm"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-[#800020] hover:bg-rose-800 shadow-lg"
+              className="bg-brand hover:bg-brand-dark shadow-lg"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -145,3 +145,6 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
     </>
   );
 }
+
+
+

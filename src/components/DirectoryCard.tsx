@@ -49,7 +49,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
   return (
     <motion.div
       whileHover={{ y: -3, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-      className="bg-white rounded-lg p-4 flex flex-col transition-all duration-300 border border-gray-200"
+      className="bg-card rounded-lg p-4 flex flex-col transition-all duration-300 border border-border"
     >
       <div className="flex items-center gap-3">
         {image ? (
@@ -64,34 +64,34 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
           </div>
         ) : (
           <div
-            className={`rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 ${
+            className={`rounded-lg bg-secondary-light flex items-center justify-center flex-shrink-0 ${
               type === "company" ? "w-16 h-10" : "w-14 h-14"
             }`}
           >
-            <User className="w-6 h-6 text-gray-400" />
+            <User className="w-6 h-6 text-muted-foreground" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-gray-900 truncate">{name}</h3>
-          {subtitle && <p className="text-xs text-gray-500 truncate mt-0.5">{subtitle}</p>}
+          <h3 className="text-base font-semibold text-card-foreground truncate">{name}</h3>
+          {subtitle && <p className="text-sm text-brand truncate mt-0.5 font-medium">{subtitle}</p>}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mt-3 text-xs">
+      <div className="flex items-center gap-3 mt-3 text-sm">
         {email && (
           <motion.a
             whileHover={{ scale: 1.05 }}
             href={`mailto:${email}`}
-            className="flex items-center gap-1 text-[#800020] hover:underline"
+            className="flex items-center gap-1.5 text-muted-foreground hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
-            <Mail className="w-3.5 h-3.5" />
+            <Mail className="w-4 h-4" />
             <span className="truncate max-w-[120px]">{email}</span>
           </motion.a>
         )}
         {contactNumber && (
-          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-1 text-[#800020]">
-            <Phone className="w-3.5 h-3.5" />
+          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-1.5 text-muted-foreground">
+            <Phone className="w-4 h-4" />
             <span className="truncate">{contactNumber}</span>
           </motion.div>
         )}
@@ -101,7 +101,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs h-8 transition-all duration-300 hover:border-[#800020] hover:text-white"
+          className="flex-1 text-xs h-8 transition-all duration-300 border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground"
           onClick={handleViewProfile}
         >
           Profile
@@ -111,8 +111,8 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
           disabled={isCurrentUser}
           className={`flex-1 text-xs h-8 transition-all duration-300 ${
             isCurrentUser
-              ? 'bg-[#800020] hover:bg-rose-800 cursor-not-allowed opacity-50'
-              : 'bg-[#800020] hover:bg-rose-800'
+              ? 'bg-brand hover:bg-brand-dark cursor-not-allowed opacity-50'
+              : 'bg-brand hover:bg-brand-dark'
           }`}
           onClick={handleChat}
           title={isCurrentUser ? "You cannot chat with yourself" : ""}
@@ -123,3 +123,6 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
     </motion.div>
   )
 }
+
+
+

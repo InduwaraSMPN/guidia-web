@@ -200,13 +200,13 @@ export function ChatList({ onSelectChat, selectedChat, userID }: ChatListProps) 
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
-        <h2 className="text-xl font-bold mb-4 text-[#800020]">Messages</h2>
+        <h2 className="text-xl font-bold mb-4 text-brand">Messages</h2>
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
       </div>
       <div className="flex-1 overflow-auto">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
           </div>
         ) : error ? (
           <div className="flex h-64 items-center justify-center">
@@ -248,7 +248,7 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
     <div
       className={cn(
         "flex items-center gap-4 p-4 cursor-pointer hover:bg-accent",
-        isSelected && "bg-gray-100"
+        isSelected && "bg-secondary-light"
       )}
       onClick={onClick}
     >
@@ -261,7 +261,7 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
           )}
         </div>
         {chat.unread > 0 && (
-          <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[#800020] flex items-center justify-center">
+          <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brand flex items-center justify-center">
             <span className="text-xs font-bold text-white">{chat.unread}</span>
           </div>
         )}
@@ -276,3 +276,5 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
     </div>
   );
 }
+
+

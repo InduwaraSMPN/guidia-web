@@ -53,7 +53,7 @@ export function RegisterAs() {
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-[#800020] mb-8">Register As</h1>
+        <h1 className="text-3xl font-bold text-brand mb-8">Register As</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex gap-4 justify-center mb-8">
@@ -64,8 +64,8 @@ export function RegisterAs() {
                 onClick={() => setSelectedType(type)}
                 className={`px-6 py-2 rounded-md text-base font-medium transition-colors ${
                   selectedType === type
-                    ? 'bg-[#800020] text-white'
-                    : 'border border-[#800020] text-[#800020] hover:bg-rose-800 hover:text-white'
+                    ? 'bg-brand text-white'
+                    : 'border border-brand text-brand hover:bg-brand-dark hover:text-white'
                 }`}
               >
                 {type}
@@ -74,8 +74,8 @@ export function RegisterAs() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 text-left">
-              Email Address<span className="text-[#800020]">*</span>
+            <label className="block text-sm font-medium text-foreground text-left">
+              Email Address<span className="text-brand">*</span>
             </label>
             <Input
               type="email"
@@ -95,7 +95,7 @@ export function RegisterAs() {
           <button
             type="submit"
             disabled={!selectedType || !email || loading}
-            className="w-full bg-[#800020] text-white py-3 rounded-md font-medium hover:bg-rose-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-brand text-white py-3 rounded-md font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Sending OTP...' : 'Verify'}
           </button>
@@ -104,3 +104,5 @@ export function RegisterAs() {
     </div>
   );
 }
+
+

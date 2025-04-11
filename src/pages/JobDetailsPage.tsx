@@ -113,10 +113,10 @@ export function JobDetailsPage() {
   if (error || !job) return <div>Error loading job details</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-32 pb-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-background pt-32 pb-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Job Details Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+        <div className="bg-card rounded-lg border border-border p-6 mb-8">
           <div className="flex gap-6">
             {/* Company Logo */}
             <div className="flex-shrink-0">
@@ -127,35 +127,35 @@ export function JobDetailsPage() {
                   className="w-20 h-20 object-contain rounded-lg"
                 />
               ) : (
-                <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-10 h-10 text-gray-400" />
+                <div className="w-20 h-20 bg-secondary rounded-lg flex items-center justify-center">
+                  <Building2 className="w-10 h-10 text-muted-foreground" />
                 </div>
               )}
             </div>
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
-              <p className="text-xl text-[#800020] mt-2">{job.company}</p>
+              <h1 className="text-3xl font-bold text-card-foreground">{job.title}</h1>
+              <p className="text-xl text-brand mt-2">{job.company}</p>
 
               <div className="mt-4 flex flex-wrap gap-4">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <MapPin className="h-5 w-5 mr-2" />
                   {job.location}
                 </div>
                 {job.type && (
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-muted-foreground">
                     <Clock className="h-5 w-5 mr-2" />
                     {job.type}
                   </div>
                 )}
                 {job.sector && (
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-muted-foreground">
                     <Briefcase className="h-5 w-5 mr-2" />
                     <div className="flex flex-wrap gap-2">
                       {job.sector.split(",").map((tag, index) => (
                         <span
                           key={index}
-                          className="bg-gray-50 px-3 py-1 rounded-full text-sm"
+                          className="bg-secondary px-3 py-1 rounded-full text-sm"
                         >
                           {tag.trim()}
                         </span>
@@ -173,7 +173,7 @@ export function JobDetailsPage() {
                   disabled={isSaveLoading}
                   variant="outline"
                   size="lg"
-                  className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-[#800020] transition-all duration-200"
+                  className="flex items-center gap-2 border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200"
                   title={isSaved ? "Remove from saved jobs" : "Save job"}
                 >
                   {isSaveLoading ? (
@@ -182,7 +182,7 @@ export function JobDetailsPage() {
                     <>
                       {isSaved ? (
                         <>
-                          <BookmarkCheck className="h-5 w-5 text-[#800020]" />
+                          <BookmarkCheck className="h-5 w-5 text-brand" />
                           <span>Saved</span>
                         </>
                       ) : (
@@ -202,8 +202,8 @@ export function JobDetailsPage() {
                 disabled={job.isExpired}
                 className={`w-32 ${
                   job.isExpired
-                    ? "bg-[#800020] hover:bg-rose-800 cursor-not-allowed opacity-50"
-                    : "bg-[#800020] hover:bg-rose-800 text-white"
+                    ? "bg-brand hover:bg-brand-light cursor-not-allowed opacity-50"
+                    : "bg-brand hover:bg-brand-light text-white"
                 }`}
               >
                 {job.isExpired ? "Expired" : "Apply Now"}
@@ -213,23 +213,23 @@ export function JobDetailsPage() {
         </div>
 
         {/* Description Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <div className="bg-card rounded-lg border border-border p-6 mb-8">
+          <h2 className="text-xl font-bold text-card-foreground mb-4">
             Job Description
           </h2>
           <div
-            className="prose max-w-none text-gray-600 leading-relaxed"
+            className="prose max-w-none text-muted-foreground leading-relaxed"
             dangerouslySetInnerHTML={{ __html: job.description }}
           />
         </div>
 
         {/* Requirements Section */}
         {job.requirements && job.requirements.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg border border-border p-6">
+            <h2 className="text-xl font-bold text-adaptive-dark mb-4">
               Requirements
             </h2>
-            <ul className="list-disc list-inside space-y-2 text-gray-600">
+            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
               {job.requirements.map((req, index) => (
                 <li key={index}>{req}</li>
               ))}
@@ -240,4 +240,6 @@ export function JobDetailsPage() {
     </div>
   );
 }
+
+
 

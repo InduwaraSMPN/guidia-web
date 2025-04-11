@@ -16,7 +16,7 @@ export function AdminMessagesPage() {
 
   return (
     <div className="p-6 mt-32 mb-32 max-w-[1216px] mx-auto">
-      <div className="h-[calc(100vh-200px)] border border-gray-200 rounded-lg overflow-hidden">
+      <div className="h-[calc(100vh-200px)] border border-border rounded-lg overflow-hidden">
         <ChatLayout userID={userID} />
       </div>
     </div>
@@ -24,3 +24,4 @@ export function AdminMessagesPage() {
 }
 
 export default AdminMessagesPage;
+

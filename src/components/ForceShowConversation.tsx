@@ -67,7 +67,7 @@ export function ForceShowConversation() {
 
   return (
     <div className="fixed bottom-36 right-4 z-50">
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-md">
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-border max-w-md">
         <h3 className="text-sm font-medium mb-2">Nimali-CloudLink Conversation</h3>
         
         {error ? (
@@ -78,20 +78,20 @@ export function ForceShowConversation() {
             <p><strong>Participants:</strong> {conversationData.participants ? Object.keys(conversationData.participants).join(', ') : 'None'}</p>
             <p><strong>Messages:</strong> {conversationData.messages ? Object.keys(conversationData.messages).length : 0}</p>
             {conversationData.messages && (
-              <div className="mt-1 pl-2 border-l-2 border-gray-200">
+              <div className="mt-1 pl-2 border-l-2 border-border">
                 {Object.entries(conversationData.messages).map(([id, msg]: [string, any]) => (
                   <p key={id} className="truncate">
                     <strong>{msg.sender === studentId ? 'Nimali' : 'CloudLink'}:</strong> {msg.content}
                   </p>
                 )).slice(0, 3)}
                 {Object.keys(conversationData.messages).length > 3 && (
-                  <p className="text-gray-500">...and {Object.keys(conversationData.messages).length - 3} more</p>
+                  <p className="text-muted-foreground">...and {Object.keys(conversationData.messages).length - 3} more</p>
                 )}
               </div>
             )}
           </div>
         ) : (
-          <p className="text-xs text-gray-500 mb-2">Loading conversation data...</p>
+          <p className="text-xs text-muted-foreground mb-2">Loading conversation data...</p>
         )}
         
         <Button
@@ -114,3 +114,4 @@ export function ForceShowConversation() {
     </div>
   );
 }
+

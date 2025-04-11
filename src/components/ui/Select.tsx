@@ -54,9 +54,9 @@ export function Select({
         type="button"
         onClick={toggleDropdown}
         className={cn(
-          "w-full h-[42px] px-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#800020]",
+          "w-full h-[42px] px-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand/20",
           "flex items-center justify-between text-left",
-          "dark:bg-gray-800 dark:border-gray-700",
+          "bg-card text-card-foreground dark:bg-card dark:text-card-foreground",
           disabled || isLoading ? "cursor-not-allowed opacity-75" : "cursor-pointer",
           "text-sm"
         )}
@@ -72,7 +72,7 @@ export function Select({
         ) : value ? (
           <span>{value.label}</span>
         ) : (
-          <span className="text-gray-500">{placeholder}</span>
+          <span className="text-muted-foreground">{placeholder}</span>
         )}
         <ChevronDown
           className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "transform rotate-180" : "")}
@@ -80,12 +80,12 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-700">
+        <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
           {isSearchable && (
-            <div className="sticky top-0 z-10 bg-white p-2 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+            <div className="sticky top-0 z-10 bg-card p-2 border-b border-border">
               <input
                 type="text"
-                className="w-full h-[42px] px-3 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#800020] dark:bg-gray-800 dark:border-gray-700"
+                className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand/20 bg-card text-card-foreground"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -102,17 +102,17 @@ export function Select({
                   role="option"
                   aria-selected={value?.value === option.value}
                   className={cn(
-                    "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
-                    value?.value === option.value ? "bg-gray-100 dark:bg-gray-700" : ""
+                    "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-colors duration-200",
+                    value?.value === option.value ? "bg-secondary text-brand dark:text-foreground" : ""
                   )}
                   onClick={() => handleSelect(option)}
                 >
                   <span>{option.label}</span>
-                  {value?.value === option.value && <Check className="w-4 h-4 text-[#800020]" />}
+                  {value?.value === option.value && <Check className="w-4 h-4 text-brand dark:text-foreground transition-colors duration-200" />}
                 </li>
               ))
             ) : (
-              <li className="px-3 py-2 text-gray-500">No options found</li>
+              <li className="px-3 py-2 text-muted-foreground">No options found</li>
             )}
           </ul>
         </div>
@@ -120,3 +120,4 @@ export function Select({
     </div>
   )
 }
+

@@ -4,6 +4,7 @@ import { Menu, X, MessageSquare } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { useThemeContext } from "../contexts/ThemeContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { ProfileDropdown } from "./ProfileDropdown"
 import { motion } from "framer-motion"
@@ -66,20 +67,17 @@ const ChatPopover: React.FC = () => {
   return (
     <button
       onClick={handleChatClick}
-      className={`relative p-2 rounded-full text-neutral-600 transition-colors duration-300 ${
+      className={`relative p-2 rounded-full text-muted-foreground transition-colors duration-300 ${
         isChatRoute
-          ? "bg-rose-100 text-rose-800"
-          : "hover:bg-rose-100 hover:text-rose-800"
+          ? "bg-brand/10 text-brand"
+          : "hover:bg-brand/10 hover:text-brand"
       }`}
     >
       <MessageSquare className="h-6 w-6" />
       {unreadCount > 0 && (
-        <div className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-[#800020] opacity-75 animate-ping" />
-          <span className="relative inline-flex rounded-full h-4 w-4 bg-[#800020] text-[10px] text-white font-bold items-center justify-center">
-            {unreadCount}
-          </span>
-        </div>
+        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-brand rounded-full">
+          {unreadCount}
+        </span>
       )}
     </button>
   );
@@ -90,6 +88,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 })
   const [isAuthPage, setIsAuthPage] = useState(false) // Add state for isAuthPage
+  const { isDark } = useThemeContext()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -172,7 +171,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   return (
     <nav
       className={`fixed w-full top-0 z-[40] transition-all duration-300 ${
-        isScrolled ? "bg-white/95 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-4"
+        isScrolled ? "bg-background/95 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-4"
       }`}
     >
       <div className="max-w-[1216px] mx-auto px-6 pt-2 pb-2">
@@ -180,7 +179,11 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
               <div className="flex items-center gap-2">
-                <img src="/images/logo-dark.svg" alt="Guidia" className="h-8 w-32" />
+                {isDark ? (
+                  <img src="/images/logo-light.svg" alt="Guidia" className="h-8 w-32" />
+                ) : (
+                  <img src="/images/logo-dark.svg" alt="Guidia" className="h-8 w-32" />
+                )}
               </div>
             </Link>
 
@@ -192,8 +195,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       key={item.path}
                       to={item.path}
                       ref={(el) => (itemRefs.current[index] = el)}
-                      className={`relative px-1 py-2 text-sm font-medium hover:text-rose-800 transition-colors duration-200 ${
-                        location.pathname === item.path ? "text-rose-800" : "text-neutral-700"
+                      className={`relative px-1 py-2 text-sm font-medium hover:text-brand transition-colors duration-200 ${
+                        location.pathname === item.path ? "text-brand" : "text-foreground"
                       }`}
                     >
                       {item.label}
@@ -202,7 +205,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 </div>
                 {activeIndex !== -1 && (
                   <motion.div
-                    className="absolute bottom-0 h-[2px] bg-[#800020] rounded-full"
+                    className="absolute bottom-0 h-[2px] bg-brand rounded-full"
                     initial={false}
                     animate={{
                       width: `${indicatorStyle.width}px`,
@@ -232,13 +235,13 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 <>
                   <Link
                     to="/auth/login"
-                    className="px-4 py-2 text-sm text-neutral-700 hover:text-rose-800 font-medium transition-colors duration-200"
+                    className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
                   >
                     Login
                   </Link>
                   <Link
                     to="/auth/register"
-                    className="px-5 py-2 bg-[#800020] text-white text-sm rounded-md hover:bg-rose-800 font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
+                    className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
                   >
                     Register
                   </Link>
@@ -251,7 +254,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 rounded-full text-neutral-700 hover:bg-neutral-100 transition-colors duration-200"
+                className="p-2 rounded-full text-foreground hover:bg-secondary transition-colors duration-200"
                 title={isMenuOpen ? "Close menu" : "Open menu"}
               >
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -268,7 +271,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white border-t border-neutral-100 overflow-hidden"
+            className="md:hidden bg-background border-t border-border overflow-hidden"
           >
             <div className="px-6 py-4 space-y-2">
               {navItems.map((item) => (
@@ -276,8 +279,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block text-sm font-medium hover:text-rose-800 py-3 transition-colors ${
-                    location.pathname === item.path ? "text-rose-800" : "text-neutral-700"
+                  className={`block text-sm font-medium hover:text-brand py-3 transition-colors ${
+                    location.pathname === item.path ? "text-brand" : "text-foreground"
                   }`}
                 >
                   {item.label}
@@ -285,7 +288,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               ))}
 
               {!isAuthPage && (
-                <div className="pt-4 mt-4 border-t border-neutral-100">
+                <div className="pt-4 mt-4 border-t border-border">
                   {user ? (
                     <>
                       <div className="flex items-center gap-4 mb-4">
@@ -299,14 +302,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       <Link
                         to="/auth/login"
                         onClick={() => setIsMenuOpen(false)}
-                        className="w-full py-2.5 text-center text-sm font-medium text-rose-800 border border-rose-200 rounded-md  hover:bg-rose-800 transition-colors"
+                        className="w-full py-2.5 text-center text-sm font-medium text-brand border border-brand/20 rounded-md hover:bg-brand hover:text-white transition-colors"
                       >
                         Login
                       </Link>
                       <Link
                         to="/auth/register"
                         onClick={() => setIsMenuOpen(false)}
-                        className="w-full py-2.5 text-center text-sm font-medium text-white bg-[#800020] rounded-md hover:bg-rose-800 transition-colors"
+                        className="w-full py-2.5 text-center text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-light transition-colors"
                       >
                         Register
                       </Link>
@@ -320,3 +323,4 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     </nav>
   )
 }
+

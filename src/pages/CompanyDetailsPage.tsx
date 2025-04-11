@@ -67,56 +67,56 @@ export function CompanyDetailsPage() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Company Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
+        <div className="bg-white rounded-lg border border-border p-8 mb-8">
           <div className="flex gap-8 items-start">
             {company.logo ? (
               <img
                 src={company.logo}
                 alt={company.name}
-                className="w-32 h-32 object-contain rounded-lg border border-gray-200 p-4"
+                className="w-32 h-32 object-contain rounded-lg border border-border p-4"
               />
             ) : (
-              <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-16 h-16 text-gray-400" />
+              <div className="w-32 h-32 bg-secondary-light rounded-lg flex items-center justify-center">
+                <Building2 className="w-16 h-16 text-muted-foreground" />
               </div>
             )}
             
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">{company.name}</h1>
-              <p className="text-xl text-[#800020] mt-1">{company.sector}</p>
+              <h1 className="text-3xl font-bold text-adaptive-dark">{company.name}</h1>
+              <p className="text-xl text-brand mt-1">{company.sector}</p>
               
               <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <MapPin className="h-5 w-5 mr-2" />
                   {company.location}
                 </div>
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <Mail className="h-5 w-5 mr-2" />
                   <a 
                     href={`mailto:${company.email}`}
-                    className="text-[#800020] hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {company.email}
                   </a>
                 </div>
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <Globe className="h-5 w-5 mr-2" />
                   <a 
                     href={company.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#800020] hover:underline"
+                    className="text-brand hover:underline"
                   >
                     {company.website}
                   </a>
                 </div>
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-muted-foreground">
                   <Phone className="h-5 w-5 mr-2" />
                   {company.phone}
                 </div>
               </div>
 
-              <p className="mt-6 text-gray-600">
+              <p className="mt-6 text-muted-foreground">
                 {company.description}
               </p>
 
@@ -132,3 +132,6 @@ export function CompanyDetailsPage() {
     </div>
   );
 }
+
+
+

@@ -5,6 +5,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add smooth transitions for theme changes */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Global theme overrides to ensure consistent dark mode */
+@layer utilities {
+  /* Text colors */
+  .text-gray-50 { @apply text-neutral-50; }
+  .text-gray-100 { @apply text-neutral-100; }
+  .text-gray-200 { @apply text-neutral-200; }
+  .text-gray-300 { @apply text-neutral-300; }
+  .text-gray-400 { @apply text-muted-foreground; }
+  .text-gray-500 { @apply text-muted-foreground; }
+  .text-gray-600 { @apply text-muted-foreground; }
+  .text-gray-700 { @apply text-foreground; }
+  .text-gray-800 { @apply text-foreground; }
+  .text-gray-900 { @apply text-foreground; }
+
+  /* Background colors */
+  .bg-white { @apply bg-card; }
+  .bg-gray-50 { @apply bg-secondary; }
+  .bg-gray-100 { @apply bg-secondary-light; }
+  .bg-gray-200 { @apply bg-secondary-dark; }
+  .bg-gray-300 { @apply bg-secondary-dark; }
+  .bg-gray-400 { @apply bg-secondary-dark; }
+  .bg-gray-500 { @apply bg-muted; }
+
+  /* Border colors */
+  .border-gray-100 { @apply border-border; }
+  .border-gray-200 { @apply border-border; }
+  .border-gray-300 { @apply border-border; }
+  .border-gray-400 { @apply border-border; }
+  .border-gray-500 { @apply border-border; }
+
+  /* Hover states */
+  .hover\:bg-gray-50 { @apply hover:bg-secondary; }
+  .hover\:bg-gray-100 { @apply hover:bg-secondary-light; }
+  .hover\:bg-gray-200 { @apply hover:bg-secondary-dark; }
+
+  .hover\:text-gray-200 { @apply hover:text-muted-foreground; }
+  .hover\:text-gray-500 { @apply hover:text-muted-foreground; }
+  .hover\:text-gray-600 { @apply hover:text-foreground; }
+  .hover\:text-gray-700 { @apply hover:text-foreground; }
+  .hover\:text-gray-800 { @apply hover:text-foreground; }
+
+  .hover\:border-gray-300 { @apply hover:border-border; }
+}
+
 @font-face {
   font-family: 'Grillmaster Extended';
   src: url('/fonts/fonnts.com-grillmaster_extended_004_regular.otf') format('opentype');
@@ -28,6 +79,11 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Adaptive text color that switches between dark and light based on theme */
+  .text-adaptive-dark {
+    @apply text-foreground;
+  }
 }
 
 @layer base {
@@ -45,7 +101,7 @@
     --brand: 345 100% 25%; /* #800020 - Main burgundy */
     --brand-light: 345 68% 37%; /* #A01F3D */
     --brand-lighter: 345 53% 49%; /* #C03C59 */
-    --brand-dark: 345 100% 19%; /* #600018 */
+    --brand-dark: 345 70% 30%; /* #9f1239 - rose-800 */
     --brand-darker: 345 100% 13%; /* #400010 */
 
     /* Secondary Color Palette - Light Mode (Neutral Grays) */
@@ -119,12 +175,12 @@
     --popover: 0 0% 12%; /* #1E1E1E */
     --popover-foreground: 0 0% 98%; /* #F9FAFB */
 
-    /* Brand Color Palette - Dark Mode */
-    --brand: 345 62% 43%; /* #B02A40 - Brightened burgundy */
-    --brand-light: 345 50% 52%; /* #C04A5D */
-    --brand-lighter: 345 45% 61%; /* #D06A7A */
-    --brand-dark: 345 70% 34%; /* #901A30 */
-    --brand-darker: 345 85% 24%; /* #700A20 */
+    /* Brand Color Palette - Dark Mode (Same as Light Mode) */
+    --brand: 345 100% 25%; /* #800020 - Main burgundy */
+    --brand-light: 345 68% 37%; /* #A01F3D */
+    --brand-lighter: 345 53% 49%; /* #C03C59 */
+    --brand-dark: 345 70% 30%; /* #9f1239 - rose-800 */
+    --brand-darker: 345 100% 13%; /* #400010 */
 
     /* Secondary Color Palette - Dark Mode (Neutral Grays) */
     --secondary: 0 0% 15%; /* #262626 - Dark gray for dark mode */
@@ -180,12 +236,12 @@
     /* Sidebar Colors */
     --sidebar-background: 0 0% 12%; /* #1E1E1E */
     --sidebar-foreground: 0 0% 98%; /* #F9FAFB */
-    --sidebar-primary: var(--brand);
+    --sidebar-primary: 345 62% 65%; /* Brighter burgundy for better visibility in dark mode */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 18%; /* #2E2E2E */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 18%; /* #2E2E2E */
-    --sidebar-ring: var(--brand);
+    --sidebar-border: 0 0% 22%; /* Slightly lighter border for better visibility */
+    --sidebar-ring: 345 62% 65%;
   }
 
   html {

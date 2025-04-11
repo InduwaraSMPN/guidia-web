@@ -68,7 +68,7 @@ export function CounselorsTable({
   const SortableHeader = ({ field, label }: { field: keyof User; label: string }) => (
     <th
       scope="col"
-      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-gray-100"
+      className="px-6 py-4 cursor-pointer transition-colors duration-200 hover:bg-secondary-light"
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center gap-2 font-medium">
@@ -81,14 +81,14 @@ export function CounselorsTable({
   );
 
   return (
-    <div ref={tableRef} className="rounded-lg border border-gray-200 shadow-sm overflow-hidden bg-white">
-      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-200 bg-white">
+    <div ref={tableRef} className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
         <div className="flex items-center space-x-4">
           <CsvExporter data={sortedUsers} columns={csvColumns} tableName="counselors" isLoading={isLoading}>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+              className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
             >
               <Download className="w-4 h-4 mr-2" />
               Export CSV
@@ -100,7 +100,7 @@ export function CounselorsTable({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onAdd}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-[#800020] rounded-lg hover:bg-rose-800 focus:ring-4 focus:ring-[#800020]/30 transition-colors duration-200"
+            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-brand rounded-lg hover:bg-brand-dark focus:ring-4 focus:ring-brand/30 transition-colors duration-200"
           >
             <UserPlusIcon className="w-4 h-4 mr-2" />
             Add Counselor
@@ -109,8 +109,8 @@ export function CounselorsTable({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+        <table className="w-full text-sm text-left text-muted-foreground">
+          <thead className="text-xs text-foreground uppercase bg-secondary sticky top-0">
             <tr>
               <SortableHeader field="email" label="Email" />
               <SortableHeader field="username" label="Username" />
@@ -130,13 +130,13 @@ export function CounselorsTable({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={`hover:bg-gray-50 transition-colors duration-200 ${
-                    hoveredRow === user.userID ? "bg-gray-50" : "bg-white"
+                  className={`hover:bg-secondary transition-colors duration-200 ${
+                    hoveredRow === user.userID ? "bg-secondary" : "bg-white"
                   }`}
                   onMouseEnter={() => setHoveredRow(user.userID)}
                   onMouseLeave={() => setHoveredRow(null)}
                 >
-                  <td className="px-6 py-4 font-medium text-gray-900">{user.email}</td>
+                  <td className="px-6 py-4 font-medium text-adaptive-dark">{user.email}</td>
                   <td className="px-6 py-4">{user.username}</td>
                   <td className="px-6 py-4">
                     <Select
@@ -154,7 +154,7 @@ export function CounselorsTable({
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => onEdit(user)}
-                          className="text-[#800020] hover:text-rose-800 transition-colors duration-200 p-1 rounded-full hover:bg-rose-50"
+                          className="text-brand hover:text-brand-dark transition-colors duration-200 p-1 rounded-full hover:bg-brand/10"
                           title="Edit user"
                           aria-label="Edit user"
                         >
@@ -166,7 +166,7 @@ export function CounselorsTable({
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => onDelete(user.userID)}
-                          className="text-[#800020] hover:text-rose-800 transition-colors duration-200 p-1 rounded-full hover:bg-rose-50"
+                          className="text-brand hover:text-brand-dark transition-colors duration-200 p-1 rounded-full hover:bg-brand/10"
                           title="Delete user"
                           aria-label="Delete user"
                         >
@@ -180,7 +180,7 @@ export function CounselorsTable({
             </AnimatePresence>
             {sortedUsers.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
+                <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground">
                   No counselors found
                 </td>
               </tr>
@@ -193,3 +193,6 @@ export function CounselorsTable({
 }
 
 export default CounselorsTable;
+
+
+
