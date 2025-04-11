@@ -246,17 +246,24 @@ export function CompanyProfilePage() {
                   </div>
                 </motion.div>
 
-                {companyData.companyDescription && (
-                  <motion.div variants={itemVariants} className="mt-8 p-4 bg-secondary rounded-lg border border-border">
-                    <h2 className="text-lg font-semibold text-adaptive-dark mb-3 flex items-center">
-                      <Briefcase className="h-5 w-5 mr-2 text-brand" />
-                      About {companyData.companyName}
-                    </h2>
-                    <p className="text-muted-foreground leading-relaxed">{companyData.companyDescription}</p>
-                  </motion.div>
-                )}
               </div>
             </div>
+
+            {/* About section moved outside the flex layout to align with profile image */}
+            {companyData.companyDescription && (
+              <motion.div variants={itemVariants} className="mt-8 p-4 bg-secondary rounded-lg border border-border">
+                <h2 className="text-lg font-semibold text-adaptive-dark mb-3 flex items-center">
+                  <Briefcase className="h-5 w-5 mr-2 text-brand" />
+                  About {companyData.companyName}
+                </h2>
+                <div
+                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: companyData.companyDescription,
+                  }}
+                />
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
@@ -275,7 +282,7 @@ export function CompanyProfilePage() {
                   <Button
                     onClick={() => navigate(`/company/applications/${companyData.companyID}`)}
                     variant="outline"
-                    className="border-brand text-brand hover:bg-brand/10 transition-transform hover:scale-105 active:scale-95"
+                    className="border-brand text-brand transition-transform hover:scale-105 active:scale-95"
                   >
                     View Applications
                   </Button>
@@ -318,7 +325,7 @@ export function CompanyProfilePage() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center justify-center py-12 bg-secondary rounded-lg border border-dashed border-border"
+                  className="flex flex-col items-center justify-center py-12  rounded-lg border border-dashed border-border"
                 >
                   <Briefcase className="w-16 h-16 text-gray-300 mb-4" />
                   <h3 className="text-xl font-medium text-foreground mb-2">No Jobs Posted Yet</h3>

@@ -247,10 +247,10 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   disabled={isExpired && mode !== "edit"}
                   className={`min-w-[120px] transition-all duration-200 ${
                     mode === "edit"
-                      ? "hover:bg-secondary border-brand text-brand hover:text-brand"
+                      ? " border-brand text-brand hover:text-brand"
                       : isExpired
-                        ? "bg-brand hover:bg-brand-light cursor-not-allowed opacity-50"
-                        : "bg-brand hover:bg-brand-light text-white"
+                        ? "bg-brand  cursor-not-allowed opacity-50"
+                        : "bg-brand  text-white"
                   }`}
                 >
                   {mode === "edit"
