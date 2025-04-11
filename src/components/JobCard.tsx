@@ -186,12 +186,12 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                 </Link>
 
                 <div className="flex flex-wrap gap-2 mt-3">
-                  <div className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm">
+                  <div className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm">
                     <MapPin className="h-3.5 w-3.5 mr-1.5 text-brand" />
                     <span>{job.location}</span>
                   </div>
                   {job.type && (
-                    <div className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm">
+                    <div className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm">
                       <Briefcase className="h-3.5 w-3.5 mr-1.5 text-brand" />
                       <span>{job.type}</span>
                     </div>
@@ -201,7 +201,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                       {job.sector.split(',').map((tag, index) => (
                         <div
                           key={index}
-                          className="flex items-center text-muted-foreground bg-secondary px-3 py-1.5 rounded-full text-sm"
+                          className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm"
                         >
                           <Tag className="h-3.5 w-3.5 mr-1.5 text-brand" />
                           <span>{tag.trim()}</span>

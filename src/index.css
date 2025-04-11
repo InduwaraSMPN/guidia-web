@@ -47,8 +47,8 @@
   .hover\:bg-gray-100 { @apply hover:bg-secondary-light; }
   .hover\:bg-gray-200 { @apply hover:bg-secondary-dark; }
 
-  .hover\:text-gray-200 { @apply hover:text-muted-foreground; }
-  .hover\:text-gray-500 { @apply hover:text-muted-foreground; }
+  .hover\:text-gray-200 { @apply hover:text-foreground; }
+  .hover\:text-gray-500 { @apply hover:text-foreground; }
   .hover\:text-gray-600 { @apply hover:text-foreground; }
   .hover\:text-gray-700 { @apply hover:text-foreground; }
   .hover\:text-gray-800 { @apply hover:text-foreground; }
@@ -194,8 +194,8 @@
     --neutral-100: 0 0% 92%; /* #EBEDF0 */
     --neutral-200: 0 0% 84%; /* #D1D5DB */
     --neutral-300: 0 0% 69%; /* #B0B8C1 */
-    --neutral-400: 0 0% 56%; /* #9CA3AF */
-    --neutral-500: 0 0% 45%; /* #737373 */
+    --neutral-400: 0 0% 75%; /* Increased from 56% for better contrast */
+    --neutral-500: 0 0% 65%; /* Increased from 45% for better contrast */
     --neutral-600: 0 0% 32%; /* #525252 */
     --neutral-700: 0 0% 25%; /* #404040 */
     --neutral-800: 0 0% 18%; /* #2E2E2E */
@@ -217,9 +217,9 @@
     --primary-foreground: 0 0% 9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted-foreground: 0 0% 80%; /* Increased from 63.9% for better contrast */
     --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent-foreground: 0 0% 100%; /* Increased from 98% for better contrast */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
@@ -320,4 +320,15 @@ html {
 .ql-editor.ql-blank::before {
   color: #9ca3af;
   font-style: normal;
+}
+
+/* Fix for prose content with gray background */
+.prose * {
+  background-color: transparent !important;
+  color: #333 !important; /* Dark gray for better contrast */
+}
+
+/* Dark mode support */
+.dark .prose * {
+  color: #e0e0e0 !important; /* Light gray for dark mode */
 }

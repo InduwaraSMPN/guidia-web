@@ -264,7 +264,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                     <Filter className="h-8 w-8 text-muted-foreground" />
                   </motion.div>
                   <h4 className="text-foreground font-medium text-lg mb-2">No filters available</h4>
-                  <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                  <p className="text-muted-foreground dark:text-neutral-400 text-sm max-w-xs mx-auto">
                     Try changing your search criteria or check back later
                   </p>
                 </motion.div>
@@ -286,7 +286,7 @@ export function FilterPanel({ sections, onClose, onClearAll, isOpen, setIsOpen }
                       <span className="text-sm font-medium text-foreground">
                         {activeFiltersCount} {activeFiltersCount === 1 ? "filter" : "filters"} applied
                       </span>
-                      <p className="text-xs text-muted-foreground mt-1">Showing filtered results</p>
+                      <p className="text-xs text-muted-foreground dark:text-neutral-400 mt-1">Showing filtered results</p>
                     </div>
                     <div className="flex gap-3">
                       <Button

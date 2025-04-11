@@ -72,7 +72,7 @@ export function Select({
         ) : value ? (
           <span>{value.label}</span>
         ) : (
-          <span className="text-muted-foreground">{placeholder}</span>
+          <span className="text-muted-foreground dark:text-neutral-400">{placeholder}</span>
         )}
         <ChevronDown
           className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "transform rotate-180" : "")}

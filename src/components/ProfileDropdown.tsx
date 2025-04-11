@@ -232,7 +232,7 @@ export function ProfileDropdown() {
                 <h3 className="text-sm font-semibold text-foreground">
                   {getUserName()}
                 </h3>
-                <p className="text-xs text-muted-foreground">{user?.userType || "User"}</p>
+                <p className="text-xs text-muted-foreground dark:text-neutral-400">{user?.userType || "User"}</p>
               </div>
             </div>
           </div>
@@ -244,7 +244,7 @@ export function ProfileDropdown() {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
-              <User className="h-4 w-4 text-muted-foreground" />
+              <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
               Profile
             </Link>
 
@@ -254,7 +254,7 @@ export function ProfileDropdown() {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
               >
-                <Edit className="h-4 w-4 text-muted-foreground" />
+                <Edit className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
                 Edit Profile
               </Link>
             )}
@@ -265,7 +265,7 @@ export function ProfileDropdown() {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
               >
-                <Settings className="h-4 w-4 text-muted-foreground" />
+                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
                 Admin Settings
               </Link>
             )}
@@ -276,7 +276,7 @@ export function ProfileDropdown() {
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary-light transition-colors"
               >
-                <Settings className="h-4 w-4 text-muted-foreground" />
+                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
                 Settings
               </Link>
             )}
@@ -288,7 +288,7 @@ export function ProfileDropdown() {
               }}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
-              <LogOut className="h-4 w-4 text-muted-foreground" />
+              <LogOut className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
               Logout
             </button>
           </div>

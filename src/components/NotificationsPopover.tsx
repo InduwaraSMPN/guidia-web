@@ -172,7 +172,7 @@ export function NotificationsPopover() {
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading && notifications.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
+              <div className="p-4 text-center text-muted-foreground dark:text-neutral-400">
                 Loading notifications...
               </div>
             ) : error ? (
@@ -180,7 +180,7 @@ export function NotificationsPopover() {
                 {error}
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
+              <div className="p-4 text-center text-muted-foreground dark:text-neutral-400">
                 No notifications
               </div>
             ) : (

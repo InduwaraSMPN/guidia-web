@@ -106,7 +106,7 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
           </h3>
 
           <div
-            className="prose max-w-none text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4 flex-1"
+            className="prose max-w-none text-sm leading-relaxed line-clamp-3 mb-4 flex-1"
             dangerouslySetInnerHTML={{ __html: news.description }}
           />
 

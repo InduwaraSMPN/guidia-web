@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from "react"
 import { JobSearchForm } from "../components/JobSearchForm"
-import { JobCard, type Job } from "../components/JobCard"
+import { JobCard } from "../components/JobCard"
+import type { Job } from "../components/JobCard"
 import { useNavigate, useLocation } from "react-router-dom"
 import axiosInstance from "@/lib/axios"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Briefcase, Filter, SlidersHorizontal, X } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -33,7 +34,7 @@ export function JobsPage() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (filterPanelRef.current && !filterPanelRef.current.contains(event.target as Node)) {
-        setShowFilters(false)
+        setIsOpen(false)
       }
     }
 
@@ -69,7 +70,7 @@ export function JobsPage() {
         logo: job.companyLogoPath,
         sector: job.tags,
         isExpired: job.isExpired,
-        endDate: job.endDate
+        endDate: job.endDate || ""
       }))
       setJobs(jobsData)
       setFilteredJobs(jobsData)
@@ -110,13 +111,13 @@ export function JobsPage() {
         .map(s => s.trim())
         .filter(s => s && s.length > 0 && !/^\d+$/.test(s) && s.length <= 50);
 
-      const matchesSector = validSectors.length > 0 
-        ? validSectors.includes(job.sector || "") 
+      const matchesSector = validSectors.length > 0
+        ? validSectors.includes(job.sector || "")
         : true
 
       // Expired filter
-      const matchesExpired = filters.showExpired 
-        ? true 
+      const matchesExpired = filters.showExpired
+        ? true
         : !job.isExpired;
 
       return matchesKeywords && matchesLocation && matchesJobType && matchesSector && matchesExpired;
@@ -170,10 +171,10 @@ export function JobsPage() {
       jobs
         .filter(job => !job.isExpired) // Only include sectors from active jobs
         .map((job) => job.sector)
-        .filter(sector => 
-          sector && 
-          sector.trim().length > 0 && 
-          !/^\d+$/.test(sector) && 
+        .filter(sector =>
+          sector &&
+          sector.trim().length > 0 &&
+          !/^\d+$/.test(sector) &&
           sector.length <= 50
         )
     )
@@ -209,7 +210,7 @@ export function JobsPage() {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-16">
-      <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -228,14 +229,13 @@ export function JobsPage() {
           </p>
         </motion.div>
 
-        <motion.div
+        <JobSearchForm
+          onSearch={handleSearch}
+          className="bg-white rounded-lg border border-border p-6 mb-8 shadow-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white rounded-lg border border-border p-6 mb-8 shadow-sm"
-        >
-          <JobSearchForm onSearch={handleSearch} />
-        </motion.div>
+        />
 
         <div className="mb-6 flex justify-between items-center relative">
           <div className="text-foreground">
@@ -272,49 +272,45 @@ export function JobsPage() {
           </div>
         </div>
 
-        <AnimatePresence>
-          {isLoading ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-16"
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
+            <p className="text-muted-foreground mt-4 font-medium">Searching for opportunities...</p>
+          </motion.div>
+        ) : filteredJobs.length > 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            {filteredJobs.map((job, index) => (
+              <JobCard key={job.id} job={job} onApply={handleApply} index={index} />
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16 bg-secondary rounded-lg border border-border"
+          >
+            <div className="bg-white p-4 rounded-full inline-flex items-center justify-center mb-4 shadow-sm">
+              <Filter className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-medium text-adaptive-dark mb-2">No matching jobs found</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Try adjusting your search criteria or explore other opportunities.
+            </p>
+            <button
+              onClick={() => {
+                clearFilters()
+                handleSearch("", "")
+              }}
+              className="mt-6 text-brand hover:underline font-medium"
             >
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
-              <p className="text-muted-foreground mt-4 font-medium">Searching for opportunities...</p>
-            </motion.div>
-          ) : filteredJobs.length > 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
-              {filteredJobs.map((job, index) => (
-                <JobCard key={job.id} job={job} onApply={handleApply} index={index} />
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-center py-16 bg-secondary rounded-lg border border-border"
-            >
-              <div className="bg-white p-4 rounded-full inline-flex items-center justify-center mb-4 shadow-sm">
-                <Filter className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-medium text-adaptive-dark mb-2">No matching jobs found</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Try adjusting your search criteria or explore other opportunities.
-              </p>
-              <button
-                onClick={() => {
-                  clearFilters()
-                  handleSearch("", "")
-                }}
-                className="mt-6 text-brand hover:underline font-medium"
-              >
-                View all jobs
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              View all jobs
+            </button>
+          </motion.div>
+        )}
       </div>
     </div>
   )

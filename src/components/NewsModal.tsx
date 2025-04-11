@@ -43,7 +43,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
           )}
 
           <div
-            className="prose max-w-none text-foreground"
+            className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: news.description }}
           />
         </div>

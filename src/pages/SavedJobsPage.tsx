@@ -51,7 +51,7 @@ export function SavedJobsPage() {
   };
 
   return (
-    <div className="container pt-32 pb-32 max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="container pt-32 pb-32 max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <Bookmark className="h-6 w-6 mr-2 text-brand" />

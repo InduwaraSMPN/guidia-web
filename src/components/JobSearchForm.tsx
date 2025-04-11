@@ -6,15 +6,19 @@ import { useState, useEffect } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Search, X, MapPin, Briefcase, Filter } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 
 interface JobSearchFormProps {
   onSearch: (keywords: string, location: string) => void
   initialKeywords?: string
   initialLocation?: string
+  className?: string
+  initial?: any
+  animate?: any
+  transition?: any
 }
 
-export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation = "" }: JobSearchFormProps) {
+export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation = "", className, initial, animate, transition }: JobSearchFormProps) {
   const [keywords, setKeywords] = useState(initialKeywords)
   const [location, setLocation] = useState(initialLocation)
   const [isFocused, setIsFocused] = useState<string | null>(null)
@@ -39,9 +43,14 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
   const hasFilters = keywords || location
 
   return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div
+      initial={initial || { opacity: 0, y: -10 }}
+      animate={animate || { opacity: 1, y: 0 }}
+      transition={transition || { duration: 0.3 }}
+      className={className}
+    >
       <form onSubmit={handleSubmit} className="w-full">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-border">
+        <div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative group">
               <label htmlFor="keywords" className="text-sm font-medium text-foreground mb-2 block">
@@ -65,24 +74,21 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                     onFocus={() => setIsFocused("keywords")}
                     onBlur={() => setIsFocused(null)}
                     placeholder="e.g. Software Engineer, Marketing"
-                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
+                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020]  rounded-lg"
                   />
                   <Search className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <AnimatePresence>
-                    {keywords && (
-                      <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        type="button"
-                        onClick={() => setKeywords("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
-                        aria-label="Clear keywords"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </motion.button>
-                    )}
-                  </AnimatePresence>
+                  {keywords && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      type="button"
+                      onClick={() => setKeywords("")}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
+                      aria-label="Clear keywords"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </motion.button>
+                  )}
                 </motion.div>
               </div>
             </div>
@@ -109,24 +115,21 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                     onFocus={() => setIsFocused("location")}
                     onBlur={() => setIsFocused(null)}
                     placeholder="e.g. New York, Remote"
-                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020] focus:ring-opacity-50 rounded-lg"
+                    className="h-12 pl-10 pr-10 transition-all duration-200 border-border focus:border-brand focus:ring-[#800020]  rounded-lg"
                   />
                   <MapPin className="h-5 w-5 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
-                  <AnimatePresence>
-                    {location && (
-                      <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        type="button"
-                        onClick={() => setLocation("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
-                        aria-label="Clear location"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </motion.button>
-                    )}
-                  </AnimatePresence>
+                  {location && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      type="button"
+                      onClick={() => setLocation("")}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
+                      aria-label="Clear location"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </motion.button>
+                  )}
                 </motion.div>
               </div>
             </div>
@@ -142,61 +145,55 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                 </Button>
               </motion.div>
 
-              <AnimatePresence>
-                {hasFilters && (
-                  <motion.div
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
+              {hasFilters && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleClear}
+                    className="h-12 px-4 transition-all duration-200 border-brand text-brand"
                   >
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClear}
-                      className="h-12 px-4 transition-all duration-200 border-brand text-brand"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Clear
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <X className="h-4 w-4 mr-2" />
+                    Clear
+                  </Button>
+                </motion.div>
+              )}
             </div>
           </div>
 
-          <AnimatePresence>
-            {hasFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mt-4 pt-4 border-t border-border"
-              >
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Filter className="h-4 w-4 mr-2 text-brand" />
-                  <span>Active filters:</span>
-                  {keywords && (
-                    <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
-                      Keywords: {keywords}
-                      <button onClick={() => setKeywords("")} className="ml-1 hover:text-brand-dark">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  )}
-                  {location && (
-                    <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
-                      Location: {location}
-                      <button onClick={() => setLocation("")} className="ml-1 hover:text-brand-dark">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {hasFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-4 pt-4 border-t border-border"
+            >
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Filter className="h-4 w-4 mr-2 text-brand" />
+                <span>Active filters:</span>
+                {keywords && (
+                  <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
+                    Keywords: {keywords}
+                    <button onClick={() => setKeywords("")} className="ml-1 hover:text-brand-dark">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+                {location && (
+                  <span className="ml-2 bg-brand/10 text-brand px-2 py-1 rounded-full text-xs flex items-center">
+                    Location: {location}
+                    <button onClick={() => setLocation("")} className="ml-1 hover:text-brand-dark">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       </form>
     </motion.div>
