@@ -6,6 +6,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createAuthHeaders } from '@/lib/csrfToken';
 import { toast } from "sonner";
 
+/**
+ * Settings Page
+ * UX Refactored for:
+ * - Visual hierarchy (semantic headings, ARIA roles)
+ * - Consistent spacing/layout (4/8/16/24/32px scale)
+ * - Skeleton loader for loading state
+ * - Micro-interactions (transitions, focus/hover/active states)
+ * - Accessibility (ARIA, keyboard nav, error roles)
+ * - Comments explain each improvement
+ */
 export function Settings() {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -19,20 +29,28 @@ export function Settings() {
   useEffect(() => {
     // Load user data
     if (user) {
-      // Fetch user details from the API based on user type
       fetchUserDetails();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Skeleton loader state for perceived performance
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  useEffect(() => {
+    if (isLoading) {
+      setShowSkeleton(true);
+    } else {
+      // Delay hiding skeleton for smoothness
+      const timeout = setTimeout(() => setShowSkeleton(false), 400);
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading]);
 
   const fetchUserDetails = async () => {
     if (!user) return;
-
     try {
       setIsLoading(true);
       let endpoint = '';
-
-      // Determine the endpoint based on user type
       switch (user.userType) {
         case 'Student':
           endpoint = `/api/students/${user.userID}`;
@@ -47,25 +65,12 @@ export function Settings() {
           setError('Unsupported user type');
           return;
       }
-
-      // Create headers with auth token
       const headers = createAuthHeaders();
-
-      // Fetch user details
-      const response = await fetch(endpoint, {
-        headers
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch user details');
-      }
-
+      const response = await fetch(endpoint, { headers });
+      if (!response.ok) throw new Error('Failed to fetch user details');
       const data = await response.json();
-
-      // Set form data based on user type
       let username = '';
       let email = '';
-
       if (user.userType === 'Student') {
         username = data.studentName || '';
         email = data.studentEmail || data.email || user.email || '';
@@ -76,22 +81,15 @@ export function Settings() {
         username = data.companyName || '';
         email = data.companyEmail || data.email || user.email || '';
       }
-
-      console.log('Received data:', data);
-      console.log('Setting form data:', { username, email });
-
-      setFormData({
-        username,
-        email,
-      });
+      setFormData({ username, email });
     } catch (error) {
-      console.error('Error fetching user details:', error);
       setError('Failed to load user details');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Input change handler
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -100,20 +98,15 @@ export function Settings() {
     }));
   };
 
+  // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     // Show loading toast
-    const loadingToast = toast.loading('Updating profile...', {
-      duration: Infinity // Keep showing until we get a response
-    });
-
+    const loadingToast = toast.loading('Updating profile...', { duration: Infinity });
     try {
       const headers = await createAuthHeaders();
       let endpoint = '/api/users/profile';
       let payload = {};
-
-      // For company users, use the companies endpoint and structure
       if (user?.userType === 'Company') {
         endpoint = `/api/companies/profile/${user.userID}`;
         payload = {
@@ -126,7 +119,6 @@ export function Settings() {
           email: formData.email
         };
       }
-
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
         method: 'PUT',
         headers: {
@@ -135,70 +127,114 @@ export function Settings() {
         },
         body: JSON.stringify(payload)
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || data.message || 'Failed to update profile');
       }
-
-      // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
       toast.success('Profile updated successfully', {
         description: 'Your changes have been saved'
       });
-      
-      // Update local user data
-      if (user?.userType === 'Company') {
-        user.companyName = formData.username;
-        user.companyEmail = formData.email;
-      } else {
-        user.username = formData.username;
-        user.email = formData.email;
-      }
-
+      // Do not mutate user context directly; rely on context/provider to update user info if needed.
+      // setSuccess and setError provide user feedback.
+      setSuccess('Profile updated successfully');
+      setError(null);
     } catch (error) {
-      console.error('Profile update error:', error);
-      
-      // Dismiss loading toast and show error
       toast.dismiss(loadingToast);
       toast.error('Failed to update profile', {
         description: error instanceof Error ? error.message : 'Please try again later'
       });
+      setError(error instanceof Error ? error.message : 'Failed to update profile');
+      setSuccess(null);
     }
   };
 
+  // Accessibility: ARIA live region for feedback
+  // Visual hierarchy: semantic headings, ARIA roles
+  // Layout: consistent spacing, card grouping, responsive grid
+  // Micro-interactions: transitions, focus/hover/active states
+  // Skeleton loader for loading state
+
   return (
-    <div className="container mx-auto py-8 px-4 pt-32 pb-32">
-      <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
+    <main
+      className="container mx-auto py-8 px-4 pt-32 pb-32"
+      aria-labelledby="settings-title"
+      role="main"
+    >
+      {/* H1: Page Title */}
+      <header className="mb-10">
+        <h1
+          id="settings-title"
+          className="text-4xl font-extrabold tracking-tight mb-2"
+          tabIndex={-1}
+        >
+          Account Settings
+        </h1>
+        {/* Breadcrumbs for navigation clarity (if needed in future) */}
+        {/* <nav aria-label="Breadcrumb" className="mb-2">
+          <ol className="flex space-x-2 text-sm text-muted-foreground">
+            <li>Home</li>
+            <li aria-current="page" className="font-semibold text-foreground">Settings</li>
+          </ol>
+        </nav> */}
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-6">Profile Information</h2>
+      <section
+        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        aria-label="Settings Sections"
+      >
+        {/* Profile Card */}
+        <section
+          className="bg-white p-8 rounded-2xl shadow-lg flex flex-col gap-6 transition-shadow duration-300 focus-within:shadow-xl"
+          aria-labelledby="profile-info-title"
+          tabIndex={-1}
+        >
+          {/* H2: Profile Info */}
+          <h2
+            id="profile-info-title"
+            className="text-2xl font-bold mb-2"
+          >
+            Profile Information
+          </h2>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+          {/* ARIA live region for error only (success handled by sonner) */}
+          <div aria-live="polite" aria-atomic="true">
+            {error && (
+              <div
+                className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded transition-all duration-300"
+                role="alert"
+                tabIndex={0}
+              >
+                {error}
+              </div>
+            )}
+          </div>
 
-          {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-              {success}
-            </div>
-          )}
-
-          {isLoading && !error ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="w-10 h-10 border-4 border-border border-t-[#800020] rounded-full animate-spin"></div>
+          {/* Skeleton loader for loading state */}
+          {showSkeleton && isLoading && !error ? (
+            <div className="flex flex-col gap-4 animate-pulse py-8">
+              <div className="h-6 w-1/2 bg-gray-200 rounded" />
+              <div className="h-12 w-full bg-gray-200 rounded" />
+              <div className="h-6 w-1/2 bg-gray-200 rounded" />
+              <div className="h-12 w-full bg-gray-200 rounded" />
+              <div className="h-12 w-full bg-gray-200 rounded" />
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-6"
+              aria-describedby={error ? "profile-error" : undefined}
+              autoComplete="off"
+            >
+              {/* Username */}
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="username"
+                  className="block text-base font-medium text-foreground"
+                >
                   {user?.userType === 'Student' ? 'Full Name' :
-                   user?.userType === 'Counselor' ? 'Counselor Name' :
-                   user?.userType === 'Company' ? 'Company Name' : 'Username'}
+                    user?.userType === 'Counselor' ? 'Counselor Name' :
+                      user?.userType === 'Company' ? 'Company Name' : 'Username'}
                 </label>
                 <Input
                   id="username"
@@ -208,13 +244,21 @@ export function Settings() {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder={user?.userType === 'Student' ? 'Enter your full name' :
-                              user?.userType === 'Counselor' ? 'Enter counselor name' :
-                              user?.userType === 'Company' ? 'Enter company name' : 'Enter username'}
+                    user?.userType === 'Counselor' ? 'Enter counselor name' :
+                      user?.userType === 'Company' ? 'Enter company name' : 'Enter username'}
+                  className="transition-shadow duration-300 focus:ring-2 focus:ring-[#800020] focus:border-[#800020] min-h-[44px]"
+                  aria-required="true"
+                  aria-label="Username"
+                  autoComplete="name"
                 />
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
+              {/* Email */}
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="email"
+                  className="block text-base font-medium text-foreground"
+                >
                   Email Address
                 </label>
                 <Input
@@ -225,27 +269,44 @@ export function Settings() {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder="Enter your email address"
+                  className="transition-shadow duration-300 focus:ring-2 focus:ring-[#800020] focus:border-[#800020] min-h-[44px]"
+                  aria-required="true"
+                  aria-label="Email Address"
+                  autoComplete="email"
                 />
               </div>
 
+              {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full py-3 text-lg font-semibold rounded-lg transition-all duration-300 focus:ring-2 focus:ring-[#800020] focus:outline-none active:scale-95"
                 disabled={isLoading}
+                aria-busy={isLoading}
+                aria-label={isLoading ? "Updating Profile" : "Update Profile"}
+                style={{ minHeight: 48 }}
               >
-                {isLoading ? 'Updating Profile...' : 'Update Profile'}
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-5 h-5 border-2 border-border border-t-[#800020] rounded-full animate-spin" />
+                    Updating Profile...
+                  </span>
+                ) : (
+                  "Update Profile"
+                )}
               </Button>
             </form>
           )}
-        </div>
+        </section>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        {/* Change Password Card */}
+        <section
+          className="bg-white p-8 rounded-2xl shadow-lg flex flex-col gap-6 transition-shadow duration-300 focus-within:shadow-xl"
+          aria-labelledby="change-password-title"
+          tabIndex={-1}
+        >
           <ChangePassword />
-        </div>
-      </div>
-    </div>
+        </section>
+      </section>
+    </main>
   );
 }
-
-
-

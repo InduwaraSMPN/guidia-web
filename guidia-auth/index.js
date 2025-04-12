@@ -57,8 +57,17 @@ app.use(express.json());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:1030',
   credentials: true,
-  exposedHeaders: ['X-CSRF-Token']
+  exposedHeaders: ['X-CSRF-Token', 'x-csrf-token', 'Content-Type', 'Authorization']
 }));
+
+// Add middleware to ensure CORS headers are set on all responses
+app.use((req, res, next) => {
+  // Ensure CORS headers are set
+  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:1030');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Expose-Headers', 'X-CSRF-Token, x-csrf-token, Content-Type, Authorization');
+  next();
+});
 app.use('/api/students', studentRoutes);
 app.use('/api/counselors', counselorsRouter);
 app.use('/api/companies', companiesRouter);
@@ -946,7 +955,7 @@ const calculateCooldownPeriod = (otpSentCount, lastAttemptTime) => {
 const logSecurityEvent = async (eventType, details, userId = null) => {
   try {
     await pool.query(
-      'INSERT INTO security_audit_log (event_type, details, user_id, timestamp) VALUES (?, ?, ?, NOW())',
+      'INSERT INTO security_audit_log (eventType, details, userID, timestamp) VALUES (?, ?, ?, NOW())',
       [eventType, JSON.stringify(details), userId]
     );
   } catch (error) {

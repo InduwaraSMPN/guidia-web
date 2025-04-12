@@ -21,14 +21,29 @@ export function storeCsrfToken(response: Response): void {
     console.log(`${key}: ${value}`);
   });
 
-  const csrfToken = response.headers.get('X-CSRF-Token');
+  // Try to get the CSRF token from the response headers
+  // Note: Header names are case-insensitive according to the spec
+  const csrfToken = response.headers.get('X-CSRF-Token') ||
+                   response.headers.get('x-csrf-token');
+
   if (csrfToken) {
     localStorage.setItem(CSRF_TOKEN_KEY, csrfToken);
     // Store the time when the token was refreshed
     localStorage.setItem(CSRF_TOKEN_REFRESH_KEY, Date.now().toString());
     console.log('CSRF token stored and timestamp updated:', csrfToken);
   } else {
-    console.warn('No X-CSRF-Token header found in response');
+    // Try to extract token from response body if it's a JSON response
+    response.clone().json().then(data => {
+      if (data && data.csrfToken) {
+        localStorage.setItem(CSRF_TOKEN_KEY, data.csrfToken);
+        localStorage.setItem(CSRF_TOKEN_REFRESH_KEY, Date.now().toString());
+        console.log('CSRF token extracted from response body:', data.csrfToken);
+      } else {
+        console.warn('No X-CSRF-Token header or csrfToken in body found in response');
+      }
+    }).catch(() => {
+      console.warn('No X-CSRF-Token header found in response and body is not JSON');
+    });
   }
 }
 

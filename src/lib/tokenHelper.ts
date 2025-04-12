@@ -25,15 +25,16 @@ export async function refreshAllTokens() {
     console.log('CSRF token is missing or expired, refreshing...');
     // Try to refresh the CSRF token
     try {
-      // Try to get the CSRF token from the users profile endpoint
-      // This endpoint has the csrfTokenGenerator middleware applied
-      console.log('Fetching CSRF token from /api/users/profile endpoint');
+      // Use the dedicated CSRF token endpoint
+      console.log('Fetching CSRF token from /api/users/csrf-token endpoint');
 
-      const response = await fetch(`${API_URL}/api/users/profile`, {
+      const response = await fetch(`${API_URL}/api/users/csrf-token`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${currentToken}`
-        }
+          'Authorization': `Bearer ${currentToken}`,
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -125,6 +126,9 @@ export async function getSecureHeaders(includeContentType = true) {
  */
 export async function secureApiRequest(url: string, options: RequestInit = {}) {
   try {
+    // Force refresh tokens before sensitive operations
+    await refreshAllTokens();
+
     // Get secure headers with refreshed tokens
     const headers = await getSecureHeaders();
 
@@ -137,6 +141,9 @@ export async function secureApiRequest(url: string, options: RequestInit = {}) {
       },
       credentials: 'include' as RequestCredentials
     };
+
+    // Log the headers being sent for debugging
+    console.log('Sending request with headers:', mergedOptions.headers);
 
     // Make the request
     const response = await fetch(url, mergedOptions);
@@ -151,7 +158,7 @@ export async function secureApiRequest(url: string, options: RequestInit = {}) {
       return response; // Return the response so the caller can handle it
     }
 
-    // If we get a 403 with CSRF token error, try once more with a forced token refresh
+    // If we get a 403 with CSRF token error, try multiple times with a forced token refresh
     if (response.status === 403) {
       try {
         const errorData = await response.clone().json();
@@ -163,28 +170,81 @@ export async function secureApiRequest(url: string, options: RequestInit = {}) {
         if (isCsrfError) {
           console.log('CSRF token error detected, forcing token refresh and retrying...');
 
-          // Force a token refresh
-          await refreshAllTokens();
+          // Try multiple times to refresh the token
+          let maxRetries = 3;
+          let retryCount = 0;
+          let retryResponse = null;
 
-          // Get fresh headers
-          const refreshedHeaders = await getSecureHeaders();
+          while (retryCount < maxRetries) {
+            retryCount++;
+            console.log(`CSRF token retry attempt ${retryCount}/${maxRetries}`);
 
-          // Retry the request with fresh tokens
-          const retryOptions = {
-            ...options,
-            headers: {
-              ...refreshedHeaders,
-              ...(options.headers || {})
-            },
-            credentials: 'include' as RequestCredentials
-          };
+            try {
+              // Force a token refresh using the dedicated endpoint
+              const response = await fetch(`${API_URL}/api/users/csrf-token`, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${await getValidToken()}`,
+                  'Accept': 'application/json'
+                },
+                credentials: 'include'
+              });
 
-          const retryResponse = await fetch(url, retryOptions);
+              if (response.ok) {
+                // Store the CSRF token
+                storeCsrfToken(response);
 
-          // Store any new CSRF token
-          storeCsrfToken(retryResponse);
+                // Get the token from the response body as well
+                const data = await response.json();
+                if (data.csrfToken) {
+                  localStorage.setItem('csrf_token', data.csrfToken);
+                  localStorage.setItem('csrf_token_refreshed_at', Date.now().toString());
+                  console.log('CSRF token stored from response body:', data.csrfToken);
+                }
 
-          return retryResponse;
+                // Get fresh headers with the new token
+                const refreshedHeaders = await getSecureHeaders();
+
+                // Log the headers for debugging
+                console.log('Retrying request with headers:', {
+                  ...refreshedHeaders,
+                  ...(options.headers || {})
+                });
+
+                // Retry the request with fresh tokens
+                const retryOptions = {
+                  ...options,
+                  headers: {
+                    ...refreshedHeaders,
+                    ...(options.headers || {})
+                  },
+                  credentials: 'include' as RequestCredentials
+                };
+
+                retryResponse = await fetch(url, retryOptions);
+
+                // If successful, break out of the retry loop
+                if (retryResponse.ok || retryResponse.status !== 403) {
+                  // Store any new CSRF token
+                  storeCsrfToken(retryResponse);
+                  return retryResponse;
+                }
+              }
+            } catch (retryError) {
+              console.error(`Retry attempt ${retryCount} failed:`, retryError);
+            }
+
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+
+          // If we have a retry response, return it even if it's not successful
+          if (retryResponse) {
+            return retryResponse;
+          }
+
+          // If all retries failed, continue with the original response
+          console.error(`All ${maxRetries} CSRF token refresh attempts failed`);
         }
       } catch (parseError) {
         console.error('Error parsing response during CSRF error handling:', parseError);
