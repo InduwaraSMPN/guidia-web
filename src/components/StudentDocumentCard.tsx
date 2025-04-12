@@ -3,7 +3,6 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { Eye, FileText, File } from "lucide-react"
 import { ViewDocumentModal } from "./ViewDocumentModal"
-import { motion } from "framer-motion"
 
 interface DocumentDetails {
   name: string
@@ -19,8 +18,6 @@ interface StudentDocumentCardProps {
 
 export function StudentDocumentCard({ title, isUploaded, document }: StudentDocumentCardProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const [isFocused, setIsFocused] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const handleViewDocument = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -51,57 +48,47 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
     <>
       <div
         ref={cardRef}
-        className={`p-6 rounded-xl border ${
-          isUploaded
-            ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-sm"
-            : "bg-secondary-light text-adaptive-dark"
-        } transition-all duration-300 hover:shadow-md ${isHovered || isFocused ? "ring-2 ring-brand ring-offset-2" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
         role="article"
         aria-labelledby={`doc-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
       >
-        <div className="flex items-start gap-3 mb-3">
-          <div className={`p-2 rounded-lg ${isUploaded ? "bg-white/20" : "bg-white"}`} aria-hidden="true">
-            {getFileIcon()}
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+            <div className="text-muted-foreground w-7 h-7" aria-hidden="true">
+              {getFileIcon()}
+            </div>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h3
               id={`doc-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
-              className={`text-lg font-semibold ${isUploaded ? "text-white" : "text-adaptive-dark"}`}
+              className="text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300"
             >
               {title}
             </h3>
             {document && (
               <p
-                className={`text-sm truncate max-w-[200px] ${isUploaded ? "text-white/80" : "text-muted-foreground"}`}
+                className="text-sm text-muted-foreground truncate"
                 title={document.name}
               >
                 {document.name}
               </p>
             )}
+
+            {isUploaded && document && (
+              <div className="mt-3 flex items-center">
+                <button
+                  onClick={handleViewDocument}
+                  onKeyDown={handleKeyDown}
+                  className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline focus:outline-none focus:ring-2 focus:ring-brand focus:rounded-sm"
+                  aria-label={`View ${document.name}`}
+                >
+                  <Eye className="h-3 w-3" aria-hidden="true" />
+                  <span>View Document</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
-        {isUploaded && document && (
-          <motion.div
-            className="flex gap-2 mt-4 justify-end"
-            initial={{ opacity: 0.8 }}
-            animate={{ opacity: isHovered || isFocused ? 1 : 0.8 }}
-          >
-            <button
-              onClick={handleViewDocument}
-              onKeyDown={handleKeyDown}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-brand text-sm hover:bg-light transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand"
-              aria-label={`View ${document.name}`}
-            >
-              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>View Document</span>
-            </button>
-          </motion.div>
-        )}
       </div>
 
       {document && (

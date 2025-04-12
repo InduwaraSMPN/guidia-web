@@ -301,14 +301,14 @@ export function StudentProfilePage() {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
                         href={`mailto:${studentData.studentEmail}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
                         aria-label={`Email ${studentData.studentName} at ${studentData.studentEmail}`}
                       >
                         <Mail className="w-4 h-4 text-brand" aria-hidden="true" />
                         <span className="truncate max-w-[180px]">{studentData.studentEmail}</span>
                       </a>
                       {studentData.studentContactNumber && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-border rounded-md text-sm font-medium text-foreground">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground">
                           <Phone className="w-4 h-4 text-brand" aria-hidden="true" />
                           <span>{studentData.studentContactNumber}</span>
                         </div>
@@ -351,7 +351,7 @@ export function StudentProfilePage() {
 
         {/* Career Pathways - Card Layout */}
         <motion.section
-          className="bg-white rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
@@ -408,7 +408,7 @@ export function StudentProfilePage() {
 
         {/* Documents - Card Layout with Better Grid */}
         <motion.section
-          className="bg-white rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
@@ -477,7 +477,7 @@ export function StudentProfilePage() {
 
         {/* Job Applications section */}
         <motion.section
-          className="bg-white rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
@@ -511,7 +511,7 @@ export function StudentProfilePage() {
               {jobApplications.map((application, index) => (
                 <motion.div
                   key={application.applicationID}
-                  className="bg-white rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
+                  className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + index * 0.05 }}
@@ -586,7 +586,7 @@ export function StudentProfilePage() {
         {/* Saved Jobs section */}
         {isCurrentUser && (
           <motion.section
-            className="bg-white rounded-xl shadow-sm border border-border p-8"
+            className="bg-card rounded-xl shadow-sm border border-border p-8"
             variants={sectionVariants}
             initial="hidden"
             animate="visible"
@@ -623,7 +623,7 @@ export function StudentProfilePage() {
                 {savedJobs.map((job, index) => (
                   <motion.div
                     key={job.jobID}
-                    className="bg-white rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 cursor-pointer group"
+                    className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 cursor-pointer group"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + index * 0.05 }}

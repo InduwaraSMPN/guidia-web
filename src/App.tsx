@@ -71,6 +71,8 @@ import { PublicCompanyProfile } from "@/pages/profile/PublicCompanyProfile";
 import { ViewJobApplications } from './pages/ViewJobApplications';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { MessageRedirect } from './components/MessageRedirect';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
 
 function RedirectToProfile() {
   const { id } = useParams();
@@ -177,6 +179,8 @@ function AppContent() {
           <Route path="/events/post" element={<PostEventPage />} />
           <Route path="/events/edit/:id" element={<PostEventPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/companies/:id/jobs" element={<CompanyJobsPage />} />
           <Route path="/companies/:id/details" element={<CompanyDetailsPage />} />
