@@ -73,6 +73,10 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { MessageRedirect } from './components/MessageRedirect';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { ContactPage } from './pages/ContactPage';
+import { FeaturesPage } from './pages/FeaturesPage';
+import { TestimonialsPage } from './pages/TestimonialsPage';
+import { FAQPage } from './pages/FAQPage';
 
 function RedirectToProfile() {
   const { id } = useParams();
@@ -181,6 +185,10 @@ function AppContent() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/testimonials" element={<TestimonialsPage />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           <Route path="/companies/:id/jobs" element={<CompanyJobsPage />} />
           <Route path="/companies/:id/details" element={<CompanyDetailsPage />} />
