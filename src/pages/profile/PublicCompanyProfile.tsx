@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Building2,
   Mail,
@@ -7,8 +8,7 @@ import {
   Globe,
   MapPin,
   ChevronLeft,
-  ChevronRight,
-  User,
+  MessageSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,36 @@ const ProfileSkeleton = () => (
     </div>
   </div>
 );
+
+// Chat button component
+function ChatButton({ companyData, userID }: { companyData: CompanyData, userID: string | undefined }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Check if current user is viewing their own profile
+  const isCurrentUser = user?.userID === userID;
+
+  const handleChat = () => {
+    if (!isCurrentUser && user?.userType && user?.userID) {
+      const userTypePath = user.userType.toLowerCase();
+      // Navigate to chat using the new URL format
+      navigate(`/${userTypePath}/${user.userID}/messages/${userID}?type=company`);
+    }
+  };
+
+  return (
+    <Button
+      size="lg"
+      className={`gap-2 ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onClick={handleChat}
+      disabled={isCurrentUser}
+      title={isCurrentUser ? "You cannot chat with yourself" : ""}
+    >
+      Chat with {companyData.companyName.split(" ")[0]}
+      <MessageSquare className="h-4 w-4" />
+    </Button>
+  );
+}
 
 export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
   const navigate = useNavigate();
@@ -344,10 +374,10 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
             <div className="space-y-4">
               {companyData.postedJobs.map((job) => (
                 <div
-                  key={job.jobID}
+                  key={job.id}
                   className="border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer"
-                  onClick={() => navigate(`/jobs/${job.jobID}`)}
-                  onMouseEnter={() => setHoveredJobId(job.jobID)}
+                  onClick={() => navigate(`/jobs/${job.id}`)}
+                  onMouseEnter={() => setHoveredJobId(job.id)}
                   onMouseLeave={() => setHoveredJobId(null)}
                 >
                   <h3 className="font-semibold">{job.title}</h3>
@@ -357,7 +387,7 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
                   <motion.div
                     className="mt-4 text-brand text-sm font-medium"
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: hoveredJobId === job.jobID ? 1 : 0 }}
+                    animate={{ opacity: hoveredJobId === job.id ? 1 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     View details →
@@ -368,17 +398,14 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           </motion.div>
         )}
 
-        {/* Contact Button */}
+        {/* Chat Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center"
         >
-          <Button size="lg" className="gap-2">
-            Contact {companyData.companyName.split(" ")[0]}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <ChatButton companyData={companyData} userID={userID} />
         </motion.div>
       </div>
     </motion.div>

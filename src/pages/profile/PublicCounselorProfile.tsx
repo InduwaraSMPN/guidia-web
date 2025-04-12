@@ -1,7 +1,8 @@
 
 
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   Mail,
   Phone,
@@ -13,6 +14,7 @@ import {
   Award,
   ChevronRight,
   ChevronLeft,
+  MessageSquare
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -74,7 +76,38 @@ const ProfileSkeleton = () => (
 )
 
 // Export both names to maintain compatibility
+// Chat button component
+function ChatButton({ profile, userID }: { profile: CounselorProfile, userID: string | undefined }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Check if current user is viewing their own profile
+  const isCurrentUser = user?.userID === userID;
+
+  const handleChat = () => {
+    if (!isCurrentUser && user?.userType && user?.userID) {
+      const userTypePath = user.userType.toLowerCase();
+      // Navigate to chat using the new URL format
+      navigate(`/${userTypePath}/${user.userID}/messages/${userID}?type=counselor`);
+    }
+  };
+
+  return (
+    <Button
+      size="lg"
+      className={`gap-2 ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onClick={handleChat}
+      disabled={isCurrentUser}
+      title={isCurrentUser ? "You cannot chat with yourself" : ""}
+    >
+      Chat with {profile.counselorName.split(" ")[0]}
+      <MessageSquare className="h-4 w-4" />
+    </Button>
+  );
+}
+
 export function PublicCounselorProfile() {
+  const navigate = useNavigate()
   const { userID } = useParams<{ userID: string }>()
   const [profile, setProfile] = useState<CounselorProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -333,17 +366,14 @@ export function PublicCounselorProfile() {
           )}
         </motion.div>
 
-        {/* Contact Button */}
+        {/* Chat Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center"
         >
-          <Button size="lg" className="gap-2">
-            Contact {profile.counselorName.split(" ")[0]}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <ChatButton profile={profile} userID={userID} />
         </motion.div>
       </div>
     </motion.div>

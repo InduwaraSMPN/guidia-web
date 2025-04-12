@@ -79,7 +79,7 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
                 <button
                   onClick={handleViewDocument}
                   onKeyDown={handleKeyDown}
-                  className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline focus:outline-none focus:ring-2 focus:ring-brand focus:rounded-sm"
+                  className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline"
                   aria-label={`View ${document.name}`}
                 >
                   <Eye className="h-3 w-3" aria-hidden="true" />

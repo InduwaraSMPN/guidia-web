@@ -301,7 +301,7 @@ export function StudentProfilePage() {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <a
                         href={`mailto:${studentData.studentEmail}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm"
                         aria-label={`Email ${studentData.studentName} at ${studentData.studentEmail}`}
                       >
                         <Mail className="w-4 h-4 text-brand" aria-hidden="true" />
@@ -555,7 +555,7 @@ export function StudentProfilePage() {
                           href={application.resumePath}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline focus:outline-none focus:ring-2 focus:ring-brand focus:rounded-sm"
+                          className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline"
                           onClick={(e) => e.stopPropagation()}
                           aria-label={`View resume for ${application.jobTitle} application`}
                         >
