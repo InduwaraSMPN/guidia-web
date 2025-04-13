@@ -22,6 +22,7 @@ interface AuthContextType {
   user: User | null;
   login: (credentials: LoginCredentials) => Promise<User>;
   logout: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
   isLoading: boolean;
   error: string | null;
   isVerifyingToken: boolean;
@@ -249,8 +250,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Update user data in context
+  const updateUser = (userData: Partial<User>) => {
+    if (!user) return;
+
+    // Create a new user object with updated fields
+    const updatedUser = {
+      ...user,
+      ...userData
+    };
+
+    console.log('Updating user context with:', updatedUser);
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, error, isVerifyingToken }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isLoading, error, isVerifyingToken }}>
       {children}
     </AuthContext.Provider>
   );

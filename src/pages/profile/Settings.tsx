@@ -5,6 +5,7 @@ import { ChangePassword } from '@/components/ChangePassword';
 import { useAuth } from '@/contexts/AuthContext';
 import { createAuthHeaders } from '@/lib/csrfToken';
 import { toast } from "sonner";
+import { refreshAllTokens } from '@/lib/tokenHelper';
 
 /**
  * Settings Page
@@ -17,7 +18,7 @@ import { toast } from "sonner";
  * - Comments explain each improvement
  */
 export function Settings() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -135,8 +136,22 @@ export function Settings() {
       toast.success('Profile updated successfully', {
         description: 'Your changes have been saved'
       });
-      // Do not mutate user context directly; rely on context/provider to update user info if needed.
-      // setSuccess and setError provide user feedback.
+
+      // Update the user context with the new email
+      if (data.user && user) {
+        updateUser({
+          email: data.user.email
+        });
+        console.log('User context updated with new email:', data.user.email);
+      }
+
+      // After successful update, refresh the token to ensure it contains the updated user info
+      try {
+        await refreshAllTokens();
+      } catch (refreshError) {
+        console.error('Failed to refresh tokens after profile update:', refreshError);
+      }
+
       setSuccess('Profile updated successfully');
       setError(null);
     } catch (error) {

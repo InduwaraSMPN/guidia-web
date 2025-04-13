@@ -7,8 +7,8 @@ router.get('/', verifyToken, async (req, res) => {
   const pool = req.app.locals.pool;
   try {
     const [companies] = await pool.execute(`
-      SELECT c.*, u.email as companyEmail 
-      FROM companies c 
+      SELECT c.*, u.email as companyEmail
+      FROM companies c
       JOIN users u ON c.userID = u.userID
     `);
 
@@ -17,7 +17,7 @@ router.get('/', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch companies',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -42,8 +42,8 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
-      return res.status(403).json({ 
-        error: 'Unauthorized: User ID mismatch' 
+      return res.status(403).json({
+        error: 'Unauthorized: User ID mismatch'
       });
     }
 
@@ -95,7 +95,7 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('Error creating company profile:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to create profile'
     });
   }
@@ -119,8 +119,8 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
-      return res.status(403).json({ 
-        error: 'Unauthorized: User ID mismatch' 
+      return res.status(403).json({
+        error: 'Unauthorized: User ID mismatch'
       });
     }
 
@@ -139,7 +139,7 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
     // Only update fields that are provided
     const updates = [];
     const values = [];
-    
+
     if (companyName) {
       updates.push('companyName = ?');
       values.push(companyName);
@@ -178,28 +178,57 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
     values.push(userID);
 
     const updateQuery = `
-      UPDATE companies 
+      UPDATE companies
       SET ${updates.join(', ')}
       WHERE userID = ?
     `;
 
     await pool.execute(updateQuery, values);
 
+    // If email was updated, also update it in the users table
+    if (companyEmail) {
+      // Check if email is already in use by another user
+      const [existingUsers] = await pool.execute(
+        'SELECT userID FROM users WHERE email = ? AND userID != ?',
+        [companyEmail, userID]
+      );
+
+      if (existingUsers.length > 0) {
+        return res.status(409).json({
+          error: 'Conflict',
+          message: 'Email is already in use by another user'
+        });
+      }
+
+      // Update email in users table
+      await pool.execute(
+        'UPDATE users SET email = ? WHERE userID = ?',
+        [companyEmail, userID]
+      );
+    }
+
     // Fetch updated profile
     const [updated] = await pool.execute(
-      'SELECT * FROM companies WHERE userID = ?',
+      'SELECT c.*, u.email FROM companies c JOIN users u ON c.userID = u.userID WHERE c.userID = ?',
+      [userID]
+    );
+
+    // Get user data to return for context update
+    const [userData] = await pool.execute(
+      'SELECT userID, email, roleID FROM users WHERE userID = ?',
       [userID]
     );
 
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      profile: updated[0]
+      profile: updated[0],
+      user: userData[0]
     });
 
   } catch (error) {
     console.error('Error updating company profile:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update profile',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -213,10 +242,11 @@ router.get('/profile/:userID', async (req, res) => {
 
   try {
     // First get the company profile
+    // Always use the email from the users table as the authoritative source
     const [companies] = await pool.execute(`
-      SELECT c.*, u.email as companyEmail 
-      FROM companies c 
-      JOIN users u ON c.userID = u.userID 
+      SELECT c.*, u.email as companyEmail
+      FROM companies c
+      JOIN users u ON c.userID = u.userID
       WHERE c.userID = ?
     `, [userID]);
 
@@ -245,7 +275,7 @@ router.get('/profile/:userID', async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching company profile:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch company profile',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
