@@ -120,10 +120,30 @@ class NotificationService {
       const [notifications] = await this.pool.query(query);
 
       // Parse metadata JSON
-      return notifications.map(notification => ({
-        ...notification,
-        metadata: notification.metadata ? JSON.parse(notification.metadata) : null
-      }));
+      return notifications.map(notification => {
+        let parsedMetadata = null;
+
+        if (notification.metadata) {
+          // Check if metadata is already an object
+          if (typeof notification.metadata === 'object' && notification.metadata !== null) {
+            parsedMetadata = notification.metadata;
+          } else {
+            // Try to parse the metadata if it's a string
+            try {
+              parsedMetadata = JSON.parse(notification.metadata);
+            } catch (e) {
+              console.error('Error parsing notification metadata:', e);
+              // Keep the original value if parsing fails
+              parsedMetadata = notification.metadata;
+            }
+          }
+        }
+
+        return {
+          ...notification,
+          metadata: parsedMetadata
+        };
+      });
     } catch (error) {
       console.error('Error fetching user notifications:', error);
       throw error;

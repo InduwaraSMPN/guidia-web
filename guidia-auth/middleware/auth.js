@@ -31,8 +31,17 @@ const verifyToken = async (req, res, next) => {
     // Get authorization header
     const authHeader = req.headers.authorization;
 
+    console.log('Auth middleware - Request path:', req.path);
+    console.log('Auth middleware - Headers:', {
+      authorization: authHeader ? `${authHeader.substring(0, 15)}...` : 'none',
+      'content-type': req.headers['content-type'],
+      host: req.headers.host,
+      origin: req.headers.origin
+    });
+
     // Check if header exists and has correct format
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Auth middleware - No valid token provided');
       return res.status(401).json({
         error: 'Authentication required',
         message: 'No valid token provided'
@@ -41,9 +50,14 @@ const verifyToken = async (req, res, next) => {
 
     // Extract token
     const token = authHeader.split(' ')[1];
+    console.log('Auth middleware - Token received:', token ? `${token.substring(0, 10)}...` : 'none');
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Auth middleware - Token verified successfully:', {
+      userId: decoded.id,
+      userRole: decoded.roleId
+    });
 
     // Add basic user info to request
     req.user = decoded;
@@ -71,23 +85,42 @@ const verifyToken = async (req, res, next) => {
     next();
   } catch (error) {
     // Handle different types of JWT errors
+    console.error('Authentication error:', {
+      message: error.message,
+      name: error.name,
+      path: req.path,
+      method: req.method,
+      headers: {
+        authorization: req.headers.authorization ? 'Present (hidden)' : 'Missing',
+        'content-type': req.headers['content-type']
+      }
+    });
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         error: 'Authentication expired',
-        message: 'Token has expired'
+        message: 'Token has expired. Please log in again.',
+        code: 'TOKEN_EXPIRED'
       });
     } else if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         error: 'Authentication invalid',
-        message: 'Invalid token'
+        message: 'Invalid token. Please log in again.',
+        code: 'INVALID_TOKEN'
+      });
+    } else if (error.name === 'NotBeforeError') {
+      return res.status(401).json({
+        error: 'Token not active',
+        message: 'Token not yet active.',
+        code: 'TOKEN_NOT_ACTIVE'
       });
     }
 
     // Generic error handling
-    console.error('Token verification error:', error);
     return res.status(401).json({
       error: 'Authentication failed',
-      message: 'Token verification failed'
+      message: 'Token verification failed: ' + error.message,
+      code: 'AUTH_FAILED'
     });
   }
 };

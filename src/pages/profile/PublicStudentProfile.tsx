@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { Student } from "@/interfaces/Student"
 import { StudentDocumentCard } from "@/components/StudentDocumentCard"
 import { useAuth } from "@/contexts/AuthContext"
+import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton"
 import {
   Mail,
   Phone,
@@ -314,14 +315,22 @@ export function PublicStudentProfile() {
             </motion.div>
           )}
 
-        {/* Chat Button */}
+        {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
-          className="mt-8 flex justify-center"
+          className="mt-8 flex justify-center gap-4"
         >
           <ChatButton studentData={studentData} userID={userID} />
+          {userID && (
+            <MeetingRequestButton
+              recipientID={parseInt(userID)}
+              recipientName={studentData.studentName}
+              recipientType="Student"
+              size="lg"
+            />
+          )}
         </motion.div>
       </div>
     </motion.div>

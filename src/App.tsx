@@ -57,6 +57,9 @@ import { AdminNewsPage } from './pages/admin/AdminNewsPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { AdminMeetingsPage } from './pages/admin/AdminMeetingsPage';
+import { MeetingsPage } from './pages/MeetingsPage';
+import { MeetingAvailabilityPage } from './pages/MeetingAvailabilityPage';
 import { Toaster } from './components/ui/sonner';
 import { PublicStudentProfile } from './pages/profile/PublicStudentProfile';
 import { WelcomeEditStudentProfile } from '@/pages/welcome/WelcomeEditStudentProfile';
@@ -77,6 +80,8 @@ import { ContactPage } from './pages/ContactPage';
 import { FeaturesPage } from './pages/FeaturesPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
+import { MeetingAvailability } from './pages/MeetingAvailability';
+import { CalendarPage } from './pages/CalendarPage';
 
 function RedirectToProfile() {
   const { id } = useParams();
@@ -177,6 +182,7 @@ function AppContent() {
               <Route path="post" element={<ProtectedRoute requiredRoleId={1}><PostEventPage /></ProtectedRoute>} />
               <Route path="edit/:id" element={<ProtectedRoute requiredRoleId={1}><PostEventPage /></ProtectedRoute>} />
             </Route>
+            <Route path="meetings" element={<ProtectedRoute requiredRoleId={1}><AdminMeetingsPage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute requiredRoleId={1}><AdminSettingsPage /></ProtectedRoute>} />
           </Route>
           <Route path="/events" element={<EventsPage />} />
@@ -202,6 +208,16 @@ function AppContent() {
           <Route path="/saved-jobs" element={
             <ProtectedRoute requiredUserType="Student">
               <SavedJobsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/meetings" element={
+            <ProtectedRoute requiredUserType={["Student", "Company", "Counselor"]}>
+              <MeetingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/meetings/availability" element={
+            <ProtectedRoute requiredUserType={["Student", "Company", "Counselor"]}>
+              <MeetingAvailabilityPage />
             </ProtectedRoute>
           } />
           <Route
@@ -419,6 +435,10 @@ function AppContent() {
               </ProtectedRoute>
             } />
           </Route>
+
+          {/* Meeting Pages */}
+          <Route path="/meeting-availability" element={<MeetingAvailability />} />
+          <Route path="/calendar" element={<CalendarPage />} />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />

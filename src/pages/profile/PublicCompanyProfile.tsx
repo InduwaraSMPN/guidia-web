@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton";
 import {
   Building2,
   Mail,
@@ -398,14 +399,22 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           </motion.div>
         )}
 
-        {/* Chat Button */}
+        {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
-          className="mt-8 flex justify-center"
+          className="mt-8 flex justify-center gap-4"
         >
           <ChatButton companyData={companyData} userID={userID} />
+          {userID && (
+            <MeetingRequestButton
+              recipientID={parseInt(userID)}
+              recipientName={companyData.companyName}
+              recipientType="Company"
+              size="lg"
+            />
+          )}
         </motion.div>
       </div>
     </motion.div>

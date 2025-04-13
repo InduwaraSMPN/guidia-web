@@ -1,5 +1,4 @@
 
-
 import { Menu, X, MessageSquare } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
@@ -7,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext"
 import { useThemeContext } from "../contexts/ThemeContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { ProfileDropdown } from "./ProfileDropdown"
+import { NavDropdown, MobileNavDropdown } from "./NavDropdown"
 import { motion } from "framer-motion"
 import { getDatabase, ref, onValue, off } from 'firebase/database'
 
@@ -138,9 +138,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
           { path: "/counselors", label: "Counselors" },
           { path: "/companies", label: "Companies" },
         ]
-      : []),
-    // Remove the Inbox item from here
-    { path: "/about", label: "About Us" },
+      : [])
+  ]
+
+  // Define meeting dropdown items
+  const meetingDropdownItems = [
+    { path: "/meeting-availability", label: "Set Availability" },
+    { path: "/meetings", label: "My Meetings" },
+    { path: "/calendar", label: "Calendar" },
   ]
 
   const activeIndex = navItems.findIndex((item) => location.pathname === item.path)
@@ -202,6 +207,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       {item.label}
                     </Link>
                   ))}
+
+                  {/* Meetings Dropdown */}
+                  {user && (
+                    <NavDropdown
+                      label="Meetings"
+                      items={meetingDropdownItems}
+                    />
+                  )}
                 </div>
                 {activeIndex !== -1 && (
                   <motion.div
@@ -286,6 +299,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Mobile Meetings Dropdown */}
+              {user && (
+                <MobileNavDropdown
+                  label="Meetings"
+                  items={meetingDropdownItems}
+                />
+              )}
 
               {!isAuthPage && (
                 <div className="pt-4 mt-4 border-t border-border">

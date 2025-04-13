@@ -66,7 +66,7 @@ export function NotificationsPopover() {
         setError(null);
         const token = localStorage.getItem('token');
 
-        const response = await axios.get('/api/notifications', {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { limit: 20 }
         });
@@ -78,9 +78,23 @@ export function NotificationsPopover() {
         // Count unread notifications
         const unreadNotifications = notificationsData.filter(n => !n.isRead);
         setUnreadCount(unreadNotifications.length);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching notifications:', err);
-        setError('Failed to load notifications');
+
+        // Provide more specific error messages based on the error
+        if (err.response) {
+          if (err.response.status === 500) {
+            setError('Server error. The notification service is currently unavailable.');
+          } else if (err.response.status === 401) {
+            setError('Authentication error. Please log in again.');
+          } else {
+            setError(`Error: ${err.response.status} - ${err.response.data?.message || 'Failed to load notifications'}`);
+          }
+        } else if (err.request) {
+          setError('Network error. Please check your connection.');
+        } else {
+          setError('Failed to load notifications');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -123,7 +137,7 @@ export function NotificationsPopover() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.patch('/api/notifications/mark-all-read', {}, {
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/notifications/mark-all-read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -210,7 +224,7 @@ export function NotificationsPopover() {
                       if (!notification.isRead) {
                         try {
                           const token = localStorage.getItem('token');
-                          await axios.patch('/api/notifications/mark-read', {
+                          await axios.patch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/notifications/mark-read`, {
                             notificationIDs: [notification.notificationID]
                           }, {
                             headers: { Authorization: `Bearer ${token}` }

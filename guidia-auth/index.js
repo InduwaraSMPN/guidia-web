@@ -45,6 +45,7 @@ const counselorsRouter = require('./routes/counselors');
 const companiesRouter = require('./routes/companies');
 const jobsRouter = require('./routes/jobs');
 const messagesRouter = require('./routes/messages');
+const meetingRoutes = require('./routes/meetingRoutes');
 const notificationsRouter = require('./routes/notifications');
 const adminRouter = require('./routes/admin');
 const usersRouter = require('./routes/users');
@@ -100,6 +101,9 @@ app.locals.pool = pool;
 app.use('/api/counselors', counselorsRouter);
 app.use('/api/jobs', jobsRouter);
 app.use('/api/messages', messagesRouter);
+console.log('Registering meeting routes...');
+app.use('/api/meeting', meetingRoutes);
+console.log('Meeting routes registered.');
 app.use('/api/admin', adminRouter);
 app.use('/api/users', usersRouter);
 
@@ -643,7 +647,7 @@ app.post('/auth/login', authLimiter, async (req, res) => {
     const user = users[0];
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
-      await logSecurityEvent('LOGIN_FAILED', { reason: 'Invalid password', userId: user.userID, email, ip: req.ip });
+      await logSecurityEvent('LOGIN_FAILED', { reason: 'Invalid password', userID: user.userID, email, ip: req.ip }, user.userID);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -954,9 +958,11 @@ const calculateCooldownPeriod = (otpSentCount, lastAttemptTime) => {
 
 const logSecurityEvent = async (eventType, details, userId = null) => {
   try {
+    // Use 0 as a placeholder for unknown/non-existent users
+    const userIdValue = userId === null ? 0 : userId;
     await pool.query(
       'INSERT INTO security_audit_log (eventType, details, userID, timestamp) VALUES (?, ?, ?, NOW())',
-      [eventType, JSON.stringify(details), userId]
+      [eventType, JSON.stringify(details), userIdValue]
     );
   } catch (error) {
     console.error('Error logging security event:', error);

@@ -4,9 +4,10 @@ import type React from "react"
 
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { User, Mail, Phone } from "lucide-react"
+import { User, Mail, Phone, Calendar } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from '../contexts/AuthContext';
+import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton";
 
 export interface DirectoryCardProps {
   type: "company" | "counselor" | "student"
@@ -120,6 +121,19 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
           Chat
         </Button>
       </div>
+
+      {!isCurrentUser && (
+        <div className="mt-2">
+          <MeetingRequestButton
+            recipientID={parseInt(id)}
+            recipientName={name}
+            recipientType={type === "student" ? "Student" : type === "counselor" ? "Counselor" : "Company"}
+            variant="outline"
+            size="sm"
+            className="w-full text-xs h-8"
+          />
+        </div>
+      )}
     </motion.div>
   )
 }
