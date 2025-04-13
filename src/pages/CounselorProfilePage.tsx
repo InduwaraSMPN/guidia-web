@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, User, Pencil, Settings } from "lucide-react";
+import { Mail, Phone, User, Pencil, Settings, MapPin, Briefcase, GraduationCap, Languages } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CounselorData {
   counselorID: string;
@@ -87,6 +88,77 @@ export function CounselorProfilePage() {
     };
   }, [userID]);
 
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-secondary/20 pt-32 pb-32 px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Card with Profile Header */}
+          <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+            {/* Header Banner Skeleton */}
+            <Skeleton className="h-24 w-full" />
+
+            <div className="p-8 pt-24 md:pt-20">
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Profile Photo Skeleton */}
+                <div className="flex-shrink-0 relative">
+                  <Skeleton className="w-32 h-32 md:w-40 md:h-40 border-4 border-white rounded-xl absolute -top-20 md:-top-24" />
+                  <Skeleton className="h-10 w-32 mt-16 md:mt-20" />
+                </div>
+
+                {/* Profile Info Skeleton */}
+                <div className="flex-1 pt-4 md:pt-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <Skeleton className="h-8 w-64 mb-2" />
+                      <Skeleton className="h-6 w-48 mb-2" />
+                      <Skeleton className="h-4 w-72" />
+                    </div>
+                  </div>
+
+                  {/* Contact buttons Skeleton */}
+                  <div className="flex flex-wrap gap-3 mt-6">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-32" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* About Section Skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-border p-8">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+
+          {/* Specializations Skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-border p-8">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="flex flex-wrap gap-2">
+              {[...Array(6)].map((_, index) => (
+                <Skeleton key={index} className="h-8 w-24 rounded-full" />
+              ))}
+            </div>
+          </div>
+
+          {/* Languages Skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-border p-8">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="flex flex-wrap gap-2">
+              {[...Array(3)].map((_, index) => (
+                <Skeleton key={index} className="h-8 w-20 rounded-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (error || !counselorData) {
     return (

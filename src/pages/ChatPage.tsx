@@ -13,6 +13,7 @@ import { ref, onValue } from "firebase/database";
 import { database } from "../firebase/config";
 import axios from "axios";
 import { toast } from "../components/ui/sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Message {
   messageID: string;
@@ -332,10 +333,10 @@ export function ChatPage(): JSX.Element {
 
               {isLoading ? (
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 bg-secondary-dark rounded-full animate-pulse"></div>
+                  <Skeleton className="w-10 h-10 rounded-full" />
                   <div className="space-y-2">
-                    <div className="h-4 w-24 bg-secondary-dark rounded animate-pulse"></div>
-                    <div className="h-3 w-32 bg-secondary-dark rounded animate-pulse"></div>
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
                   </div>
                 </div>
               ) : receiver ? (
@@ -385,8 +386,42 @@ export function ChatPage(): JSX.Element {
                 </div>
               )}
               {isLoading ? (
-                <div className="h-full flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                <div className="space-y-4 py-4 w-full">
+                  {/* Skeleton messages - left side (receiver) */}
+                  <div className="flex items-start gap-2 max-w-[80%]">
+                    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                    <div>
+                      <Skeleton className="h-12 w-48 rounded-2xl rounded-tl-none" />
+                      <Skeleton className="h-3 w-16 mt-1 ml-2" />
+                    </div>
+                  </div>
+
+                  {/* Skeleton messages - right side (sender) */}
+                  <div className="flex items-start gap-2 max-w-[80%] ml-auto">
+                    <div className="flex flex-col items-end">
+                      <Skeleton className="h-12 w-32 rounded-2xl rounded-tr-none" />
+                      <Skeleton className="h-3 w-16 mt-1 mr-2" />
+                    </div>
+                    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                  </div>
+
+                  {/* Skeleton messages - left side (receiver) */}
+                  <div className="flex items-start gap-2 max-w-[80%]">
+                    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                    <div>
+                      <Skeleton className="h-12 w-64 rounded-2xl rounded-tl-none" />
+                      <Skeleton className="h-3 w-16 mt-1 ml-2" />
+                    </div>
+                  </div>
+
+                  {/* Skeleton messages - right side (sender) */}
+                  <div className="flex items-start gap-2 max-w-[80%] ml-auto">
+                    <div className="flex flex-col items-end">
+                      <Skeleton className="h-12 w-56 rounded-2xl rounded-tr-none" />
+                      <Skeleton className="h-3 w-16 mt-1 mr-2" />
+                    </div>
+                    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                  </div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-3 py-10">

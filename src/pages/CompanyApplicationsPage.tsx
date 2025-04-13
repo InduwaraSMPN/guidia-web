@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { Select } from "@/components/ui/Select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Application {
   applicationID: number;
@@ -135,11 +136,35 @@ export function CompanyApplicationsPage() {
       <h1 className="text-2xl font-bold mb-6">Job Applications</h1>
 
       {isLoading ? (
-        <div className="animate-pulse space-y-4">
+        <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow">
-              <div className="h-6 bg-secondary-dark rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-secondary-dark rounded w-1/2"></div>
+            <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-secondary flex justify-between">
+                <Skeleton className="h-9 w-32" />
+                <Skeleton className="h-9 w-32" />
+              </div>
             </div>
           ))}
         </div>

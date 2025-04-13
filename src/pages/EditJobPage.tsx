@@ -6,6 +6,7 @@ import { RichTextEditor } from '../components/ui/RichTextEditor';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   title: string;
@@ -21,7 +22,7 @@ export function EditJobPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [formData, setFormData] = useState<FormData>({
     title: '',
     location: '',
@@ -36,7 +37,7 @@ export function EditJobPage() {
       try {
         const response = await axiosInstance.get(`/api/jobs/${id}`);
         const jobData = response.data;
-        
+
         setFormData({
           title: jobData.title,
           location: jobData.location,
@@ -90,10 +91,46 @@ export function EditJobPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32  px-6 lg:px-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading job details...</p>
+      <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
         </div>
       </div>
     );

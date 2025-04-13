@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { EventCard, type Event } from "../components/EventCard"
 import { motion, AnimatePresence } from "framer-motion"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type EventType = "Upcoming" | "Past"
 
@@ -70,13 +71,26 @@ export function EventsPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex justify-center items-center py-16"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          <div className="relative w-16 h-16">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-brand border-opacity-20 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-t-[#800020] rounded-full animate-spin"></div>
-          </div>
-          <span className="sr-only">Loading events...</span>
+          {[...Array(6)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-border overflow-hidden animate-pulse">
+              <Skeleton className="w-full h-48" />
+              <div className="p-5 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <div className="flex justify-between items-center pt-2">
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
         </motion.div>
       )
     }

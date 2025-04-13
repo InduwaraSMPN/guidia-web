@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function NewsPage() {
   const navigate = useNavigate()
@@ -96,10 +97,26 @@ export function NewsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-16"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               >
-                <div className="w-16 h-16 border-4 border-border border-t-[#800020] rounded-full animate-spin mb-4" />
-                <p className="text-muted-foreground text-lg">Loading the latest news...</p>
+                {[...Array(6)].map((_, index) => (
+                  <div key={index} className="bg-white rounded-lg shadow-sm border border-border overflow-hidden animate-pulse">
+                    <Skeleton className="w-full h-48" />
+                    <div className="p-5 space-y-3">
+                      <Skeleton className="h-6 w-3/4" />
+                      <div className="flex justify-between items-center">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                      <div className="flex justify-between items-center pt-2">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </motion.div>
             ) : error ? (
               <motion.div

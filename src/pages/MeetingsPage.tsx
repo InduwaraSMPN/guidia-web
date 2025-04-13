@@ -10,7 +10,7 @@ import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Calendar, User, Clock } from 'lucide-react';
 import { API_URL } from '@/config';
 import axios from 'axios';
 import {
@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function MeetingsPage() {
   const { user } = useAuth();
@@ -243,6 +244,82 @@ export function MeetingsPage() {
       handleDeclineMeeting(meetingToDecline, declineReason);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container pb-32 pt-32">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div className="mb-6">
+          <Skeleton className="h-10 w-full max-w-md" />
+        </div>
+
+        {/* Card Skeleton */}
+        <div className="bg-card rounded-lg border border-border">
+          <div className="p-6 border-b">
+            <Skeleton className="h-6 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="border rounded-md p-4 mb-4 bg-card animate-pulse">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-48" />
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <Skeleton className="h-4 w-32 ml-1" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-center text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="flex items-center text-muted-foreground">
+                      <Clock className="h-4 w-4 mr-2" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+
+                  <Skeleton className="h-16 w-full mb-4" />
+
+                  <div className="flex justify-end space-x-2">
+                    <Skeleton className="h-9 w-24" />
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container pb-32 pt-32">

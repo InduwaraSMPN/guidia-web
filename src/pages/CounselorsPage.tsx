@@ -1,5 +1,3 @@
-
-
 import type React from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -10,6 +8,7 @@ import { motion } from "framer-motion"
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel"
 import { SlidersHorizontal, Users } from "lucide-react"
 import { SearchBar } from "@/components/SearchBar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Counselor {
   counselorID: string
@@ -93,9 +92,9 @@ export function CounselorsPage() {
 
   // Get unique values from actual data
   const specializations = counselors.length > 0
-    ? [...new Set(counselors.flatMap(counselor => 
-        Array.isArray(counselor.counselorSpecializations) 
-          ? counselor.counselorSpecializations 
+    ? [...new Set(counselors.flatMap(counselor =>
+        Array.isArray(counselor.counselorSpecializations)
+          ? counselor.counselorSpecializations
           : JSON.parse(counselor.counselorSpecializations || '[]')
       ))]
     : DEFAULT_SPECIALIZATIONS
@@ -109,7 +108,7 @@ export function CounselorsPage() {
     : ["Los Angeles, California, USA", "New York, USA", "London, UK"]
 
   const languages = counselors.length > 0
-    ? [...new Set(counselors.flatMap(counselor => 
+    ? [...new Set(counselors.flatMap(counselor =>
         Array.isArray(counselor.counselorLanguages)
           ? counselor.counselorLanguages
           : JSON.parse(counselor.counselorLanguages || '[]')
@@ -124,7 +123,7 @@ export function CounselorsPage() {
   }
 
   const experiences = counselors.length > 0
-    ? [...new Set(counselors.map(counselor => 
+    ? [...new Set(counselors.map(counselor =>
         getExperienceRange(counselor.counselorExperienceYears)
       ))]
     : DEFAULT_EXPERIENCE
@@ -168,7 +167,7 @@ export function CounselorsPage() {
             counselor.counselorName.toLowerCase().includes(query) ||
             counselor.counselorPosition.toLowerCase().includes(query) ||
             counselor.counselorLocation.toLowerCase().includes(query) ||
-            counselor.counselorSpecializations.some(spec => 
+            counselor.counselorSpecializations.some(spec =>
               spec.toLowerCase().includes(query)
             ) ||
             counselor.counselorLanguages.some(lang =>
@@ -180,7 +179,7 @@ export function CounselorsPage() {
       // Apply specialization filters
       if (filters.specializations.length > 0) {
         filtered = filtered.filter(counselor =>
-          filters.specializations.some(spec => 
+          filters.specializations.some(spec =>
             counselor.counselorSpecializations.includes(spec)
           )
         )
@@ -212,7 +211,7 @@ export function CounselorsPage() {
       // Apply language filters
       if (filters.languages.length > 0) {
         filtered = filtered.filter(counselor =>
-          filters.languages.some(lang => 
+          filters.languages.some(lang =>
             counselor.counselorLanguages.includes(lang)
           )
         )
@@ -255,9 +254,9 @@ export function CounselorsPage() {
     }
   ]
 
-  const activeFilterCount = 
-    filters.specializations.length + 
-    filters.experience.length + 
+  const activeFilterCount =
+    filters.specializations.length +
+    filters.experience.length +
     filters.positions.length +
     filters.locations.length +
     filters.languages.length;
@@ -292,18 +291,36 @@ export function CounselorsPage() {
       <div className={`min-h-screen bg-white ${location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"}`}>
         <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-brand mb-8">Counselors</h1>
-          <div className="relative mb-12 max-w-lg ml-auto">
-            <div className="h-12 bg-secondary-dark rounded-md animate-pulse"></div>
+
+          <div className="flex items-center justify-between mb-8">
+            <div className="relative flex-1 max-w-md">
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="ml-4">
+              <Skeleton className="h-10 w-32" />
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-xs p-4 h-28 animate-pulse">
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-secondary-dark rounded-lg"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-secondary-dark rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-secondary-dark rounded w-1/2"></div>
+                  <Skeleton className="w-14 h-14 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
                 </div>
               </div>
             ))}

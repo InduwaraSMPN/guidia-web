@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FullScreenCalendar, CalendarData, Event } from '@/components/FullScreenCalendar';
 import { format, parseISO } from 'date-fns';
 import axios from 'axios';
@@ -6,6 +6,7 @@ import { API_URL } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper function to format time (e.g., "09:30" to "9:30 AM")
 const formatTime = (time: string) => {
@@ -65,44 +66,44 @@ export function CalendarPage() {
   const [rawMeetings, setRawMeetings] = useState<MeetingData[]>([]);
 
   // Fetch meetings from API
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        const response = await axios.get(`${API_URL}/api/meeting/meetings`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const meetingsData = (response.data as any).data || [];
-        console.log('Meetings fetched:', meetingsData);
-
-        // Store the raw meetings data for later use
-        setRawMeetings(meetingsData);
-
-        // Convert meetings to calendar data format
-        const calendarEvents = convertMeetingsToCalendarData(meetingsData);
-        setCalendarData(calendarEvents);
-      } catch (error) {
-        console.error('Error fetching meetings:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch meetings',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+  const fetchMeetings = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
-    };
 
+      const response = await axios.get(`${API_URL}/api/meeting/meetings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const meetingsData = (response.data as any).data || [];
+      console.log('Meetings fetched:', meetingsData);
+
+      // Store the raw meetings data for later use
+      setRawMeetings(meetingsData);
+
+      // Convert meetings to calendar data format
+      const calendarEvents = convertMeetingsToCalendarData(meetingsData);
+      setCalendarData(calendarEvents);
+    } catch (error) {
+      console.error('Error fetching meetings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch meetings',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMeetings();
-  }, [toast]);
+  }, []);
 
   // Handle clicking on an event in the calendar
   const handleEventClick = (event: Event) => {
@@ -259,17 +260,45 @@ export function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-10 flex flex-col">
+    <div className="max-w-[1216px] min-h-screen pt-32 pb-32 flex flex-col mx-auto">
       <div className="container mx-auto px-4 flex-1 flex flex-col">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Meeting Calendar</h1>
-          <p className="text-muted-foreground">View and manage all your scheduled meetings</p>
+          <h1 className="text-3xl font-bold text-4xl text-brand pb-2">Meetings Calendar</h1>
+          <p className="text-muted-foreground">View and manage all your scheduled meetings.</p>
         </div>
 
         <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden min-h-[600px] flex">
           {isLoading ? (
-            <div className="flex items-center justify-center h-96">
-              <div className="w-12 h-12 border-4 border-border border-t-brand rounded-full animate-spin" />
+            <div className="w-full p-6">
+              {/* Calendar Header Skeleton */}
+              <div className="flex justify-between items-center mb-6">
+                <Skeleton className="h-8 w-32" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
+
+              {/* Calendar Grid Skeleton */}
+              <div className="grid grid-cols-7 gap-1 mb-4">
+                {[...Array(7)].map((_, index) => (
+                  <Skeleton key={index} className="h-8 w-full" />
+                ))}
+              </div>
+
+              {/* Calendar Days Skeleton */}
+              <div className="grid grid-cols-7 gap-1">
+                {[...Array(42)].map((_, index) => (
+                  <div key={index} className="min-h-[100px] border border-border rounded-md p-1">
+                    <Skeleton className="h-6 w-6 mb-2" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <FullScreenCalendar

@@ -1,5 +1,3 @@
-
-
 import { Button } from "@/components/ui/button"
 import { PencilIcon, Building2, MapPin, Globe, Mail, Phone, Briefcase, Settings } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -10,6 +8,7 @@ import { toast } from "sonner"
 import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
 import { format } from "date-fns"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Job {
   jobID: number
@@ -100,34 +99,54 @@ export function CompanyProfilePage() {
       <div className="min-h-screen bg-secondary pt-32 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Company Info Skeleton */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8 animate-pulse">
+          <div className="bg-white rounded-lg shadow-sm border border-border p-6 mb-8">
             <div className="flex flex-col md:flex-row gap-8">
-              <div className="w-48 h-48 bg-secondary-dark rounded-lg"></div>
-              <div className="flex-1">
-                <div className="h-8 bg-secondary-dark rounded w-3/4 mb-4"></div>
-                <div className="h-6 bg-secondary-dark rounded w-1/2 mb-6"></div>
+              <Skeleton className="w-48 h-48 rounded-lg flex-shrink-0" />
+              <div className="flex-1 space-y-6">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
                 <div className="space-y-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-5 bg-secondary-dark rounded w-2/3"></div>
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <Skeleton className="h-5 w-2/3" />
+                    </div>
                   ))}
                 </div>
-                <div className="mt-6">
-                  <div className="h-6 bg-secondary-dark rounded w-1/4 mb-3"></div>
-                  <div className="h-20 bg-secondary-dark rounded w-full"></div>
+                <div className="mt-6 space-y-3">
+                  <Skeleton className="h-6 w-1/4" />
+                  <Skeleton className="h-20 w-full" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Jobs Skeleton */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-border p-6">
             <div className="flex justify-between items-center mb-6">
-              <div className="h-7 bg-secondary-dark rounded w-1/3"></div>
-              <div className="h-10 bg-secondary-dark rounded w-32"></div>
+              <Skeleton className="h-7 w-1/3" />
+              <Skeleton className="h-10 w-32" />
             </div>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-secondary-dark rounded-lg"></div>
+            <div className="space-y-6">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-6">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-16 w-16 rounded-md flex-shrink-0" />
+                    <div className="flex-1 space-y-4">
+                      <Skeleton className="h-6 w-3/4" />
+                      <div className="flex flex-wrap gap-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-5 w-28" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                      <div className="flex justify-end">
+                        <Skeleton className="h-9 w-28" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

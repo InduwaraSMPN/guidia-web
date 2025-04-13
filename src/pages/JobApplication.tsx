@@ -10,6 +10,7 @@ import { FileUploader } from '@/components/FileUploader';
 import type { AcceptType } from '@/interfaces/FileUploader';
 import { DocumentPreview } from '@/components/document/DocumentPreview';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 
@@ -104,7 +105,7 @@ export function JobApplication() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user || user.roleId !== 2) {
       toast.error("You must be logged in as a student to apply");
       navigate('/auth/login');
@@ -112,7 +113,7 @@ export function JobApplication() {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('jobId', id!);
@@ -157,10 +158,66 @@ export function JobApplication() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32  px-6 lg:px-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading job details...</p>
+      <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Job Details Header Skeleton */}
+          <div className="bg-white rounded-lg border border-border p-6 mb-8">
+            <div className="flex gap-4 items-start">
+              <Skeleton className="w-16 h-16 rounded-lg" />
+              <div className="space-y-2">
+                <Skeleton className="h-7 w-64" />
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+          </div>
+
+          {/* Application Info Notice Skeleton */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+            <Skeleton className="h-5 w-48 mb-2" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+
+          {/* Application Form Skeleton */}
+          <div className="bg-white rounded-lg border border-border p-6">
+            <Skeleton className="h-7 w-48 mb-6" />
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+
+              <div className="flex justify-end">
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -218,7 +275,7 @@ export function JobApplication() {
         {/* Application Form */}
         <div className="bg-white rounded-lg border border-border p-6">
           <h2 className="text-xl font-bold text-adaptive-dark mb-6">Application Form</h2>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -289,7 +346,7 @@ export function JobApplication() {
               <label className="block text-sm font-medium text-foreground">
                 Resume (PDF only)<span className="text-brand">*</span>
               </label>
-              
+
               {!formData.resume ? (
                 <FileUploader
                   acceptType="pdf"
@@ -301,7 +358,7 @@ export function JobApplication() {
                         ...prev,
                         resume: file
                       }));
-                      
+
                       // Create preview URL
                       const reader = new FileReader();
                       reader.onloadend = () => {

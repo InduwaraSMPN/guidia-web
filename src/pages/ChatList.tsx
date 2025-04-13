@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
-import { Loader2, User, CheckCheck } from 'lucide-react';
+import { Loader2, User, CheckCheck, Clock } from 'lucide-react';
 import { toast } from '../components/ui/sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatParticipant {
   userId: string;
@@ -33,7 +34,7 @@ export function ChatList() {
   useEffect(() => {
     const fetchChats = async () => {
       if (!user?.userType) return;
-      
+
       try {
         const token = localStorage.getItem('token');
         const userTypePath = user.userType.toLowerCase();
@@ -161,8 +162,21 @@ export function ChatList() {
               {error}
             </div>
           ) : isLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+            <div className="divide-y">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-12 h-12 rounded-full" />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : chats.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">

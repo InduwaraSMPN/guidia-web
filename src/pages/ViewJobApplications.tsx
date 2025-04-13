@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ViewDocumentModal } from "@/components/ViewDocumentModal";
 import { getFileExtension } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface JobApplication {
   applicationID: number;
@@ -253,11 +254,27 @@ export function ViewJobApplications() {
         </h1>
 
         {isLoading ? (
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow">
-                <div className="h-6 bg-secondary-dark rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-secondary-dark rounded w-1/2"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-start gap-6">
+                  {/* Company Logo Skeleton */}
+                  <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+
+                  {/* Job Details Skeleton */}
+                  <div className="flex-grow space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-4 w-40 mt-2" />
+                  </div>
+
+                  {/* Action Buttons Skeleton */}
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Skeleton className="h-9 w-32" />
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>

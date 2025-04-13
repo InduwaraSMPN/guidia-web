@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext"
 import PageHeading from "../components/PageHeading"
 import { toast } from "../components/ui/sonner"
 import { Loader2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Create a context to share the sidebar state
 import { createContext } from "react"
@@ -196,9 +197,52 @@ export function AdminDashboard() {
                     </div>
                   )}
                   {loading && !refreshing ? (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <Loader2 className="h-8 w-8 text-brand animate-spin mb-4" />
-                      <p className="text-muted-foreground">Loading dashboard data...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Users Overview Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-40 mb-5 pb-3" />
+                          <ul className="space-y-3">
+                            {[...Array(3)].map((_, index) => (
+                              <li key={index}>
+                                <div className="flex justify-between items-center p-3 rounded-lg">
+                                  <Skeleton className="h-5 w-24" />
+                                  <Skeleton className="h-6 w-12 rounded-full" />
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Activity Summary Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-48 mb-5 pb-3" />
+                          <ul className="space-y-3">
+                            <li>
+                              <div className="flex justify-between items-center p-3 rounded-lg">
+                                <Skeleton className="h-5 w-20" />
+                                <Skeleton className="h-6 w-12 rounded-full" />
+                              </div>
+                              <ul className="ml-6 mt-2 space-y-2 border-l-2 border-border pl-4">
+                                {[...Array(2)].map((_, index) => (
+                                  <li key={index} className="flex justify-between items-center p-2.5 rounded-lg">
+                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-5 w-10 rounded-full" />
+                                  </li>
+                                ))}
+                              </ul>
+                            </li>
+                            <li>
+                              <div className="flex justify-between items-center p-3 rounded-lg">
+                                <Skeleton className="h-5 w-28" />
+                                <Skeleton className="h-6 w-12 rounded-full" />
+                              </div>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   ) : error ? (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

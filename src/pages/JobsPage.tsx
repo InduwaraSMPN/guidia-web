@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { toast } from 'sonner'
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -276,10 +277,28 @@ export function JobsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-16"
+            className="space-y-6"
           >
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mx-auto"></div>
-            <p className="text-muted-foreground mt-4 font-medium">Searching for opportunities...</p>
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-6 animate-pulse">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="h-16 w-16 rounded-md flex-shrink-0" />
+                  <div className="flex-1 space-y-4">
+                    <Skeleton className="h-6 w-3/4" />
+                    <div className="flex flex-wrap gap-2">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-5 w-28" />
+                    </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <div className="flex justify-end">
+                      <Skeleton className="h-9 w-28" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </motion.div>
         ) : filteredJobs.length > 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">

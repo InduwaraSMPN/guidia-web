@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Building2, Globe, Mail, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Company {
   id: string;
@@ -48,7 +49,7 @@ export function CompanyDetailsPage() {
   useEffect(() => {
     // Find the company with the matching ID
     const foundCompany = mockCompanies.find(company => company.id === id);
-    
+
     // If company is found, set it to state
     if (foundCompany) {
       setCompany(foundCompany);
@@ -60,7 +61,52 @@ export function CompanyDetailsPage() {
   }, [id]);
 
   if (!company) {
-    return null;
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Company Header Skeleton */}
+          <div className="bg-white rounded-lg border border-border p-8 mb-8">
+            <div className="flex gap-8 items-start">
+              <Skeleton className="w-32 h-32 rounded-lg" />
+
+              <div className="flex-1 space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="flex items-center">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <div className="flex items-center">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <div className="flex items-center">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                  <div className="flex items-center">
+                    <Skeleton className="h-5 w-5 mr-2" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+
+                <div className="pt-2">
+                  <Skeleton className="h-10 w-32" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -80,11 +126,11 @@ export function CompanyDetailsPage() {
                 <Building2 className="w-16 h-16 text-muted-foreground" />
               </div>
             )}
-            
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-adaptive-dark">{company.name}</h1>
               <p className="text-xl text-brand mt-1">{company.sector}</p>
-              
+
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="flex items-center text-muted-foreground">
                   <MapPin className="h-5 w-5 mr-2" />
@@ -92,7 +138,7 @@ export function CompanyDetailsPage() {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Mail className="h-5 w-5 mr-2" />
-                  <a 
+                  <a
                     href={`mailto:${company.email}`}
                     className="text-brand hover:underline"
                   >
@@ -101,7 +147,7 @@ export function CompanyDetailsPage() {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Globe className="h-5 w-5 mr-2" />
-                  <a 
+                  <a
                     href={company.website}
                     target="_blank"
                     rel="noopener noreferrer"

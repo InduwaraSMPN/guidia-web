@@ -10,6 +10,7 @@ import { FilterPanel, type FilterSection } from "@/components/FilterPanel";
 import { useEffect, useState, useTransition, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AVAILABLE_PATHS = [
   'DevOps Engineer',
@@ -98,9 +99,9 @@ export function StudentsPage() {
     });
   };
 
-  const activeFilterCount = 
-    filters.categories.length + 
-    filters.levels.length + 
+  const activeFilterCount =
+    filters.categories.length +
+    filters.levels.length +
     filters.careerPathways.length;
 
   useEffect(() => {
@@ -199,25 +200,35 @@ export function StudentsPage() {
       >
         <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-brand mb-8">Students</h1>
-          <div className="relative mb-12 max-w-lg ml-auto">
-            <div className="h-12 bg-secondary-dark rounded-md animate-pulse"></div>
+          <div className="flex items-center justify-between mb-8">
+            <div className="relative flex-1 max-w-md">
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="ml-4">
+              <Skeleton className="h-10 w-32" />
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
               <div
                 key={index}
-                className="bg-white rounded-lg shadow-xs p-4 h-28 animate-pulse"
+                className="bg-white rounded-lg shadow-sm border border-border p-4"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-secondary-dark rounded-lg"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-secondary-dark rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-secondary-dark rounded w-1/2"></div>
+                  <Skeleton className="w-14 h-14 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
                   </div>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <div className="h-8 bg-secondary-dark rounded flex-1"></div>
-                  <div className="h-8 bg-secondary-dark rounded flex-1"></div>
+                <div className="mt-4 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Skeleton className="h-9 w-full" />
+                  <Skeleton className="h-9 w-full" />
                 </div>
               </div>
             ))}

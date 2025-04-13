@@ -6,6 +6,7 @@ import axiosInstance from "@/lib/axios";
 import { Job } from "@/components/JobCard";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function JobDetailsPage() {
   const { id } = useParams();
@@ -109,7 +110,60 @@ export function JobDetailsPage() {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-32 pb-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Job Details Header Skeleton */}
+          <div className="bg-card rounded-lg border border-border p-6 mb-8">
+            <div className="flex gap-6">
+              {/* Company Logo Skeleton */}
+              <div className="flex-shrink-0">
+                <Skeleton className="w-20 h-20 rounded-lg" />
+              </div>
+
+              <div className="flex-1 min-w-0 space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
+
+                <div className="mt-4 flex flex-wrap gap-4">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-10 w-28" />
+              </div>
+            </div>
+          </div>
+
+          {/* Job Description Skeleton */}
+          <div className="bg-card rounded-lg border border-border p-6 mb-8">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+
+          {/* Job Requirements Skeleton */}
+          <div className="bg-card rounded-lg border border-border p-6 mb-8">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !job) return <div>Error loading job details</div>;
 
   return (
