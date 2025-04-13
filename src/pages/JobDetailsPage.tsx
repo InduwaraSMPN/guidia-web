@@ -133,9 +133,9 @@ export function JobDetailsPage() {
               )}
             </div>
 
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-card-foreground">{job.title}</h1>
-              <p className="text-xl text-brand mt-2">{job.company}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold text-card-foreground truncate" title={job.title}>{job.title}</h1>
+              <p className="text-xl text-brand mt-2 truncate">{job.company}</p>
 
               <div className="mt-4 flex flex-wrap gap-4">
                 <div className="flex items-center text-muted-foreground">

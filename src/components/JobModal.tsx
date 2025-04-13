@@ -47,7 +47,7 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
         ...prev,
         resume: file
       }));
-      
+
       // Create preview data
       const reader = new FileReader();
       reader.onload = async (event) => {
@@ -77,12 +77,12 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
           {!showApplicationForm ? (
             <>
               <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-2xl font-bold text-brand">{job.title}</h2>
+                <div className="flex-1 min-w-0 pr-4">
+                  <h2 className="text-2xl font-bold text-brand truncate" title={job.title}>{job.title}</h2>
                   <div className="mt-2 space-y-1">
-                    <p className="text-muted-foreground">{job.company}</p>
-                    <p className="text-muted-foreground">{job.location}</p>
-                    {job.type && <p className="text-muted-foreground">{job.type}</p>}
+                    <p className="text-muted-foreground truncate" title={job.company}>{job.company}</p>
+                    <p className="text-muted-foreground truncate" title={job.location}>{job.location}</p>
+                    {job.type && <p className="text-muted-foreground truncate" title={job.type}>{job.type}</p>}
                   </div>
                 </div>
 
@@ -141,11 +141,13 @@ export function JobModal({ isOpen, onClose, job }: JobModalProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="flex justify-between items-start">
-                <h2 className="text-2xl font-bold text-brand">Apply for {job.title}</h2>
+                <div className="flex-1 min-w-0 pr-4">
+                  <h2 className="text-2xl font-bold text-brand truncate" title={`Apply for ${job.title}`}>Apply for {job.title}</h2>
+                </div>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-muted-foreground hover:text-muted-foreground"
+                  className="text-muted-foreground hover:text-muted-foreground flex-shrink-0"
                   aria-label="Close modal"
                 >
                   <X className="h-6 w-6" />

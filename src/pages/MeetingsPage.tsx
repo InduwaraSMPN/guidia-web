@@ -89,13 +89,15 @@ export function MeetingsPage() {
       filtered = filtered.filter(meeting => {
         const meetingDate = new Date(meeting.meetingDate);
         meetingDate.setHours(0, 0, 0, 0);
-        return meetingDate >= today;
+        // Exclude completed meetings from upcoming tab
+        return meetingDate >= today && meeting.status !== 'completed';
       });
     } else if (activeTab === 'past') {
       filtered = filtered.filter(meeting => {
         const meetingDate = new Date(meeting.meetingDate);
         meetingDate.setHours(0, 0, 0, 0);
-        return meetingDate < today;
+        // Include meetings that are either in the past or completed
+        return meetingDate < today || meeting.status === 'completed';
       });
     }
 

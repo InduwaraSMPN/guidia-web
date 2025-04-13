@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Calendar } from 'lucide-react';
 import {
@@ -18,6 +18,7 @@ interface MeetingRequestButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
+  id?: string; // Added id prop for DOM identification
 }
 
 export function MeetingRequestButton({
@@ -27,6 +28,7 @@ export function MeetingRequestButton({
   variant = 'default',
   size = 'default',
   className,
+  id,
 }: MeetingRequestButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -41,7 +43,7 @@ export function MeetingRequestButton({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size} className={className}>
+        <Button variant={variant} size={size} className={className} id={id}>
           <Calendar className="mr-2 h-4 w-4" />
           Request Meeting
         </Button>

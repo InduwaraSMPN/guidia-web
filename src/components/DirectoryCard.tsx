@@ -20,7 +20,7 @@ export interface DirectoryCardProps {
   contactNumber?: string
 }
 
-export function DirectoryCard({ id, type, name, image, subtitle, title, email, contactNumber }: DirectoryCardProps) {
+export function DirectoryCard({ id, type, name, image, subtitle, email, contactNumber }: DirectoryCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -37,7 +37,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
     }
   }
 
-  const handleViewProfile = (e: React.MouseEvent) => {
+  const handleViewProfile = () => {
     if (type === "company") {
       navigate(`/company/${id}/details`)
     } else if (type === "counselor") {
@@ -84,7 +84,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
             whileHover={{ scale: 1.05 }}
             href={`mailto:${email}`}
             className="flex items-center gap-1.5 text-muted-foreground hover:underline"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <Mail className="w-4 h-4" />
             <span className="truncate max-w-[120px]">{email}</span>
@@ -122,8 +122,26 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
         </Button>
       </div>
 
-      {!isCurrentUser && (
-        <div className="mt-2">
+      <div className="mt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isCurrentUser}
+          className={`w-full text-xs h-8 transition-all duration-300 ${isCurrentUser ? 'cursor-not-allowed opacity-50' : ''}`}
+          onClick={(e) => {
+            e.preventDefault();
+            if (!isCurrentUser) {
+              // Open the meeting request dialog
+              document.getElementById(`meeting-request-${id}`)?.click();
+            }
+          }}
+          title={isCurrentUser ? "You cannot request a meeting with yourself" : ""}
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          Request Meeting
+        </Button>
+        {/* Hidden trigger for the meeting request dialog */}
+        <span className="hidden">
           <MeetingRequestButton
             recipientID={parseInt(id)}
             recipientName={name}
@@ -131,9 +149,10 @@ export function DirectoryCard({ id, type, name, image, subtitle, title, email, c
             variant="outline"
             size="sm"
             className="w-full text-xs h-8"
+            id={`meeting-request-${id}`}
           />
-        </div>
-      )}
+        </span>
+      </div>
     </motion.div>
   )
 }

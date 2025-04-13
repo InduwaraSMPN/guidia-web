@@ -167,22 +167,24 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
             </motion.div>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-              <div>
+              <div className="w-full">
                 <motion.h3
-                  className="text-xl font-bold text-card-foreground"
+                  className="text-xl font-bold text-card-foreground truncate"
+                  title={job.title}
                 >
                   {job.title}
                 </motion.h3>
 
                 <Link
                   to={`/companies/${job.companyId || "1"}/details`}
-                  className="text-brand font-medium mt-1 hover:underline inline-flex items-center"
+                  className="text-brand font-medium mt-1 hover:underline inline-flex items-center truncate block w-full"
                   onClick={(e) => e.stopPropagation()}
+                  title={job.company}
                 >
-                  <Building2 className="h-4 w-4 mr-1" />
-                  {job.company}
+                  <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
+                  <span className="truncate">{job.company}</span>
                 </Link>
 
                 <div className="flex flex-wrap gap-2 mt-3">
