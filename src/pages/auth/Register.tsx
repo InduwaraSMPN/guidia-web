@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/ui/input';
 import { API_URL } from '../../config';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type UserType = 'Student' | 'Counselor' | 'Company';
 
@@ -10,7 +11,17 @@ export function RegisterAs() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +60,31 @@ export function RegisterAs() {
       }
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="flex gap-4 justify-center mb-8">
+              {[...Array(3)].map((_, index) => (
+                <Skeleton key={index} className="h-10 w-28 rounded-md" />
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <Skeleton className="h-12 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">

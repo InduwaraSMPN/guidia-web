@@ -7,6 +7,7 @@ import { AdminFormModal } from '../../components/admin/AdminFormModal';
 import StudentsTable from '../../components/admin/StudentsTable';
 import CounselorsTable from '../../components/admin/CounselorsTable';
 import CompaniesTable from '../../components/admin/CompaniesTable';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AdminUsersPageProps {
   userType: 'admin' | 'student' | 'counselor' | 'company';
@@ -42,7 +43,7 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const filtered = users.filter(user => 
+    const filtered = users.filter(user =>
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -114,12 +115,12 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
                 'Content-Type': 'application/json'
               },
             });
-            
+
             if (!response.ok) {
               const data = await response.json();
               throw new Error(data.error || data.message || `Failed to delete ${userType}`);
             }
-            
+
             setUsers(users.filter(user => user.userID !== userId));
             toast.success(`${userType.charAt(0).toUpperCase() + userType.slice(1)} deleted successfully`);
           } catch (err) {
@@ -156,7 +157,7 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
       }
 
       const updatedUser = await response.json();
-      setUsers(users.map(user => 
+      setUsers(users.map(user =>
         user.userID === userId ? updatedUser : user
       ));
       toast.success('User status updated successfully');
@@ -180,7 +181,7 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
         // Update existing user
         const response = await fetch(`/api/admin/users/${endpoint}/${selectedUser.userID}`, {
           method: 'PATCH',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
@@ -190,9 +191,9 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to update user');
         }
-        
+
         const updatedUser = await response.json();
-        setUsers(users.map(user => 
+        setUsers(users.map(user =>
           user.userID === selectedUser.userID ? updatedUser : user
         ));
         toast.success(`${userType.charAt(0).toUpperCase() + userType.slice(1)} user updated successfully`);
@@ -200,7 +201,7 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
         // Create new user
         const response = await fetch(`/api/admin/users/${endpoint}`, {  // Using plural endpoint here
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
@@ -213,12 +214,12 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to create user');
         }
-        
+
         const newUser = await response.json();
         setUsers([...users, newUser]);
         toast.success(`${userType.charAt(0).toUpperCase() + userType.slice(1)} user created successfully`);
       }
-      
+
       setModalOpen(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save user';
@@ -238,6 +239,64 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
     }
   };
 
+  // Custom skeleton component for users table
+  const UsersTableSkeleton = () => (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-4 border-b border-border flex justify-between items-center">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-10 w-28" />
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="px-4 py-3 text-left">
+                <Skeleton className="h-5 w-32" />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <Skeleton className="h-5 w-24" />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <Skeleton className="h-5 w-28" />
+              </th>
+              <th className="px-4 py-3 text-left">
+                <Skeleton className="h-5 w-20" />
+              </th>
+              <th className="px-4 py-3 text-right">
+                <Skeleton className="h-5 w-20 ml-auto" />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, index) => (
+              <tr key={index} className="border-b border-border">
+                <td className="px-4 py-3">
+                  <Skeleton className="h-5 w-48" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-5 w-32" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-5 w-24" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-5 w-20" />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-6 max-w-[1216px] mx-auto">
       <PageHeading title={`${userType.charAt(0).toUpperCase() + userType.slice(1)} Users`} />
@@ -248,57 +307,61 @@ export function AdminUsersPage({ userType }: AdminUsersPageProps) {
           placeholder={`Search`}
           className="max-w-lg mb-6"
         />
-        {(() => {
-          if (userType === 'student') {
-            return (
-              <StudentsTable
-                users={filteredUsers}
-                roleID={2}
-                onAdd={handleAddUser}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                onStatusChange={handleStatusChange}
-                isLoading={isLoading}
-              />
-            );
-          } else if (userType === 'counselor') {
-            return (
-              <CounselorsTable
-                users={filteredUsers}
-                roleID={3}
-                onAdd={handleAddUser}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                onStatusChange={handleStatusChange}
-                isLoading={isLoading}
-              />
-            );
-          } else if (userType === 'company') {
-            return (
-              <CompaniesTable
-                users={filteredUsers}
-                roleID={4}
-                onAdd={handleAddUser}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                onStatusChange={handleStatusChange}
-                isLoading={isLoading}
-              />
-            );
-          } else {
-            return (
-              <AdminsTable
-                users={filteredUsers}
-                roleID={1} // Admin roleID
-                onAdd={handleAddUser}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                onStatusChange={handleStatusChange}
-                isLoading={isLoading}
-              />
-            );
-          }
-        })()}
+        {isLoading ? (
+          <UsersTableSkeleton />
+        ) : (
+          (() => {
+            if (userType === 'student') {
+              return (
+                <StudentsTable
+                  users={filteredUsers}
+                  roleID={2}
+                  onAdd={handleAddUser}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onStatusChange={handleStatusChange}
+                  isLoading={false}
+                />
+              );
+            } else if (userType === 'counselor') {
+              return (
+                <CounselorsTable
+                  users={filteredUsers}
+                  roleID={3}
+                  onAdd={handleAddUser}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onStatusChange={handleStatusChange}
+                  isLoading={false}
+                />
+              );
+            } else if (userType === 'company') {
+              return (
+                <CompaniesTable
+                  users={filteredUsers}
+                  roleID={4}
+                  onAdd={handleAddUser}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onStatusChange={handleStatusChange}
+                  isLoading={false}
+                />
+              );
+            } else {
+              return (
+                <AdminsTable
+                  users={filteredUsers}
+                  roleID={1} // Admin roleID
+                  onAdd={handleAddUser}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onStatusChange={handleStatusChange}
+                  isLoading={false}
+                />
+              );
+            }
+          })()
+        )}
       </div>
       <AdminFormModal
         isOpen={modalOpen}

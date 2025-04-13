@@ -3,6 +3,7 @@ import { SearchBar } from '../../components/SearchBar';
 import { toast } from '../../components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
 import { EventsTable } from '../../components/admin/EventsTable';
+import { Skeleton } from "@/components/ui/skeleton";
 import axios from 'axios';
 
 interface Event {
@@ -90,7 +91,53 @@ export function AdminEventsPage() {
 
       <div className="bg-white rounded-lg shadow">
         {isLoading ? (
-          <div className="p-6 text-center"></div>
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-28" />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left">
+                      <Skeleton className="h-5 w-32" />
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <Skeleton className="h-5 w-24" />
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <Skeleton className="h-5 w-28" />
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Skeleton className="h-5 w-20 ml-auto" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(5)].map((_, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-3">
+                        <Skeleton className="h-5 w-48" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <Skeleton className="h-5 w-24" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <Skeleton className="h-5 w-28" />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <EventsTable
             events={filteredEvents}

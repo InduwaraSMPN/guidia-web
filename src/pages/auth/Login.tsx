@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useAuth } from '../../contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,13 +13,23 @@ export function Login() {
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { login, user } = useAuth();
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // Clear any existing errors
-    
+
     if (!formData.email || !formData.password) {
       setError('Email and password are required');
       return;
@@ -32,10 +43,10 @@ export function Login() {
       const userTypeToPath: Record<string, string> = {
         Admin: '/admin',
         Student: `/students/profile/${userData.userID}`,
-        Counselor: userData.hasProfile 
+        Counselor: userData.hasProfile
           ? `/counselor/profile/${userData.userID}`
           : '/welcome/counselor',
-        Company: userData.hasProfile 
+        Company: userData.hasProfile
           ? `/company/profile/${userData.userID}`
           : '/welcome/company'  // Add this condition for companies
       };
@@ -69,12 +80,47 @@ export function Login() {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
+        <div className="w-full max-w-sm px-4 sm:px-6">
+          <div>
+            <Skeleton className="h-10 w-32 mb-6" />
+
+            <div className="mt-8">
+              <div className="space-y-6">
+                <div>
+                  <Skeleton className="h-5 w-32 mb-1" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+
+                <div>
+                  <Skeleton className="h-5 w-32 mb-1" />
+                  <Skeleton className="h-10 w-full" />
+                  <div className="mt-1 text-right">
+                    <Skeleton className="h-4 w-32 inline-block" />
+                  </div>
+                </div>
+
+                <Skeleton className="h-12 w-full rounded-md" />
+
+                <div className="mt-6">
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
       <div className="w-full max-w-sm px-4 sm:px-6">
         <div>
           <h2 className="text-3xl font-extrabold text-brand text-left">Login</h2>
-          
+
           {error && (
             <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
@@ -125,8 +171,8 @@ export function Login() {
                   </button>
                 </div>
                 <div className="mt-1 text-right">
-                  <Link 
-                    to="/auth/forgot-password" 
+                  <Link
+                    to="/auth/forgot-password"
                     className="text-sm text-brand hover:text-brand-dark"
                   >
                     forgot password?
@@ -142,8 +188,8 @@ export function Login() {
             <div className="mt-6">
               <p className="text-sm text-muted-foreground">
                 Don't Have an account?{' '}
-                <Link 
-                  to="/auth/register" 
+                <Link
+                  to="/auth/register"
                   className="font-medium text-brand hover:text-brand-dark"
                 >
                   Register Now

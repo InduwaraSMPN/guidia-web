@@ -171,9 +171,15 @@ function FullScreenCalendar({
   );
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
 
+  // Calculate days to always show 6 rows (42 days) for consistent layout
+  const firstDayOfMonth = startOfWeek(firstDayCurrentMonth);
+
+  // Calculate the end date to ensure we always have 6 weeks (42 days)
+  const endDate = add(firstDayOfMonth, { days: 41 });
+
   const days = eachDayOfInterval({
-    start: startOfWeek(firstDayCurrentMonth),
-    end: endOfWeek(endOfMonth(firstDayCurrentMonth)),
+    start: firstDayOfMonth,
+    end: endDate,
   });
 
   function previousMonth() {
@@ -323,13 +329,13 @@ function FullScreenCalendar({
         {/* Calendar Days Grid */}
         <div className="flex flex-1 flex-col overflow-auto text-xs leading-6 lg:flex-row min-h-0">
           {/* Desktop/Large Screen View */}
-          <div className="hidden w-full border-l border-border lg:grid lg:flex-1 lg:grid-cols-7 lg:grid-rows-5">
+          <div className="hidden w-full border-l border-border lg:grid lg:flex-1 lg:grid-cols-7 lg:grid-rows-6 auto-rows-fr">
             {days.map((day, dayIdx) => (
               <div
                 key={day.toISOString()} // Use ISO string for stable key
                 onClick={() => setSelectedDay(day)}
                 className={cn(
-                  "relative flex flex-col border-b border-r border-border focus:z-10",
+                  "relative flex flex-col border-b border-r border-border focus:z-10 min-h-[100px]",
                   // Apply column start based on the day of the week for the first row
                   dayIdx < 7 && colStartClasses[getDay(day)],
                    // Dim days outside the current month

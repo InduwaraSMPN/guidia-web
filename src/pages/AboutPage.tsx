@@ -1,4 +1,57 @@
+import { useState, useEffect } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
+
 export function AboutPage() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="mb-16">
+            <Skeleton className="h-10 w-48 mb-6" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-16 mb-20">
+            <div className="bg-secondary p-8 rounded-2xl shadow-sm">
+              <Skeleton className="h-8 w-32 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+
+            <div className="bg-secondary p-8 rounded-2xl shadow-sm">
+              <Skeleton className="h-8 w-32 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          </div>
+
+          <div className="space-y-8 mb-16">
+            <div className="flex items-center space-x-4 mb-8">
+              <Skeleton className="w-12 h-1 rounded-full" />
+              <Skeleton className="h-8 w-48" />
+            </div>
+
+            {[...Array(5)].map((_, index) => (
+              <Skeleton key={index} className="h-4 w-full mb-2" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
       <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">

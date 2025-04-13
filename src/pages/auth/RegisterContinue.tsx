@@ -4,6 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Input } from '../../components/ui/input';
 import { API_URL } from '../../config';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function RegisterContinue() {
   const [formData, setFormData] = useState({
@@ -22,10 +23,18 @@ export function RegisterContinue() {
     if (!storedData) {
       navigate('/auth/register');
     }
+
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const validatePassword = (password: string) => {
     if (password.length < 8) {
@@ -123,6 +132,44 @@ export function RegisterContinue() {
       [name]: value
     }));
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm px-4 sm:px-6">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-48 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <Skeleton className="h-12 w-full rounded-md" />
+
+            <div className="mt-4">
+              <Skeleton className="h-5 w-48 mb-2" />
+              <div className="space-y-1">
+                {[...Array(5)].map((_, index) => (
+                  <Skeleton key={index} className="h-4 w-full" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">

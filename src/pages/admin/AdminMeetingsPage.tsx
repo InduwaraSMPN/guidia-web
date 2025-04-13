@@ -14,6 +14,7 @@ import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { addDays } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function AdminMeetingsPage() {
   const { user, token } = useAuth();
@@ -96,6 +97,79 @@ export function AdminMeetingsPage() {
     setSelectedMeeting(meeting);
     setIsDetailsOpen(true);
   };
+
+  // Render skeleton UI when loading
+  if (isLoading && meetings.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        <div className="mb-6">
+          <Skeleton className="h-10 w-64" />
+        </div>
+
+        {/* Filters Card Skeleton */}
+        <Card className="mb-6">
+          <CardHeader>
+            <Skeleton className="h-6 w-24 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Meetings Card Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="border rounded-md p-4 mb-4 bg-card animate-pulse">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-48" />
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-5 w-32" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-5 w-32" />
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <Skeleton className="h-9 w-28" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

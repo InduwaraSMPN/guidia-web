@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/Select';
 import { Loader2, RefreshCw, Play, Calendar, Clock, Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SchedulerStatus {
   isRunning: boolean;
@@ -107,6 +108,72 @@ export function AdminSettingsPage() {
     if (taskName.includes('notification')) return <Bell className="h-4 w-4" />;
     return <RefreshCw className="h-4 w-4" />;
   };
+
+  // Render skeleton UI when initially loading
+  if (isLoading && !schedulerStatus) {
+    return (
+      <div className="p-6 max-w-[1216px] mx-auto">
+        <div className="mb-6">
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+
+        <div className="mb-4">
+          <Skeleton className="h-10 w-96" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-6 w-12 rounded-full" />
+                </div>
+                <Skeleton className="h-5 w-40 mt-4" />
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="bg-secondary p-3 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                        <Skeleton className="h-4 w-48" />
+                      </div>
+                      <Skeleton className="h-3 w-32 mt-1" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Skeleton className="h-9 w-32 ml-auto" />
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-5 w-24 mb-2" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="pt-4">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-[1216px] mx-auto">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API_URL } from '../../config';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ResetPassword() {
   const { token } = useParams();
@@ -85,7 +86,27 @@ export function ResetPassword() {
   };
 
   if (tokenVerifying) {
-    return <div>Verifying reset token...</div>;
+    return (
+      <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm px-4 sm:px-6">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="mb-4">
+              <Skeleton className="h-5 w-32 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="mb-6">
+              <Skeleton className="h-5 w-48 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <Skeleton className="h-12 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!isValidToken) {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "../../components/ui/input";
 import { CheckCircle } from "lucide-react";
 import { API_URL } from "../../config";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function EmailVerification() {
   const [otp, setOtp] = useState("");
@@ -14,6 +15,7 @@ export function EmailVerification() {
   const [resendTimer, setResendTimer] = useState(0);
   const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [loading, setLoading] = useState(true);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
 
@@ -27,6 +29,13 @@ export function EmailVerification() {
       // If no data, redirect back to register
       navigate("/auth/register");
     }
+
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   // Timer for resend button
@@ -196,6 +205,38 @@ export function EmailVerification() {
     const nextIndex = Math.min(index + pastedData.length, 5);
     inputRefs.current[nextIndex]?.focus();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm px-4 sm:px-6">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32 mb-1" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-64 mb-1" />
+              <div className="flex gap-2 justify-between">
+                {[...Array(6)].map((_, index) => (
+                  <Skeleton key={index} className="w-12 h-12 rounded-lg" />
+                ))}
+              </div>
+              <Skeleton className="h-5 w-full pt-2" />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-16 flex items-center justify-center px-4">

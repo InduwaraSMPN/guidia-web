@@ -224,10 +224,6 @@ export function JobsPage() {
           <h1 className="text-4xl font-bold text-adaptive-dark mb-3">
             Find Your Next <span className="text-brand">Career</span>
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover opportunities that match your skills and aspirations. Browse through our curated list of job
-            openings.
-          </p>
         </motion.div>
 
         <JobSearchForm
