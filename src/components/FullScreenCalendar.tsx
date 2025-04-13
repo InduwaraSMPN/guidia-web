@@ -209,9 +209,9 @@ function FullScreenCalendar({
   const selectedDayEvents = filteredData.find((d) => isSameDay(d.day, selectedDay))?.events || [];
 
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
+    <div className="flex flex-1 flex-col bg-background text-foreground h-full w-full">
       {/* Calendar Header */}
-      <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0 lg:flex-none">
+      <div className="flex flex-col space-y-4 p-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div className="flex flex-auto">
           <div className="flex items-center gap-4">
              {/* Current Month Date Indicator */}
@@ -308,7 +308,7 @@ function FullScreenCalendar({
       </div>
 
       {/* Calendar Grid Area */}
-      <div className="flex flex-auto flex-col overflow-hidden border-t border-border">
+      <div className="flex flex-1 flex-col overflow-hidden border-t border-border min-h-0">
         {/* Week Days Header */}
         <div className="grid grid-cols-7 border-b border-border bg-muted/30 text-center text-xs font-semibold leading-6 text-muted-foreground lg:flex-none">
           <div className="border-r border-border py-2">Sun</div>
@@ -321,9 +321,9 @@ function FullScreenCalendar({
         </div>
 
         {/* Calendar Days Grid */}
-        <div className="flex flex-auto flex-col overflow-auto text-xs leading-6 lg:flex-row">
+        <div className="flex flex-1 flex-col overflow-auto text-xs leading-6 lg:flex-row min-h-0">
           {/* Desktop/Large Screen View */}
-          <div className="hidden w-full border-l border-border lg:grid lg:flex-auto lg:grid-cols-7 lg:grid-rows-5">
+          <div className="hidden w-full border-l border-border lg:grid lg:flex-1 lg:grid-cols-7 lg:grid-rows-5">
             {days.map((day, dayIdx) => (
               <div
                 key={day.toISOString()} // Use ISO string for stable key
@@ -366,7 +366,7 @@ function FullScreenCalendar({
                         className={`mb-1 flex flex-col items-start gap-0.5 rounded border p-1 text-[11px] leading-tight shadow-sm ${getEventStatusClass(event.status)} cursor-pointer hover:shadow-md transition-shadow`}
                         onClick={() => onEventClick(event)}
                       >
-                        <p className="font-medium leading-none">{event.name}</p>
+                        <p className="font-medium leading-none mb-1">{event.name}</p>
                         <p className="leading-none text-muted-foreground">{event.time}</p>
                         {event.type && <p className="leading-none text-[10px] text-muted-foreground">{event.type}</p>}
                       </div>
@@ -386,7 +386,7 @@ function FullScreenCalendar({
           </div>
 
            {/* Mobile/Small Screen View - List of days and selected day's events */}
-          <div className="flex flex-col border-l border-border lg:hidden">
+          <div className="flex flex-col border-l border-border lg:hidden flex-1">
              {/* Day buttons */}
              <div className="grid flex-none grid-cols-7 border-b border-border">
                 {days.map((day) => (
@@ -425,7 +425,7 @@ function FullScreenCalendar({
                 ))}
               </div>
               {/* Selected day's events */}
-              <div className="flex-auto overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4 min-h-0">
                 <h3 className="mb-3 text-base font-semibold">
                   Events for {format(selectedDay, "MMMM d, yyyy")}
                 </h3>

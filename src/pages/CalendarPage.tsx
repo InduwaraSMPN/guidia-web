@@ -266,7 +266,7 @@ export function CalendarPage() {
           <p className="text-muted-foreground">View and manage all your scheduled meetings</p>
         </div>
 
-        <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden">
+        <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden min-h-[600px] flex">
           {isLoading ? (
             <div className="flex items-center justify-center h-96">
               <div className="w-12 h-12 border-4 border-border border-t-brand rounded-full animate-spin" />
