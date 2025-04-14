@@ -257,6 +257,12 @@ export function NotificationsPopover() {
                         if (user) {
                           window.location.href = `/${user.userType.toLowerCase()}/${user.userID}/messages`;
                         }
+                      } else if (
+                        notification.notificationType.includes('MEETING_') ||
+                        (notification.metadata && notification.metadata.meetingID)
+                      ) {
+                        // Redirect to meetings page for any meeting-related notifications
+                        window.location.href = '/meetings';
                       }
                     }}
                   >

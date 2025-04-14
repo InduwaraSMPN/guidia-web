@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '../ui/badge';
 import { Calendar } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatMeetingType } from '@/lib/utils';
 import { format } from 'date-fns';
 import { MeetingCard } from './MeetingCard';
 
@@ -19,6 +19,7 @@ export interface Meeting {
   status: 'requested' | 'accepted' | 'declined' | 'cancelled' | 'completed';
   meetingType: string;
   declineReason?: string;
+  hasFeedback?: boolean; // Flag to indicate if feedback exists
 }
 
 interface MeetingListProps {

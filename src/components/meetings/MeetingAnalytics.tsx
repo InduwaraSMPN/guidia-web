@@ -40,12 +40,12 @@ interface AnalyticsData {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 const meetingTypeLabels: Record<string, string> = {
-  'student_company': 'Student-Company',
-  'student_counselor': 'Student-Counselor',
-  'company_counselor': 'Company-Counselor',
-  'student_student': 'Student-Student',
-  'company_company': 'Company-Company',
-  'counselor_counselor': 'Counselor-Counselor',
+  'student_company': 'Student ↔ Company',
+  'student_counselor': 'Student ↔ Counselor',
+  'company_counselor': 'Company ↔ Counselor',
+  'student_student': 'Student ↔ Student',
+  'company_company': 'Company ↔ Company',
+  'counselor_counselor': 'Counselor ↔ Counselor',
 };
 
 export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
@@ -121,13 +121,13 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-2xl">{typeof analyticsData.averageSuccessRating === 'number' ? analyticsData.averageSuccessRating.toFixed(1) : '0.0'}</CardTitle>
+            <CardTitle className="text-2xl">{typeof analyticsData.averageSuccessRating === 'number' && !isNaN(analyticsData.averageSuccessRating) ? analyticsData.averageSuccessRating.toFixed(1) : '0.0'}</CardTitle>
             <CardDescription>Avg. Meeting Success Rating</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-2xl">{typeof analyticsData.averagePlatformRating === 'number' ? analyticsData.averagePlatformRating.toFixed(1) : '0.0'}</CardTitle>
+            <CardTitle className="text-2xl">{typeof analyticsData.averagePlatformRating === 'number' && !isNaN(analyticsData.averagePlatformRating) ? analyticsData.averagePlatformRating.toFixed(1) : '0.0'}</CardTitle>
             <CardDescription>Avg. Platform Experience Rating</CardDescription>
           </CardHeader>
         </Card>

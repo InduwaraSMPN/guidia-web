@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, X, MessageSquare, User, Calendar, Clock } from 'lucide-react';
+import { Check, X, MessageSquare, User, Calendar, Clock, Star } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatMeetingType } from '@/lib/utils';
 import { Meeting } from './MeetingList';
 
 interface MeetingCardProps {
@@ -83,13 +84,21 @@ export function MeetingCard({
           </div>
         )}
         {meeting.status === 'completed' && (
-          <div className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-            Completed
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+              Completed
+            </div>
+            {meeting.hasFeedback && (
+              <div className="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 flex items-center">
+                <Star className="h-3 w-3 mr-1 fill-yellow-500 text-yellow-500" />
+                Feedback
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div className="flex items-center text-muted-foreground">
           <Calendar className="h-4 w-4 mr-2" />
           <span>{format(new Date(meeting.meetingDate), 'MMMM d, yyyy')}</span>
@@ -97,6 +106,9 @@ export function MeetingCard({
         <div className="flex items-center text-muted-foreground">
           <Clock className="h-4 w-4 mr-2" />
           <span>{formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}</span>
+        </div>
+        <div className="flex items-center text-muted-foreground">
+          <span className="text-sm">{formatMeetingType(meeting.meetingType)}</span>
         </div>
       </div>
 

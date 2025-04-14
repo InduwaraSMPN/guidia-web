@@ -918,7 +918,7 @@ const meetingController = {
 
       // Get average meeting success rating
       const [avgSuccessRatingResult] = await db.query(
-        `SELECT AVG(meetingSuccessRating) as avgRating FROM meeting_feedback f
+        `SELECT COALESCE(AVG(meetingSuccessRating), 0) as avgRating FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          ${dateFilter}`,
         queryParams
@@ -926,7 +926,7 @@ const meetingController = {
 
       // Get average platform experience rating
       const [avgPlatformRatingResult] = await db.query(
-        `SELECT AVG(platformExperienceRating) as avgRating FROM meeting_feedback f
+        `SELECT COALESCE(AVG(platformExperienceRating), 0) as avgRating FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          ${dateFilter}`,
         queryParams
@@ -1005,19 +1005,19 @@ const meetingController = {
 
       // Get average meeting success rating given by the user
       const [avgSuccessRatingGivenResult] = await db.query(
-        'SELECT AVG(meetingSuccessRating) as avgRating FROM meeting_feedback WHERE userID = ?',
+        'SELECT COALESCE(AVG(meetingSuccessRating), 0) as avgRating FROM meeting_feedback WHERE userID = ?',
         [userId]
       );
 
       // Get average platform experience rating given by the user
       const [avgPlatformRatingGivenResult] = await db.query(
-        'SELECT AVG(platformExperienceRating) as avgRating FROM meeting_feedback WHERE userID = ?',
+        'SELECT COALESCE(AVG(platformExperienceRating), 0) as avgRating FROM meeting_feedback WHERE userID = ?',
         [userId]
       );
 
       // Get average meeting success rating received for the user's meetings (where they are not the feedback provider)
       const [avgSuccessRatingReceivedResult] = await db.query(
-        `SELECT AVG(f.meetingSuccessRating) as avgRating
+        `SELECT COALESCE(AVG(f.meetingSuccessRating), 0) as avgRating
          FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          WHERE (m.requestorID = ? OR m.recipientID = ?) AND f.userID != ?`,

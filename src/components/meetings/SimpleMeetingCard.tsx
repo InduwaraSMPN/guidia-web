@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X, MessageSquare, User, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatMeetingType } from '@/lib/utils';
 import { Meeting } from './MeetingList';
 
 interface SimpleMeetingCardProps {
@@ -49,7 +50,7 @@ export function SimpleMeetingCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="flex items-center text-gray-600">
           <Calendar className="h-4 w-4 mr-2" />
           <span>{format(new Date(meeting.meetingDate), 'MMMM d, yyyy')}</span>
@@ -57,6 +58,9 @@ export function SimpleMeetingCard({
         <div className="flex items-center text-gray-600">
           <Clock className="h-4 w-4 mr-2" />
           <span>{formatTime(meeting.startTime)} - {formatTime(meeting.endTime)}</span>
+        </div>
+        <div className="flex items-center text-gray-600">
+          <span className="text-sm">{formatMeetingType(meeting.meetingType)}</span>
         </div>
       </div>
 

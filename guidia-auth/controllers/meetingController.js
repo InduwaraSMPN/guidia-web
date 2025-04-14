@@ -19,7 +19,7 @@ const meetingController = {
       console.log('User requesting availability:', {
         requestingUserID: req.user.id,
         requestedUserID: userId,
-        requestingUserRole: req.user.roleId
+        requestingUserRole: req.user.roleID
       });
 
       const [availabilityResults] = await pool.query(
@@ -51,11 +51,11 @@ const meetingController = {
 
       // Ensure the user is updating their own availability or is an admin
       // Convert both to strings for comparison to avoid type mismatch
-      if (String(req.user.id) !== String(userID) && req.user.roleId !== 1) { // Admin role
+      if (String(req.user.id) !== String(userID) && req.user.roleID !== 1) { // Admin role
         console.log('Authorization failed:', {
           requestingUserID: req.user.id,
           targetUserID: userID,
-          requestingUserRole: req.user.roleId,
+          requestingUserRole: req.user.roleID,
           requestingUserIDType: typeof req.user.id,
           targetUserIDType: typeof userID
         });
@@ -123,7 +123,7 @@ const meetingController = {
       }
 
       // Check if the user has permission to delete this availability
-      if (req.user.id !== availabilityResults[0].userID && req.user.roleId !== 1) { // Admin role
+      if (req.user.id !== availabilityResults[0].userID && req.user.roleID !== 1) { // Admin role
         return res.status(403).json({ message: 'Unauthorized to delete this availability slot' });
       }
 
@@ -472,7 +472,7 @@ const meetingController = {
 
       // Check if the user is authorized to view this meeting
       // Convert all to strings for comparison to avoid type mismatch
-      if (String(meeting.requestorID) !== String(userID) && String(meeting.recipientID) !== String(userID) && req.user.roleId !== 1) { // Admin role
+      if (String(meeting.requestorID) !== String(userID) && String(meeting.recipientID) !== String(userID) && req.user.roleID !== 1) { // Admin role
         console.log('Authorization failed:', {
           meetingRequestorID: meeting.requestorID,
           meetingRecipientID: meeting.recipientID,
@@ -924,7 +924,7 @@ const meetingController = {
 
       // Check if the user is authorized to view this meeting's feedback
       // Convert all to strings for comparison to avoid type mismatch
-      if (String(meeting.requestorID) !== String(userID) && String(meeting.recipientID) !== String(userID) && req.user.roleId !== 1) { // Admin role
+      if (String(meeting.requestorID) !== String(userID) && String(meeting.recipientID) !== String(userID) && req.user.roleID !== 1) { // Admin role
         console.log('Authorization failed:', {
           meetingRequestorID: meeting.requestorID,
           meetingRecipientID: meeting.recipientID,
@@ -965,7 +965,7 @@ const meetingController = {
   getMeetingAnalytics: async (req, res) => {
     try {
       // Check if the user is an admin
-      if (req.user.roleId !== 1) { // Admin role
+      if (req.user.roleID !== 1) { // Admin role
         return res.status(403).json({ message: 'Unauthorized to access meeting analytics' });
       }
 
@@ -1013,7 +1013,7 @@ const meetingController = {
 
       // Get average meeting success rating
       const [avgSuccessRatingResult] = await pool.query(
-        `SELECT AVG(meetingSuccessRating) as avgRating FROM meeting_feedback f
+        `SELECT COALESCE(AVG(meetingSuccessRating), 0) as avgRating FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          ${dateFilter}`,
         queryParams
@@ -1021,7 +1021,7 @@ const meetingController = {
 
       // Get average platform experience rating
       const [avgPlatformRatingResult] = await pool.query(
-        `SELECT AVG(platformExperienceRating) as avgRating FROM meeting_feedback f
+        `SELECT COALESCE(AVG(platformExperienceRating), 0) as avgRating FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          ${dateFilter}`,
         queryParams
@@ -1078,11 +1078,11 @@ const meetingController = {
 
       // Check if the user is authorized to view this user's analytics
       // Convert both to strings for comparison to avoid type mismatch
-      if (String(currentUserID) !== String(userId) && req.user.roleId !== 1) { // Admin role
+      if (String(currentUserID) !== String(userId) && req.user.roleID !== 1) { // Admin role
         console.log('Authorization failed:', {
           currentUserID,
           requestedUserID: userId,
-          currentUserRole: req.user.roleId,
+          currentUserRole: req.user.roleID,
           currentUserIDType: typeof currentUserID,
           requestedUserIDType: typeof userId
         });
@@ -1109,19 +1109,19 @@ const meetingController = {
 
       // Get average meeting success rating given by the user
       const [avgSuccessRatingGivenResult] = await pool.query(
-        'SELECT AVG(meetingSuccessRating) as avgRating FROM meeting_feedback WHERE userID = ?',
+        'SELECT COALESCE(AVG(meetingSuccessRating), 0) as avgRating FROM meeting_feedback WHERE userID = ?',
         [userId]
       );
 
       // Get average platform experience rating given by the user
       const [avgPlatformRatingGivenResult] = await pool.query(
-        'SELECT AVG(platformExperienceRating) as avgRating FROM meeting_feedback WHERE userID = ?',
+        'SELECT COALESCE(AVG(platformExperienceRating), 0) as avgRating FROM meeting_feedback WHERE userID = ?',
         [userId]
       );
 
       // Get average meeting success rating received for the user's meetings (where they are not the feedback provider)
       const [avgSuccessRatingReceivedResult] = await pool.query(
-        `SELECT AVG(f.meetingSuccessRating) as avgRating
+        `SELECT COALESCE(AVG(f.meetingSuccessRating), 0) as avgRating
          FROM meeting_feedback f
          JOIN meetings m ON f.meetingID = m.meetingID
          WHERE (m.requestorID = ? OR m.recipientID = ?) AND f.userID != ?`,

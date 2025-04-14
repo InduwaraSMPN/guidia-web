@@ -152,6 +152,7 @@ export function MeetingRequestForm({
 
   // Handle time slot selection
   const handleSelectSlot = (slot: TimeSlot) => {
+    // Prevent any automatic form submission
     setSelectedSlot(slot);
     form.setValue('startTime', slot.startTime);
     form.setValue('endTime', slot.endTime);
@@ -159,8 +160,11 @@ export function MeetingRequestForm({
 
   // Handle date selection
   const handleDateSelect = (date: Date | undefined) => {
+    // Prevent any automatic form submission
     setSelectedDate(date);
-    form.setValue('meetingDate', date as Date);
+    if (date) {
+      form.setValue('meetingDate', date);
+    }
     setSelectedSlot(null);
     form.setValue('startTime', '');
     form.setValue('endTime', '');
@@ -207,10 +211,27 @@ export function MeetingRequestForm({
     }
   };
 
+  // Create a custom submit handler to ensure it only triggers on button click
+  const handleFormSubmit = (e: React.FormEvent) => {
+    // Only proceed with form submission if the user clicked the submit button
+    if (e.target instanceof HTMLFormElement) {
+      const submitter = (e as any).nativeEvent?.submitter;
+      if (!submitter || submitter.type !== 'submit' || submitter.disabled) {
+        e.preventDefault();
+        return;
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            handleFormSubmit(e);
+            form.handleSubmit(onSubmit)(e);
+          }}
+          className="space-y-6">
           <FormField
             control={form.control}
             name="meetingTitle"
@@ -218,7 +239,16 @@ export function MeetingRequestForm({
               <FormItem>
                 <FormLabel>Meeting Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter meeting title" {...field} />
+                  <Input
+                    placeholder="Enter meeting title"
+                    {...field}
+                    onKeyDown={(e) => {
+                      // Prevent form submission on Enter key
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -236,6 +266,12 @@ export function MeetingRequestForm({
                     placeholder="Enter meeting description"
                     className="resize-none"
                     {...field}
+                    onKeyDown={(e) => {
+                      // Prevent form submission on Enter key
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />

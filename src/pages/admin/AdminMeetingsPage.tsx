@@ -225,12 +225,12 @@ export function AdminMeetingsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="student_company">Student-Company</SelectItem>
-                      <SelectItem value="student_counselor">Student-Counselor</SelectItem>
-                      <SelectItem value="company_counselor">Company-Counselor</SelectItem>
-                      <SelectItem value="student_student">Student-Student</SelectItem>
-                      <SelectItem value="company_company">Company-Company</SelectItem>
-                      <SelectItem value="counselor_counselor">Counselor-Counselor</SelectItem>
+                      <SelectItem value="student_company">Student ↔ Company</SelectItem>
+                      <SelectItem value="student_counselor">Student ↔ Counselor</SelectItem>
+                      <SelectItem value="company_counselor">Company ↔ Counselor</SelectItem>
+                      <SelectItem value="student_student">Student ↔ Student</SelectItem>
+                      <SelectItem value="company_company">Company ↔ Company</SelectItem>
+                      <SelectItem value="counselor_counselor">Counselor ↔ Counselor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -21,17 +21,17 @@ const formatTime = (time: string) => {
 const getMeetingTypeName = (type: string): string => {
   switch (type) {
     case 'student_company':
-      return 'Student-Company';
+      return 'Student ↔ Company';
     case 'student_counselor':
-      return 'Student-Counselor';
+      return 'Student ↔ Counselor';
     case 'company_counselor':
-      return 'Company-Counselor';
+      return 'Company ↔ Counselor';
     case 'student_student':
-      return 'Student-Student';
+      return 'Student ↔ Student';
     case 'company_company':
-      return 'Company-Company';
+      return 'Company ↔ Company';
     case 'counselor_counselor':
-      return 'Counselor-Counselor';
+      return 'Counselor ↔ Counselor';
     default:
       return type;
   }

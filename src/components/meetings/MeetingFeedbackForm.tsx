@@ -64,6 +64,18 @@ export function MeetingFeedbackForm({
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
+      // Check if token exists
+      if (!token) {
+        console.error('No token found when submitting feedback');
+        toast({
+          title: 'Authentication Error',
+          description: 'Please log in again to submit feedback',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       console.log('Submitting feedback with token:', {
         meetingID,
         tokenExists: !!token,
@@ -81,7 +93,7 @@ export function MeetingFeedbackForm({
         }
       );
 
-      console.log('Feedback submission response:', response.status);
+      console.log('Feedback submission response:', response.status, response.data);
 
       toast({
         title: 'Success',

@@ -411,13 +411,13 @@ router.get(
 
       // Get average meeting success rating
       const [avgSuccessRating] = await pool.execute(`
-      SELECT AVG(meetingSuccessRating) as avgRating
+      SELECT COALESCE(AVG(meetingSuccessRating), 0) as avgRating
       FROM meeting_feedback
     `);
 
       // Get average platform experience rating
       const [avgPlatformRating] = await pool.execute(`
-      SELECT AVG(platformExperienceRating) as avgRating
+      SELECT COALESCE(AVG(platformExperienceRating), 0) as avgRating
       FROM meeting_feedback
     `);
 
@@ -454,8 +454,8 @@ router.get(
         totalMeetings: totalMeetings[0].count,
         meetingsByStatus,
         meetingsByType,
-        avgSuccessRating: avgSuccessRating[0].avgRating || 0,
-        avgPlatformRating: avgPlatformRating[0].avgRating || 0,
+        avgSuccessRating: Number(avgSuccessRating[0].avgRating) || 0,
+        avgPlatformRating: Number(avgPlatformRating[0].avgRating) || 0,
         busiestDays,
         busiestHours,
         upcomingMeetings,

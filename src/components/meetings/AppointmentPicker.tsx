@@ -166,7 +166,11 @@ function TimeSlotGroup({ title, slots, selectedSlot, onTimeSelect }: TimeSlotGro
                 !slot.available && "opacity-50",
                 selectedSlot?.startTime === slot.startTime && "shadow-md scale-[1.02]",
               )}
-              onClick={() => onTimeSelect(slot)}
+              onClick={(e) => {
+                // Prevent form submission
+                e.preventDefault();
+                onTimeSelect(slot);
+              }}
               disabled={!slot.available}
               aria-label={`Select time slot at ${formatTime(slot.startTime)}`}
             >
@@ -295,7 +299,12 @@ export function AppointmentPicker({
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={onDateSelect}
+              onSelect={(date) => {
+                // Prevent any form submission when selecting a date
+                if (onDateSelect) {
+                  onDateSelect(date);
+                }
+              }}
               className="bg-background"
               disabled={[{ before: minDate }]} // Disable past dates
               aria-label="Select appointment date"

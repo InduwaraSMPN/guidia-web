@@ -54,7 +54,37 @@ export function MeetingsPage() {
       });
       const meetingsData = (response.data as any).data || [];
       console.log('Meetings fetched:', meetingsData);
-      setMeetings(meetingsData);
+
+      // For each meeting, check if feedback exists
+      const meetingsWithFeedbackInfo = await Promise.all(
+        meetingsData.map(async (meeting: any) => {
+          try {
+            // Only check for completed meetings
+            if (meeting.status === 'completed') {
+              const feedbackResponse = await axios.get(
+                `${API_URL}/api/meeting/meetings/${meeting.meetingID}/feedback`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+
+              const feedbackData = (feedbackResponse.data as any).data || [];
+              return {
+                ...meeting,
+                hasFeedback: feedbackData.length > 0,
+              };
+            }
+            return meeting;
+          } catch (error) {
+            // If there's an error (like 404 for no feedback), just return the meeting as is
+            return meeting;
+          }
+        })
+      );
+
+      setMeetings(meetingsWithFeedbackInfo);
     } catch (error) {
       console.error('Error fetching meetings:', error);
       toast({
@@ -371,12 +401,12 @@ export function MeetingsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="student_company">Student-Company</SelectItem>
-              <SelectItem value="student_counselor">Student-Counselor</SelectItem>
-              <SelectItem value="company_counselor">Company-Counselor</SelectItem>
-              <SelectItem value="student_student">Student-Student</SelectItem>
-              <SelectItem value="company_company">Company-Company</SelectItem>
-              <SelectItem value="counselor_counselor">Counselor-Counselor</SelectItem>
+              <SelectItem value="student_company">Student ↔ Company</SelectItem>
+              <SelectItem value="student_counselor">Student ↔ Counselor</SelectItem>
+              <SelectItem value="company_counselor">Company ↔ Counselor</SelectItem>
+              <SelectItem value="student_student">Student ↔ Student</SelectItem>
+              <SelectItem value="company_company">Company ↔ Company</SelectItem>
+              <SelectItem value="counselor_counselor">Counselor ↔ Counselor</SelectItem>
             </SelectContent>
           </Select>
         </div>

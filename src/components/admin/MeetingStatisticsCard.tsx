@@ -16,7 +16,7 @@ import {
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, PieChartIcon, BarChart3, Star } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatMeetingType } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface MeetingStatisticsProps {
@@ -99,7 +99,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
   // Format rating as stars
   const formatRating = (rating: number | null | undefined) => {
     // Ensure rating is a number and has a valid value
-    const numericRating = typeof rating === 'number' ? rating : 0
+    const numericRating = typeof rating === 'number' && !isNaN(rating) ? rating : 0
 
     const fullStars = Math.floor(numericRating)
     const hasHalfStar = numericRating % 1 >= 0.5
@@ -130,9 +130,11 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
       <CardHeader className="bg-card/50 pb-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-brand" />
-          <CardTitle>Meeting Statistics</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-brand" />
+            <CardTitle>Meeting Statistics</CardTitle>
+          </div>
         </div>
         <CardDescription>Overview of meetings, their distribution and ratings</CardDescription>
       </CardHeader>
@@ -213,7 +215,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                           <Cell key={`status-${index}`} fill={getStatusColor(entry.status)} />
                         ))}
                       </Pie>
-                      <Legend />
+                      <Legend formatter={(value) => formatMeetingType(value)} />
                       <Tooltip
                         formatter={(value, name) => [value, "Count"]}
                         contentStyle={{
@@ -246,15 +248,16 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                         dataKey="count"
                         nameKey="meetingType"
                         animationDuration={1000}
-                        label={({ meetingType, percent }) => `${meetingType}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ meetingType, percent }) => `${formatMeetingType(meetingType)}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {meetingStats.meetingsByType.map((entry, index) => (
                           <Cell key={`type-${index}`} fill={getTypeColor(entry.meetingType)} />
                         ))}
                       </Pie>
-                      <Legend />
+                      <Legend formatter={(value) => formatMeetingType(value)} />
                       <Tooltip
                         formatter={(value, name) => [value, "Count"]}
+                        labelFormatter={(name) => formatMeetingType(name)}
                         contentStyle={{
                           backgroundColor: "var(--card)",
                           borderColor: "var(--border)",
@@ -394,7 +397,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                             {meeting.status}
                           </Badge>
                           <Badge variant="outline" className="font-medium">
-                            {meeting.meetingType}
+                            {formatMeetingType(meeting.meetingType)}
                           </Badge>
                         </div>
                       </div>
