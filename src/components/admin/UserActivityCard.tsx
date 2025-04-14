@@ -1,7 +1,6 @@
 "use client"
-
-import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   LineChart,
   Line,
@@ -11,10 +10,12 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
+  BarChart,
+  Bar,
   Cell,
 } from "recharts"
+import { Badge } from "@/components/ui/badge"
+import { Users, TrendingUp, BarChart3, UserCheck } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 
 interface UserActivityProps {
@@ -33,9 +34,6 @@ interface UserActivityProps {
   }
 }
 
-// Colors for the pie chart
-const COLORS = ["#800020", "#0ea5e9", "#10b981"]
-
 export function UserActivityCard({ userActivity }: UserActivityProps) {
   // Format date for trend data
   const formatTrendData = (data: Array<{ date: string; count: number }>) => {
@@ -45,109 +43,195 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
     }))
   }
 
-  const formattedRegistrationTrend = userActivity.userRegistrationTrend
+  const formattedTrendData = userActivity.userRegistrationTrend
     ? formatTrendData(userActivity.userRegistrationTrend)
     : []
 
-  // Data for profile completion pie chart
+  // Prepare data for profile completion
   const profileCompletionData = [
-    { name: "Students", value: Number(userActivity.profileCompletion.student) },
-    { name: "Counselors", value: Number(userActivity.profileCompletion.counselor) },
-    { name: "Companies", value: Number(userActivity.profileCompletion.company) },
+    { name: "Students", value: userActivity.profileCompletion.student },
+    { name: "Counselors", value: userActivity.profileCompletion.counselor },
+    { name: "Companies", value: userActivity.profileCompletion.company },
   ]
 
+  // Define colors for profile completion
+  const PROFILE_COLORS = ["#3b82f6", "#8b5cf6", "#10b981"]
+
+  // Get color for profile completion bar
+  const getProgressColor = (value: number) => {
+    if (value < 40) return "bg-red-400 dark:bg-red-500"
+    if (value < 70) return "bg-yellow-400 dark:bg-yellow-500"
+    return "bg-green-400 dark:bg-green-500"
+  }
+
   return (
-    <Card className="col-span-1 md:col-span-2">
-      <CardHeader>
-        <CardTitle>User Activity & Engagement</CardTitle>
-        <CardDescription>Overview of user registrations and profile completions</CardDescription>
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+      <CardHeader className="bg-card/50 pb-4">
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-brand" />
+          <CardTitle>User Activity</CardTitle>
+        </div>
+        <CardDescription>Overview of user registrations and profile completion</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-secondary/30 p-4 rounded-lg">
+      <CardContent className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+            <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm">New Users (7d)</span>
+            </div>
             <div className="text-2xl font-bold">{userActivity.newUsers7Days}</div>
-            <div className="text-sm text-muted-foreground">New Users (7d)</div>
           </div>
-          <div className="bg-secondary/30 p-4 rounded-lg">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+            <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm">New Users (30d)</span>
+            </div>
             <div className="text-2xl font-bold">{userActivity.newUsers30Days}</div>
-            <div className="text-sm text-muted-foreground">New Users (30d)</div>
+          </div>
+          <div className="col-span-2 md:col-span-1 bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+            <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+              <UserCheck className="h-4 w-4" />
+              <span className="text-sm">Avg. Profile Completion</span>
+            </div>
+            <div className="text-2xl font-bold">
+              {(
+                (userActivity.profileCompletion.student +
+                  userActivity.profileCompletion.counselor +
+                  userActivity.profileCompletion.company) /
+                3
+              ).toFixed(1)}
+              %
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-lg font-medium mb-4">User Registration Trend</h3>
+        <Tabs defaultValue="registrations" className="w-full">
+          <TabsList className="mb-6 w-full justify-start border-b pb-px">
+            <TabsTrigger value="registrations" className="data-[state=active]:bg-background">
+              User Registrations
+            </TabsTrigger>
+            <TabsTrigger value="profiles" className="data-[state=active]:bg-background">
+              Profile Completion
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent
+            value="registrations"
+            className="animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
+          >
+            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-brand" />
+              <span>User Registration Trend (Last 30 Days)</span>
+            </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={formattedRegistrationTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                <LineChart data={formattedTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="date" tick={{ fill: "var(--foreground)" }} />
+                  <YAxis tick={{ fill: "var(--foreground)" }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
+                    contentStyle={{
+                      backgroundColor: "var(--card)",
+                      borderColor: "var(--border)",
+                      borderRadius: "0.375rem",
+                      boxShadow: "var(--shadow)",
+                    }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="count" name="New Registrations" stroke="#800020" />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    name="New Users"
+                    stroke="var(--brand)"
+                    strokeWidth={2}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    animationDuration={1000}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </TabsContent>
 
-          <div>
-            <h3 className="text-lg font-medium mb-4">Profile Completion Rates</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={profileCompletionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    label={({ name, value }) => `${name} (${value}%)`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {profileCompletionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`${value}%`, "Completion Rate"]}
-                    contentStyle={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
+          <TabsContent
+            value="profiles"
+            className="animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-medium mb-6 flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-brand" />
+                  <span>Profile Completion by User Type</span>
+                </h3>
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">Students</div>
+                      <Badge variant="outline">{userActivity.profileCompletion.student}%</Badge>
+                    </div>
+                    <Progress
+                      value={userActivity.profileCompletion.student}
+                      className={getProgressColor(userActivity.profileCompletion.student)}
+                    />
+                  </div>
 
-        <div className="mt-6">
-          <h3 className="text-lg font-medium mb-4">Profile Completion Details</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Students</span>
-                <span className="text-sm font-medium">{userActivity.profileCompletion.student}%</span>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">Counselors</div>
+                      <Badge variant="outline">{userActivity.profileCompletion.counselor}%</Badge>
+                    </div>
+                    <Progress
+                      value={userActivity.profileCompletion.counselor}
+                      className={getProgressColor(userActivity.profileCompletion.counselor)}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">Companies</div>
+                      <Badge variant="outline">{userActivity.profileCompletion.company}%</Badge>
+                    </div>
+                    <Progress
+                      value={userActivity.profileCompletion.company}
+                      className={getProgressColor(userActivity.profileCompletion.company)}
+                    />
+                  </div>
+                </div>
               </div>
-              <Progress value={Number(userActivity.profileCompletion.student)} className="h-2" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Counselors</span>
-                <span className="text-sm font-medium">{userActivity.profileCompletion.counselor}%</span>
+
+              <div>
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-brand" />
+                  <span>Completion Comparison</span>
+                </h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={profileCompletionData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis dataKey="name" tick={{ fill: "var(--foreground)" }} />
+                      <YAxis domain={[0, 100]} tick={{ fill: "var(--foreground)" }} />
+                      <Tooltip
+                        formatter={(value) => [`${value}%`, "Completion"]}
+                        contentStyle={{
+                          backgroundColor: "var(--card)",
+                          borderColor: "var(--border)",
+                          borderRadius: "0.375rem",
+                          boxShadow: "var(--shadow)",
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="value" name="Profile Completion" radius={[4, 4, 0, 0]} animationDuration={1000}>
+                        {profileCompletionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PROFILE_COLORS[index % PROFILE_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <Progress value={Number(userActivity.profileCompletion.counselor)} className="h-2" />
             </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Companies</span>
-                <span className="text-sm font-medium">{userActivity.profileCompletion.company}%</span>
-              </div>
-              <Progress value={Number(userActivity.profileCompletion.company)} className="h-2" />
-            </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   )

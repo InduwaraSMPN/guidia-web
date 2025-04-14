@@ -1,8 +1,7 @@
 "use client"
 
-import { Sidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar"
-import { Link, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
+import { Link, useLocation } from "react-router-dom"
 import { useThemeContext } from "../contexts/ThemeContext"
 import {
   LayoutDashboard,
@@ -20,6 +19,7 @@ import {
   ChevronRight,
   Settings,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
   onToggle: (collapsed: boolean) => void
@@ -29,6 +29,8 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
+  const { isDark } = useThemeContext()
 
   // Check if screen is mobile size
   useEffect(() => {
@@ -51,324 +53,347 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
     }
   }, [isMobile])
 
+  // Set initial open submenu based on current path
+  useEffect(() => {
+    if (location.pathname.includes("/admin/registrations")) {
+      setOpenSubMenu("registrations")
+    } else if (location.pathname.includes("/admin/users")) {
+      setOpenSubMenu("users")
+    }
+  }, [location.pathname])
+
   const toggleSidebar = () => {
     const newCollapsedState = !collapsed
     setCollapsed(newCollapsedState)
     onToggle(newCollapsedState)
   }
 
-  // Using theme variables instead of hardcoded colors
-  const { isDark } = useThemeContext();
+  const toggleSubMenu = (menu: string) => {
+    if (collapsed) return
+    setOpenSubMenu(openSubMenu === menu ? null : menu)
+  }
 
-  // Color scheme variables - using sidebar-specific theme variables
-  const colorScheme = {
-    // Main colors - using brand color variables
-    primary: "var(--brand)",
-    primaryLight: "var(--brand-light)",
-    primaryDark: "var(--brand-dark)",
-
-    // Background colors - using sidebar-specific theme variables
-    bgMain: "var(--sidebar-background)",
-    bgActive: "var(--sidebar-accent)",
-    bgHover: isDark ? "var(--secondary-light)" : "var(--secondary-light)",
-
-    // Text colors - using sidebar-specific theme variables
-    textPrimary: "var(--sidebar-foreground)",
-    textActive: "var(--brand)",
-    textMuted: "var(--muted-foreground)",
-
-    // Border colors - using sidebar-specific theme variables
-    border: "var(--sidebar-border)",
-    activeBorder: "var(--brand)",
+  const isActive = (path: string) => {
+    return location.pathname.includes(path)
   }
 
   return (
-    <div className="relative h-full">
-      <Sidebar
-        collapsed={collapsed}
-        rootStyles={{
-          height: "100vh",
-          backgroundColor: `hsl(var(--sidebar-background))`,
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 50,
-          width: collapsed ? "80px" : "250px",
-          maxWidth: collapsed ? "80px" : "250px",
-          paddingTop: "4rem",
-          overflowY: "auto",
-          overflowX: collapsed ? "visible" : "hidden",
-          border: "none",
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          willChange: "transform",
-          ".ps-sidebar-container": {
-            backgroundColor: `hsl(var(--sidebar-background))`,
-            overflow: collapsed ? "visible" : "hidden",
-            transform: "translateZ(0)",
-          },
-          ".ps-menu-button:hover": {
-            backgroundColor: `hsl(var(--sidebar-accent)) !important`,
-            color: `hsl(var(--brand)) !important`,
-            transform: "translateX(4px)",
-          },
-          ".ps-submenu-content": {
-            backgroundColor: `hsl(var(--sidebar-background)) !important`,
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-          },
-          ".ps-submenu-content .ps-menu-button": {
-            paddingLeft: "36px !important",
-          },
-          ".ps-menu-root": {
-            overflow: "hidden !important",
-          },
-        }}
-        breakPoint="md"
-      >
-        <Menu
-          menuItemStyles={{
-            button: ({ level, active }) => ({
-              backgroundColor: active ? `hsl(var(--sidebar-accent))` : undefined,
-              color: active ? `hsl(var(--brand))` : `hsl(var(--sidebar-foreground))`,
-              fontWeight: active ? "600" : "500",
-              transition: "all 0.2s ease-in-out",
-              fontSize: "0.875rem",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              "&:hover": {
-                backgroundColor: `hsl(var(--sidebar-accent))`,
-                color: `hsl(var(--brand))`,
-              },
-              paddingLeft: level === 0 ? "24px" : "36px",
-              paddingTop: "0.75rem",
-              paddingBottom: "0.75rem",
-              position: "relative",
-              "&::before": active
-                ? {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    top: "20%",
-                    bottom: "20%",
-                    width: "3px",
-                    backgroundColor: `hsl(var(--brand))`,
-                    borderRadius: "0 2px 2px 0",
-                    transition: "all 0.2s ease-in-out",
-                  }
-                : undefined,
-            }),
-            label: () => ({
-              fontSize: "0.875rem",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }),
-            subMenuContent: () => ({
-              backgroundColor: `hsl(var(--sidebar-background))`,
-              padding: "4px 0",
-              overflow: "hidden",
-              borderRadius: "0 0 6px 6px",
-            }),
-            SubMenuExpandIcon: {
-              color: `hsl(var(--muted-foreground))`,
-              width: "1rem",
-              height: "1rem",
-              transition: "transform 0.3s ease",
-            },
-            icon: {
-              marginRight: collapsed ? "0" : "8px",
-              width: "18px",
-              height: "18px",
-              transition: "all 0.3s ease",
-              transform: collapsed ? "translateX(2px)" : "none",
-            },
-          }}
-          transitionDuration={200}
-        >
-          {/* Toggler with improved styling */}
-          <div className="px-4 py-3 mb-2">
+    <aside
+      className={cn(
+        "fixed top-0 left-0 z-50 h-screen bg-sidebar transition-all duration-300 ease-in-out border-r border-sidebar-border shadow-sm",
+        collapsed ? "w-[80px]" : "w-[250px]",
+      )}
+    >
+      <div className="flex flex-col h-full pt-16 pb-4 overflow-y-auto">
+        {/* Toggler */}
+        <div className="px-4 mb-6">
+          <button
+            onClick={toggleSidebar}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-sidebar-accent transition-all duration-200"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight
+                size={18}
+                className="text-sidebar-foreground/70 transition-transform duration-200 hover:scale-110"
+              />
+            ) : (
+              <ChevronLeft
+                size={18}
+                className="text-sidebar-foreground/70 transition-transform duration-200 hover:scale-110"
+              />
+            )}
+          </button>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="flex-1 px-3 space-y-1">
+          {/* Dashboard */}
+          <Link
+            to="/admin"
+            className={cn(
+              "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+              isActive("/admin") && location.pathname === "/admin"
+                ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+            )}
+          >
+            <LayoutDashboard size={18} className="flex-shrink-0 mr-2" />
+            <span className={cn("truncate", collapsed && "hidden")}>Dashboard</span>
+          </Link>
+
+          {/* Registrations */}
+          <div className="space-y-1">
             <button
-              onClick={toggleSidebar}
-              className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-secondary transition-all duration-200"
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={() => toggleSubMenu("registrations")}
+              className={cn(
+                "w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group",
+                isActive("/registrations")
+                  ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                "relative",
+              )}
             >
-              {collapsed ? (
-                <ChevronRight size={18} className="text-muted-foreground transition-transform duration-200 hover:scale-110" />
-              ) : (
-                <ChevronLeft size={18} className="text-muted-foreground transition-transform duration-200 hover:scale-110" />
+              <div className="flex items-center">
+                <UserPlus size={18} className="flex-shrink-0 mr-2" />
+                <span className={cn("truncate", collapsed && "hidden")}>Registrations</span>
+              </div>
+              {!collapsed && (
+                <ChevronRight
+                  size={16}
+                  className={cn("transition-transform duration-200", openSubMenu === "registrations" && "rotate-90")}
+                />
               )}
             </button>
+
+            {/* Submenu items */}
+            <div
+              className={cn(
+                "space-y-1 pl-10",
+                (collapsed || openSubMenu !== "registrations") && "hidden",
+                openSubMenu === "registrations" && "animate-slideDown",
+              )}
+            >
+              <Link
+                to="/admin/registrations/pending"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/registrations/pending")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <Clock size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Pending</span>
+              </Link>
+              <Link
+                to="/admin/registrations/approved"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/registrations/approved")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <CheckCircle size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Approved</span>
+              </Link>
+              <Link
+                to="/admin/registrations/declined"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/registrations/declined")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <XCircle size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Declined</span>
+              </Link>
+            </div>
+
+            {/* Dropdown for collapsed state */}
+            {collapsed && (
+              <div
+                className={cn(
+                  "absolute left-full top-0 ml-2 bg-sidebar border border-sidebar-border rounded-md shadow-md w-48 py-1 z-50",
+                  isActive("/registrations") ? "block" : "hidden group-hover:block",
+                )}
+              >
+                <Link
+                  to="/admin/registrations/pending"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <Clock size={16} className="flex-shrink-0 mr-2" />
+                  <span>Pending</span>
+                </Link>
+                <Link
+                  to="/admin/registrations/approved"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <CheckCircle size={16} className="flex-shrink-0 mr-2" />
+                  <span>Approved</span>
+                </Link>
+                <Link
+                  to="/admin/registrations/declined"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <XCircle size={16} className="flex-shrink-0 mr-2" />
+                  <span>Declined</span>
+                </Link>
+              </div>
+            )}
           </div>
 
-          <MenuItem component={<Link to="/admin" />} active={location.pathname === "/admin"} className="mb-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <LayoutDashboard size={18} className="flex-shrink-0" />
-              {!collapsed && <span className="truncate">Dashboard</span>}
-            </div>
-          </MenuItem>
-
-          <SubMenu
-            label={
-              <div className="flex items-center gap-2 overflow-hidden">
-                <UserPlus size={18} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Registrations</span>}
+          {/* Users */}
+          <div className="space-y-1">
+            <button
+              onClick={() => toggleSubMenu("users")}
+              className={cn(
+                "w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group",
+                isActive("/users")
+                  ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                "relative",
+              )}
+            >
+              <div className="flex items-center">
+                <Users size={18} className="flex-shrink-0 mr-2" />
+                <span className={cn("truncate", collapsed && "hidden")}>Users</span>
               </div>
-            }
-            defaultOpen={!collapsed && location.pathname.includes("/admin/registrations")}
-            className="mb-2"
-            onClick={
-              collapsed
-                ? (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                  }
-                : undefined
-            }
-            rootStyles={{
-              position: "relative",
-              ".ps-submenu-expand-icon": {
-                display: collapsed ? "none" : "block",
-                transition: "transform 0.3s ease",
-                "[data-open=true] &": {
-                  transform: "rotate(90deg)",
-                },
-              },
-              ".ps-submenu-content": {
-                position: "absolute",
-                left: collapsed ? "100%" : "0",
-                top: collapsed ? "0" : "auto",
-                minWidth: "200px",
-                backgroundColor: `hsl(var(--sidebar-background))`,
-                boxShadow: collapsed ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none",
-                border: collapsed ? `1px solid hsl(var(--sidebar-border))` : "none",
-                borderRadius: collapsed ? "0 6px 6px 0" : "0 0 6px 6px",
-                zIndex: 100,
-                animation: collapsed ? "fadeIn 0.2s ease-in-out" : "slideDown 0.2s ease-in-out",
-              },
-            }}
+              {!collapsed && (
+                <ChevronRight
+                  size={16}
+                  className={cn("transition-transform duration-200", openSubMenu === "users" && "rotate-90")}
+                />
+              )}
+            </button>
+
+            {/* Submenu items */}
+            <div
+              className={cn(
+                "space-y-1 pl-10",
+                (collapsed || openSubMenu !== "users") && "hidden",
+                openSubMenu === "users" && "animate-slideDown",
+              )}
+            >
+              <Link
+                to="/admin/users/admins"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/users/admins")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <ShieldCheck size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Admins</span>
+              </Link>
+              <Link
+                to="/admin/users/students"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/users/students")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <GraduationCap size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Students</span>
+              </Link>
+              <Link
+                to="/admin/users/counselors"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/users/counselors")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <Users size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Counselors</span>
+              </Link>
+              <Link
+                to="/admin/users/companies"
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
+                  isActive("/users/companies")
+                    ? "text-brand font-medium"
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                )}
+              >
+                <Building2 size={16} className="flex-shrink-0 mr-2" />
+                <span className="truncate">Companies</span>
+              </Link>
+            </div>
+
+            {/* Dropdown for collapsed state */}
+            {collapsed && (
+              <div
+                className={cn(
+                  "absolute left-full top-0 ml-2 bg-sidebar border border-sidebar-border rounded-md shadow-md w-48 py-1 z-50",
+                  isActive("/users") ? "block" : "hidden group-hover:block",
+                )}
+              >
+                <Link
+                  to="/admin/users/admins"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <ShieldCheck size={16} className="flex-shrink-0 mr-2" />
+                  <span>Admins</span>
+                </Link>
+                <Link
+                  to="/admin/users/students"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <GraduationCap size={16} className="flex-shrink-0 mr-2" />
+                  <span>Students</span>
+                </Link>
+                <Link
+                  to="/admin/users/counselors"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <Users size={16} className="flex-shrink-0 mr-2" />
+                  <span>Counselors</span>
+                </Link>
+                <Link
+                  to="/admin/users/companies"
+                  className="flex items-center px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand"
+                >
+                  <Building2 size={16} className="flex-shrink-0 mr-2" />
+                  <span>Companies</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* News */}
+          <Link
+            to="/admin/news"
+            className={cn(
+              "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+              isActive("/news")
+                ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+            )}
           >
-            <MenuItem
-              component={<Link to="registrations/pending" />}
-              active={location.pathname.includes("/registrations/pending")}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <Clock size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Pending</span>}
-              </div>
-            </MenuItem>
-            <MenuItem
-              component={<Link to="registrations/approved" />}
-              active={location.pathname.includes("/registrations/approved")}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <CheckCircle size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Approved</span>}
-              </div>
-            </MenuItem>
-            <MenuItem
-              component={<Link to="registrations/declined" />}
-              active={location.pathname.includes("/registrations/declined")}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <XCircle size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Declined</span>}
-              </div>
-            </MenuItem>
-          </SubMenu>
+            <Newspaper size={18} className="flex-shrink-0 mr-2" />
+            <span className={cn("truncate", collapsed && "hidden")}>News</span>
+          </Link>
 
-          <SubMenu
-            label={
-              <div className="flex items-center gap-2 overflow-hidden">
-                <Users size={18} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Users</span>}
-              </div>
-            }
-            defaultOpen={!collapsed && location.pathname.includes("/admin/users")}
-            className="mb-2"
-            onClick={
-              collapsed
-                ? (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                  }
-                : undefined
-            }
-            rootStyles={{
-              position: "relative",
-              ".ps-submenu-expand-icon": {
-                display: collapsed ? "none" : "block",
-                transition: "transform 0.3s ease",
-                "[data-open=true] &": {
-                  transform: "rotate(90deg)",
-                },
-              },
-              ".ps-submenu-content": {
-                position: "absolute",
-                left: collapsed ? "100%" : "0",
-                top: collapsed ? "0" : "auto",
-                minWidth: "200px",
-                backgroundColor: `hsl(var(--sidebar-background))`,
-                boxShadow: collapsed ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none",
-                border: collapsed ? `1px solid hsl(var(--sidebar-border))` : "none",
-                borderRadius: collapsed ? "0 6px 6px 0" : "0 0 6px 6px",
-                zIndex: 100,
-                animation: collapsed ? "fadeIn 0.2s ease-in-out" : "slideDown 0.2s ease-in-out",
-              },
-            }}
+          {/* Events */}
+          <Link
+            to="/admin/events"
+            className={cn(
+              "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+              isActive("/events")
+                ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+            )}
           >
-            <MenuItem component={<Link to="users/admins" />} active={location.pathname.includes("/users/admins")}>
-              <div className="flex items-center gap-2 overflow-hidden">
-                <ShieldCheck size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Admins</span>}
-              </div>
-            </MenuItem>
-            <MenuItem component={<Link to="users/students" />} active={location.pathname.includes("/users/students")}>
-              <div className="flex items-center gap-2 overflow-hidden">
-                <GraduationCap size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Students</span>}
-              </div>
-            </MenuItem>
-            <MenuItem
-              component={<Link to="users/counselors" />}
-              active={location.pathname.includes("/users/counselors")}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <Users size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Counselors</span>}
-              </div>
-            </MenuItem>
-            <MenuItem component={<Link to="users/companies" />} active={location.pathname.includes("/users/companies")}>
-              <div className="flex items-center gap-2 overflow-hidden">
-                <Building2 size={16} className="flex-shrink-0" />
-                {!collapsed && <span className="truncate">Companies</span>}
-              </div>
-            </MenuItem>
-          </SubMenu>
+            <Calendar size={18} className="flex-shrink-0 mr-2" />
+            <span className={cn("truncate", collapsed && "hidden")}>Events</span>
+          </Link>
 
-          <MenuItem component={<Link to="news" />} active={location.pathname.includes("/news")} className="mt-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Newspaper size={18} className="flex-shrink-0" />
-              {!collapsed && <span className="truncate">News</span>}
-            </div>
-          </MenuItem>
-          <MenuItem component={<Link to="events" />} active={location.pathname.includes("/events")} className="mt-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Calendar size={18} className="flex-shrink-0" />
-              {!collapsed && <span className="truncate">Events</span>}
-            </div>
-          </MenuItem>
-          <MenuItem component={<Link to="settings" />} active={location.pathname.includes("/settings")} className="mt-2">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Settings size={18} className="flex-shrink-0" />
-              {!collapsed && <span className="truncate">Admin Settings</span>}
-            </div>
-          </MenuItem>
-        </Menu>
-      </Sidebar>
-
-      {/* Animations are defined in index.css */}
-    </div>
+          {/* Settings */}
+          <Link
+            to="/admin/settings"
+            className={cn(
+              "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+              isActive("/settings")
+                ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+            )}
+          >
+            <Settings size={18} className="flex-shrink-0 mr-2" />
+            <span className={cn("truncate", collapsed && "hidden")}>Admin Settings</span>
+          </Link>
+        </nav>
+      </div>
+    </aside>
   )
 }
 
 export default AdminSidebar
+
+
