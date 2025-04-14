@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { motion } from "framer-motion"
 
 // --- ScrollArea Component ---
 const ScrollArea = React.forwardRef<
@@ -128,8 +129,7 @@ interface TimeSlotGroupProps {
 }
 
 function TimeSlotGroup({ title, slots, selectedSlot, onTimeSelect }: TimeSlotGroupProps) {
-  if (slots.length === 0) return null
-
+  // No need to check for empty slots here as we're doing conditional rendering in the parent component
   // Format time for display (e.g., "09:30" to "9:30 AM")
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(":")
@@ -139,27 +139,41 @@ function TimeSlotGroup({ title, slots, selectedSlot, onTimeSelect }: TimeSlotGro
     return `${displayHour}:${minutes} ${period}`
   }
 
+  // Ensure we have valid slots to render
+  if (!slots || slots.length === 0) {
+    console.log(`No ${title} slots to render`);
+    return null;
+  }
+
+  console.log(`Rendering ${title} slots:`, slots);
+
   return (
-    <div className="mb-4">
-      <h3 className="text-xs font-medium text-muted-foreground mb-2">{title}</h3>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-1.5">
+    <div className="mb-6">
+      <h3 className="text-sm font-semibold text-foreground mb-3 px-1">{title}</h3>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-2">
         {slots.map((slot, index) => (
-          <Button
+          <motion.div
             key={`${title.toLowerCase()}-${index}`}
-            variant={selectedSlot?.startTime === slot.startTime ? "default" : "outline"}
-            size="sm"
-            className={cn(
-              "w-full justify-start transition-all duration-300",
-              !slot.available && "opacity-50",
-              selectedSlot?.startTime === slot.startTime && "shadow-sm",
-            )}
-            onClick={() => onTimeSelect(slot)}
-            disabled={!slot.available}
-            aria-label={`Select time slot at ${formatTime(slot.startTime)}`}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: index * 0.05 }}
           >
-            <Clock className="mr-2 h-3 w-3" aria-hidden="true" />
-            <span>{formatTime(slot.startTime)}</span>
-          </Button>
+            <Button
+              variant={selectedSlot?.startTime === slot.startTime ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "w-full justify-start transition-all duration-300 h-10",
+                !slot.available && "opacity-50",
+                selectedSlot?.startTime === slot.startTime && "shadow-md scale-[1.02]",
+              )}
+              onClick={() => onTimeSelect(slot)}
+              disabled={!slot.available}
+              aria-label={`Select time slot at ${formatTime(slot.startTime)}`}
+            >
+              <Clock className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+              <span className="font-medium">{formatTime(slot.startTime)}</span>
+            </Button>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -169,23 +183,44 @@ function TimeSlotGroup({ title, slots, selectedSlot, onTimeSelect }: TimeSlotGro
 // --- Loading Skeleton Component ---
 function TimeSlotSkeleton() {
   return (
-    <div className="space-y-4 px-5">
+    <div className="space-y-6 px-6">
       <div>
-        <Skeleton className="h-4 w-16 mb-2" />
+        <Skeleton className="h-5 w-24 mb-3" />
         <div className="space-y-2">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
         </div>
       </div>
       <div>
-        <Skeleton className="h-4 w-16 mb-2" />
+        <Skeleton className="h-5 w-24 mb-3" />
         <div className="space-y-2">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
         </div>
       </div>
     </div>
+  )
+}
+
+// --- Empty State Component ---
+interface EmptyStateProps {
+  icon: React.ReactNode
+  message: string
+}
+
+function EmptyState({ icon, message }: EmptyStateProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center justify-center py-12 px-5 text-center"
+    >
+      <div className="bg-secondary/50 rounded-full p-4 mb-4">{icon}</div>
+      <p className="text-muted-foreground font-medium">{message}</p>
+    </motion.div>
   )
 }
 
@@ -209,21 +244,32 @@ export function AppointmentPicker({
   isLoadingSlots = false,
   minDate = new Date(),
 }: AppointmentPickerProps) {
+  // Log all time slots for debugging
+  console.log('All time slots:', timeSlots);
+
   // Group time slots by morning, afternoon, and evening
+  // Morning: 12 AM to 11:59 AM
   const morningSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
     return hour >= 0 && hour < 12
   })
+  console.log('Morning slots:', morningSlots);
 
+  // Afternoon: 12 PM to 2:59 PM
   const afternoonSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
-    return hour >= 12 && hour < 17
+    return hour >= 12 && hour < 15
   })
+  console.log('Afternoon slots:', afternoonSlots);
 
+  // Evening: 3 PM to 11:59 PM
   const eveningSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
-    return hour >= 17 && hour < 24
+    const isEvening = hour >= 15 && hour < 24;
+    console.log(`Slot ${slot.startTime} - hour: ${hour}, isEvening: ${isEvening}`);
+    return isEvening;
   })
+  console.log('Evening slots:', eveningSlots);
 
   // Format time for display (e.g., "09:30" to "9:30 AM")
   const formatTime = (time: string) => {
@@ -235,17 +281,17 @@ export function AppointmentPicker({
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-3 pt-4">
-        <h2 className="text-lg font-medium flex items-center">
-          <CalendarIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+    <Card className="shadow-sm overflow-hidden border-border">
+      <CardHeader className="p-4 pt-5 border-b border-border/70 bg-background">
+        <h2 className="text-xl font-semibold flex items-center">
+          <CalendarIcon className="mr-2.5 h-5 w-5 text-primary" aria-hidden="true" />
           Schedule Appointment
         </h2>
       </CardHeader>
       <CardContent className="p-0">
         <div className="flex max-sm:flex-col">
           {/* Calendar component */}
-          <div className="p-4 sm:border-r border-border">
+          <div className="p-2 sm:border-r border-border bg-background/50">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -255,56 +301,68 @@ export function AppointmentPicker({
               aria-label="Select appointment date"
             />
           </div>
-          <div className="relative w-full max-sm:h-[350px] sm:w-[240px]">
-            <div className="absolute inset-0 border-border py-4 max-sm:border-t">
+          <div className="relative w-full max-sm:h-[350px] sm:w-[280px] bg-background/30">
+            <div className="absolute inset-0 border-border py-5 max-sm:border-t pt-6 pb-12">
+              {/* Date selection indicator */}
+              <div className="flex items-center px-6 mb-4">
+                {selectedDate ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full"
+                  >
+                    <Badge variant="outline" className="px-3 py-1.5 text-sm bg-secondary/50 w-full justify-center">
+                      <CalendarIcon className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                      <span className="font-medium">{format(selectedDate, "EEEE, MMMM d")}</span>
+                    </Badge>
+                  </motion.div>
+                ) : (
+                  <span className="text-sm text-muted-foreground font-medium">Select a date to continue</span>
+                )}
+              </div>
+
               {/* ScrollArea component */}
               <ScrollArea className="h-full">
-                <div className="space-y-3">
-                  <div className="flex items-center px-5">
-                    {selectedDate ? (
-                      <Badge variant="outline" className="px-3 py-1">
-                        <span className="font-medium">{format(selectedDate, "EEEE, MMMM d")}</span>
-                      </Badge>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">Select a date</span>
-                    )}
-                  </div>
+                {isLoadingSlots ? (
+                  <TimeSlotSkeleton />
+                ) : !selectedDate ? (
+                  <EmptyState
+                    icon={<CalendarIcon className="h-8 w-8 text-muted-foreground/70" aria-hidden="true" />}
+                    message="Please select a date to view available time slots"
+                  />
+                ) : timeSlots.length === 0 ? (
+                  <EmptyState
+                    icon={<Clock className="h-8 w-8 text-muted-foreground/70" aria-hidden="true" />}
+                    message="No available time slots for the selected date"
+                  />
+                ) : (
+                  <div className="px-6">
+                    {/* Morning slots */}
+                    <TimeSlotGroup
+                      title="Morning"
+                      slots={morningSlots}
+                      selectedSlot={selectedSlot}
+                      onTimeSelect={onTimeSelect}
+                    />
 
-                  {isLoadingSlots ? (
-                    <TimeSlotSkeleton />
-                  ) : !selectedDate ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
-                      <CalendarIcon className="h-10 w-10 text-muted-foreground/50 mb-3" aria-hidden="true" />
-                      <p className="text-muted-foreground">Please select a date to view available time slots</p>
-                    </div>
-                  ) : timeSlots.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
-                      <Clock className="h-10 w-10 text-muted-foreground/50 mb-3" aria-hidden="true" />
-                      <p className="text-muted-foreground">No available time slots for the selected date</p>
-                    </div>
-                  ) : (
-                    <div className="px-3">
-                      <TimeSlotGroup
-                        title="Morning"
-                        slots={morningSlots}
-                        selectedSlot={selectedSlot}
-                        onTimeSelect={onTimeSelect}
-                      />
-                      <TimeSlotGroup
-                        title="Afternoon"
-                        slots={afternoonSlots}
-                        selectedSlot={selectedSlot}
-                        onTimeSelect={onTimeSelect}
-                      />
-                      <TimeSlotGroup
-                        title="Evening"
-                        slots={eveningSlots}
-                        selectedSlot={selectedSlot}
-                        onTimeSelect={onTimeSelect}
-                      />
-                    </div>
-                  )}
-                </div>
+                    {/* Afternoon slots */}
+                    <TimeSlotGroup
+                      title="Afternoon"
+                      slots={afternoonSlots}
+                      selectedSlot={selectedSlot}
+                      onTimeSelect={onTimeSelect}
+                    />
+
+                    {/* Evening slots */}
+                    <TimeSlotGroup
+                      title="Evening"
+                      slots={eveningSlots}
+                      selectedSlot={selectedSlot}
+                      onTimeSelect={onTimeSelect}
+                    />
+                  </div>
+                )}
               </ScrollArea>
             </div>
           </div>
@@ -313,15 +371,25 @@ export function AppointmentPicker({
 
       {/* Display selected date and time for confirmation */}
       {selectedDate && selectedSlot && (
-        <CardFooter className="border-t border-border bg-secondary/30 p-4">
-          <div className="w-full">
-            <h3 className="text-sm font-medium mb-1">Your Appointment</h3>
-            <p className="text-sm">
-              <span className="font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</span> at{" "}
-              <span className="font-medium">{formatTime(selectedSlot.startTime)}</span>
-            </p>
-          </div>
-        </CardFooter>
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.3 }}
+        >
+          <CardFooter className="border-t border-border bg-secondary/40 p-5">
+            <div className="w-full">
+              <h3 className="text-sm font-semibold mb-2 flex items-center">
+                <Clock className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
+                Your Appointment
+              </h3>
+              <p className="text-sm bg-background/50 p-3 rounded-md border border-border/50">
+                <span className="font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
+                <span className="mx-1">at</span>
+                <span className="font-medium text-primary">{formatTime(selectedSlot.startTime)}</span>
+              </p>
+            </div>
+          </CardFooter>
+        </motion.div>
       )}
     </Card>
   )

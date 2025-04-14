@@ -15,8 +15,11 @@ export function AppointmentPicker() {
   const generateTimeSlots = (): TimeSlot[] => {
     const slots: TimeSlot[] = [];
 
-    // Generate slots from 9:00 to 17:30 in 30-minute increments
-    for (let hour = 9; hour < 18; hour++) {
+    // Generate slots from 9:00 to 20:30 in 30-minute increments (covering morning, afternoon, and evening)
+    // Morning: 9:00 AM to 11:30 AM
+    // Afternoon: 12:00 PM to 2:30 PM
+    // Evening: 3:00 PM to 8:30 PM
+    for (let hour = 9; hour < 21; hour++) {
       for (let minute of [0, 30]) {
         // Make some slots unavailable randomly
         const available = Math.random() > 0.3;
