@@ -22,6 +22,7 @@ export function ProfileDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [adminUsername, setAdminUsername] = useState<string>("")  // New state for admin username
 
   // Update the date and time every minute
   useEffect(() => {
@@ -52,8 +53,29 @@ export function ProfileDropdown() {
           case "Company":
             apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile/${user.userID}`
             break
+          case "Admin":
+            // For Admin, fetch the username from the users endpoint
+            try {
+              const adminResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/profile`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              })
+
+              if (adminResponse.ok) {
+                const adminData = await adminResponse.json()
+                setAdminUsername(adminData.username || "")
+              } else {
+                console.error(`Failed to fetch admin data: ${adminResponse.status}`)
+              }
+            } catch (adminError) {
+              console.error("Error fetching admin data:", adminError)
+            }
+            setIsLoading(false)
+            return
           default:
-            // Admin doesn't have a profile image
+            // Other user types without profile data
             setIsLoading(false)
             return
         }
@@ -163,15 +185,20 @@ export function ProfileDropdown() {
   const getUserName = () => {
     if (!user) return "User"
 
+    // For Admin users, use the fetched username
+    if (user.userType === "Admin") {
+      return adminUsername || user.email.split('@')[0] || "Admin"
+    }
+
     if (profileData) {
       return profileData.studentName ||
              profileData.counselorName ||
              profileData.companyName ||
-             user.username ||
+             user.email.split('@')[0] ||
              "User"
     }
 
-    return user.username || "User"
+    return user.email.split('@')[0] || "User"
   }
 
   // Helper function to get the profile image
@@ -230,9 +257,9 @@ export function ProfileDropdown() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
-                  {getUserName()}
+                  {user?.userType === "Admin" ? adminUsername || user?.email.split('@')[0] : getUserName()}
                 </h3>
-                <p className="text-xs text-muted-foreground dark:text-neutral-400">{user?.userType || "User"}</p>
+                <p className="text-xs text-muted-foreground dark:text-neutral-400">{user?.userType === "Admin" ? "Admin" : user?.userType || "User"}</p>
               </div>
             </div>
           </div>
@@ -245,7 +272,7 @@ export function ProfileDropdown() {
               className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
               <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-              Profile
+              {user?.userType === "Admin" ? "Dashboard" : "Profile"}
             </Link>
 
             {user?.userType !== "Admin" && (

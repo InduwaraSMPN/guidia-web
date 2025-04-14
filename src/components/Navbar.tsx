@@ -209,7 +209,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                   ))}
 
                   {/* Meetings Dropdown */}
-                  {user && (
+                  {user && user.userType !== 'Admin' && (
                     <NavDropdown
                       label="Meetings"
                       items={meetingDropdownItems}
@@ -301,7 +301,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               ))}
 
               {/* Mobile Meetings Dropdown */}
-              {user && (
+              {user && user.userType !== 'Admin' && (
                 <MobileNavDropdown
                   label="Meetings"
                   items={meetingDropdownItems}
