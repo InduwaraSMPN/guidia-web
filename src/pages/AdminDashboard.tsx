@@ -10,12 +10,72 @@ import PageHeading from "../components/PageHeading"
 import { toast } from "../components/ui/sonner"
 import { Loader2 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard"
+import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard"
 
 // Create a context to share the sidebar state
 import { createContext } from "react"
 
 // Define SidebarContext
 export const SidebarContext = createContext({ collapsed: false })
+
+interface JobStatistics {
+  totalActiveJobs: number
+  jobsLast7Days: number
+  jobsLast30Days: number
+  jobsExpiringSoon: number
+  mostViewedJobs: Array<{
+    jobID: number
+    title: string
+    companyID: number
+    companyName: string
+    viewCount: number
+  }>
+  leastViewedJobs: Array<{
+    jobID: number
+    title: string
+    companyID: number
+    companyName: string
+    viewCount: number
+  }>
+  mostApplicationJobs: Array<{
+    jobID: number
+    title: string
+    companyID: number
+    companyName: string
+    applicationCount: number
+  }>
+  leastApplicationJobs: Array<{
+    jobID: number
+    title: string
+    companyID: number
+    companyName: string
+    applicationCount: number
+  }>
+  jobPostingTrend: Array<{
+    date: string
+    count: number
+  }>
+  jobViewsTrend: Array<{
+    date: string
+    count: number
+  }>
+}
+
+interface ApplicationStatistics {
+  totalApplications: number
+  applicationsLast7Days: number
+  applicationsLast30Days: number
+  applicationsByStatus: Array<{
+    status: string
+    count: number
+  }>
+  applicationTrend: Array<{
+    date: string
+    count: number
+  }>
+  conversionRate: number
+}
 
 interface DashboardData {
   counts: {
@@ -33,6 +93,8 @@ interface DashboardData {
       companies: number
     }
   }
+  jobStats?: JobStatistics
+  applicationStats?: ApplicationStatistics
 }
 
 interface SubStat {
@@ -132,6 +194,32 @@ export function AdminDashboard() {
       }
       const userCountsData = await userCountsRes.json()
 
+      // Fetch job statistics
+      const jobStatsRes = await fetch("/api/admin/job-statistics", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let jobStatsData = null
+      if (jobStatsRes.ok) {
+        jobStatsData = await jobStatsRes.json()
+      } else {
+        console.error("Failed to fetch job statistics")
+      }
+
+      // Fetch application statistics
+      const appStatsRes = await fetch("/api/admin/application-statistics", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let appStatsData = null
+      if (appStatsRes.ok) {
+        appStatsData = await appStatsRes.json()
+      } else {
+        console.error("Failed to fetch application statistics")
+      }
+
       setDashboardData({
         counts: {
           upcomingEvents: Number(countsData.upcomingEvents) || 0,
@@ -148,6 +236,8 @@ export function AdminDashboard() {
             companies: Number(userCountsData.companies) || 0,
           },
         },
+        jobStats: jobStatsData,
+        applicationStats: appStatsData,
       })
       setError("")
     } catch (error) {
@@ -197,50 +287,87 @@ export function AdminDashboard() {
                     </div>
                   )}
                   {loading && !refreshing ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {/* Users Overview Skeleton */}
-                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
-                        <div className="p-6">
-                          <Skeleton className="h-6 w-40 mb-5 pb-3" />
-                          <ul className="space-y-3">
-                            {[...Array(3)].map((_, index) => (
-                              <li key={index}>
+                    <div className="space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Users Overview Skeleton */}
+                        <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                          <div className="p-6">
+                            <Skeleton className="h-6 w-40 mb-5 pb-3" />
+                            <ul className="space-y-3">
+                              {[...Array(3)].map((_, index) => (
+                                <li key={index}>
+                                  <div className="flex justify-between items-center p-3 rounded-lg">
+                                    <Skeleton className="h-5 w-24" />
+                                    <Skeleton className="h-6 w-12 rounded-full" />
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Activity Summary Skeleton */}
+                        <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                          <div className="p-6">
+                            <Skeleton className="h-6 w-48 mb-5 pb-3" />
+                            <ul className="space-y-3">
+                              <li>
                                 <div className="flex justify-between items-center p-3 rounded-lg">
-                                  <Skeleton className="h-5 w-24" />
+                                  <Skeleton className="h-5 w-20" />
+                                  <Skeleton className="h-6 w-12 rounded-full" />
+                                </div>
+                                <ul className="ml-6 mt-2 space-y-2 border-l-2 border-border pl-4">
+                                  {[...Array(2)].map((_, index) => (
+                                    <li key={index} className="flex justify-between items-center p-2.5 rounded-lg">
+                                      <Skeleton className="h-4 w-32" />
+                                      <Skeleton className="h-5 w-10 rounded-full" />
+                                    </li>
+                                  ))}
+                                </ul>
+                              </li>
+                              <li>
+                                <div className="flex justify-between items-center p-3 rounded-lg">
+                                  <Skeleton className="h-5 w-28" />
                                   <Skeleton className="h-6 w-12 rounded-full" />
                                 </div>
                               </li>
-                            ))}
-                          </ul>
+                            </ul>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Activity Summary Skeleton */}
+                      {/* Job Statistics Skeleton */}
                       <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
                         <div className="p-6">
                           <Skeleton className="h-6 w-48 mb-5 pb-3" />
-                          <ul className="space-y-3">
-                            <li>
-                              <div className="flex justify-between items-center p-3 rounded-lg">
-                                <Skeleton className="h-5 w-20" />
-                                <Skeleton className="h-6 w-12 rounded-full" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            {[...Array(4)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
                               </div>
-                              <ul className="ml-6 mt-2 space-y-2 border-l-2 border-border pl-4">
-                                {[...Array(2)].map((_, index) => (
-                                  <li key={index} className="flex justify-between items-center p-2.5 rounded-lg">
-                                    <Skeleton className="h-4 w-32" />
-                                    <Skeleton className="h-5 w-10 rounded-full" />
-                                  </li>
-                                ))}
-                              </ul>
-                            </li>
-                            <li>
-                              <div className="flex justify-between items-center p-3 rounded-lg">
-                                <Skeleton className="h-5 w-28" />
-                                <Skeleton className="h-6 w-12 rounded-full" />
+                            ))}
+                          </div>
+                          <Skeleton className="h-80 w-full mb-6" />
+                        </div>
+                      </div>
+
+                      {/* Application Statistics Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-56 mb-5 pb-3" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            {[...Array(4)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
                               </div>
-                            </li>
-                          </ul>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Skeleton className="h-80 w-full" />
+                            <Skeleton className="h-80 w-full" />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -283,6 +410,20 @@ export function AdminDashboard() {
                           ]}
                         />
                       </div>
+
+                      {/* Job Statistics Card */}
+                      {dashboardData.jobStats && (
+                        <div className="mt-8">
+                          <JobStatisticsCard jobStats={dashboardData.jobStats} />
+                        </div>
+                      )}
+
+                      {/* Application Statistics Card */}
+                      {dashboardData.applicationStats && (
+                        <div className="mt-8">
+                          <ApplicationStatisticsCard applicationStats={dashboardData.applicationStats} />
+                        </div>
+                      )}
                     </div>
                   ) : null}
                 </div>
