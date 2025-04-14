@@ -10,6 +10,7 @@ import { ref, onValue } from 'firebase/database';
 import { useParams } from 'react-router-dom';
 import { getOrCreateConversation } from '@/utils/getOrCreateConversation';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatDetailProps {
   chatId: string;
@@ -207,39 +208,90 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
           <ArrowLeft className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-3 flex-1">
-          {receiver?.image ? (
-            <img
-              src={receiver.image}
-              alt={receiver.name}
-              className={`${
-                receiver.type === 'company'
-                  ? 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
-                  : 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
-              }`}
-            />
-          ) : (
-            <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-muted-foreground" />
+        {isLoading && !receiver ? (
+          <div className="flex items-center gap-3 flex-1">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-24" />
             </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            <h2 className="font-medium text-adaptive-dark truncate">
-              {receiver?.name || 'Unknown User'}
-            </h2>
-            {receiver?.subtitle && (
-              <p className="text-sm text-muted-foreground truncate">
-                {receiver.subtitle}
-              </p>
-            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1">
+            {receiver?.image ? (
+              <img
+                src={receiver.image}
+                alt={receiver.name}
+                className={`${
+                  receiver.type === 'company'
+                    ? 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
+                    : 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
+                }`}
+              />
+            ) : (
+              <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-muted-foreground" />
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              <h2 className="font-medium text-adaptive-dark truncate">
+                {receiver?.name || 'Unknown User'}
+              </h2>
+              {receiver?.subtitle && (
+                <p className="text-sm text-muted-foreground truncate">
+                  {receiver.subtitle}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          <div className="space-y-6 p-4">
+            {/* Date divider skeleton */}
+            <div className="flex justify-center my-4">
+              <Skeleton className="h-6 w-32 rounded-full" />
+            </div>
+
+            {/* Message bubbles skeletons - other user */}
+            <div className="flex items-end gap-2 justify-start">
+              <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+              <div className="space-y-2">
+                <Skeleton className="h-24 w-64 rounded-lg" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+
+            {/* Message bubbles skeletons - current user */}
+            <div className="flex items-end gap-2 justify-end">
+              <div className="space-y-2">
+                <Skeleton className="h-20 w-56 rounded-lg" />
+                <div className="flex justify-end">
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+            </div>
+
+            {/* Message bubbles skeletons - other user */}
+            <div className="flex items-end gap-2 justify-start">
+              <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+              <div className="space-y-2">
+                <Skeleton className="h-16 w-48 rounded-lg" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+
+            {/* Message bubbles skeletons - current user */}
+            <div className="flex items-end gap-2 justify-end">
+              <div className="space-y-2">
+                <Skeleton className="h-28 w-72 rounded-lg" />
+                <div className="flex justify-end">
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+            </div>
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
@@ -276,27 +328,34 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
         )}
       </div>
       <div className="border-t p-4">
-        <div className="flex gap-2">
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            className="flex-1 resize-none rounded-lg border bg-secondary px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#800020] transition-all duration-200"
-            rows={1}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim() || isSending || !isFirebaseReady || !receiverInfo}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"
-          >
-            {isSending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </button>
-        </div>
+        {isLoading ? (
+          <div className="flex gap-2">
+            <Skeleton className="flex-1 h-10 rounded-lg" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message..."
+              className="flex-1 resize-none rounded-lg border bg-secondary px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#800020] transition-all duration-200"
+              rows={1}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim() || isSending || !isFirebaseReady || !receiverInfo}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"
+            >
+              {isSending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

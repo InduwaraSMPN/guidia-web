@@ -7,6 +7,7 @@ import { RichTextEditor } from '../components/ui/RichTextEditor';
 import { FileText, Plus, X } from 'lucide-react';
 import { ViewDocumentModal } from '../components/ViewDocumentModal';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   title: string;
@@ -33,8 +34,14 @@ export function PostNewsPage() {
   const [previewIndex, setPreviewIndex] = useState<number>(0);
   const [showFileUploaders, setShowFileUploaders] = useState<boolean[]>([true]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
     if (id) {
       const fetchNewsData = async () => {
         try {
@@ -43,25 +50,25 @@ export function PostNewsPage() {
             throw new Error(`Failed to fetch news: ${response.status}`);
           }
           const newsData = await response.json();
-          
+
           setFormData({
             title: newsData.title,
             content: newsData.content,
-            images: Array(newsData.imageURLs ? 
-              (typeof newsData.imageURLs === 'string' ? 
-                JSON.parse(newsData.imageURLs).length : 
-                newsData.imageURLs.length) : 
+            images: Array(newsData.imageURLs ?
+              (typeof newsData.imageURLs === 'string' ?
+                JSON.parse(newsData.imageURLs).length :
+                newsData.imageURLs.length) :
               0).fill(null),
           });
-          
+
           // Handle image URLs
           if (newsData.imageURLs) {
             try {
               // Parse imageURLs if it's a string
-              const imageUrls = typeof newsData.imageURLs === 'string' 
-                ? JSON.parse(newsData.imageURLs) 
+              const imageUrls = typeof newsData.imageURLs === 'string'
+                ? JSON.parse(newsData.imageURLs)
                 : newsData.imageURLs;
-              
+
               if (imageUrls && imageUrls.length > 0) {
                 setExistingImageUrls(imageUrls);
                 setPreviewUrls(imageUrls);
@@ -76,10 +83,15 @@ export function PostNewsPage() {
         } catch (error) {
           console.error('Error fetching news:', error);
           toast.error('Failed to fetch news data');
+        } finally {
+          setLoading(false);
+          clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
         }
       };
       fetchNewsData();
     }
+
+    return () => clearTimeout(loadingTimer);
   }, [id]);
 
   const handleChange = (
@@ -102,7 +114,7 @@ export function PostNewsPage() {
   const handleImagesUpload = (files: File[]) => {
     const newImages = [...uploadedImages, ...files];
     setUploadedImages(newImages);
-    
+
     // Update form data
     setFormData(prev => ({
       ...prev,
@@ -112,7 +124,7 @@ export function PostNewsPage() {
     // Create preview URLs
     const newPreviewUrls = files.map(file => URL.createObjectURL(file));
     setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    
+
     // Update file uploaders state
     setShowFileUploaders(prev => [...prev.map(() => false)]);
   };
@@ -122,7 +134,7 @@ export function PostNewsPage() {
     if (previewUrls[index]) {
       URL.revokeObjectURL(previewUrls[index]);
     }
-    
+
     // Remove image
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
     setFormData(prev => ({
@@ -139,7 +151,7 @@ export function PostNewsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (formData.images.every(img => img === null) && existingImageUrls.every(url => !url)) {
         toast.error('Please upload at least one news image');
@@ -167,14 +179,14 @@ export function PostNewsPage() {
           }
 
           const uploadResult = await uploadResponse.json();
-          
+
           // Replace or add the image URL
           if (i < imageURLs.length) {
             imageURLs[i] = uploadResult.imageURL;
           } else {
             imageURLs.push(uploadResult.imageURL);
           }
-          
+
           imagePaths.push(uploadResult.imagePath);
         }
       }
@@ -184,7 +196,7 @@ export function PostNewsPage() {
 
       // Create or update news
       const method = id ? 'PUT' : 'POST';
-      const url = id 
+      const url = id
         ? `${import.meta.env.VITE_API_BASE_URL}/api/news/${id}`
         : `${import.meta.env.VITE_API_BASE_URL}/api/news`;
 
@@ -214,7 +226,7 @@ export function PostNewsPage() {
       });
 
       toast.success(id ? 'News updated successfully' : 'News created successfully');
-      
+
       // Determine where to navigate based on current path
       const isAdminRoute = location.pathname.startsWith('/admin');
       navigate(isAdminRoute ? '/admin/news' : '/news');
@@ -224,11 +236,48 @@ export function PostNewsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto pt-32 py-8 px-4">
+        <div className="max-w-4xl mx-auto bg-white rounded-lg p-6">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-[300px] w-full rounded-md" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-32 w-full rounded-md" />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                {[...Array(3)].map((_, index) => (
+                  <Skeleton key={index} className="h-48 w-full rounded-lg" />
+                ))}
+              </div>
+            </div>
+
+            <div className="pb-8">
+              <Skeleton className="h-10 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto pt-32 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-lg p-6">
         <h1 className="text-3xl font-bold text-brand mb-8">{id ? 'Edit News' : 'Post News'}</h1>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
             <div className="space-y-2">
@@ -264,7 +313,7 @@ export function PostNewsPage() {
                   News Images<span className="text-brand">*</span>
                 </label>
               </div>
-              
+
               <FileUploader
                 acceptType="image"
                 label="News Images"
@@ -324,7 +373,7 @@ export function PostNewsPage() {
                 />
               )}
             </div>
-            
+
             <div className="pb-8">
               <Button
                 type="submit"

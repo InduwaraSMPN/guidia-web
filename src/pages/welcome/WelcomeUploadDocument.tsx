@@ -6,6 +6,7 @@ import { DocumentUploadForm } from '../../components/document/DocumentUploadForm
 import { DocumentData } from '../../interfaces/Document';
 import axiosInstance from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StudentDocument {
   stuDocType: string;
@@ -26,6 +27,16 @@ export function WelcomeUploadDocument() {
 
   const [uploadedDocs, setUploadedDocs] = useState<StudentDocument[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -54,11 +65,11 @@ export function WelcomeUploadDocument() {
     try {
       setLoading(true);
       const updatedDocs = uploadedDocs.filter(doc => doc.stuDocName !== docName);
-      
+
       await axiosInstance.post('/api/students/update-documents', {
         documents: updatedDocs
       });
-      
+
       setUploadedDocs(updatedDocs);
     } catch (error) {
       console.error('Error deleting document:', error);
@@ -75,7 +86,7 @@ export function WelcomeUploadDocument() {
 
     try {
       setLoading(true);
-      
+
       if (!document.content) {
         throw new Error('Document content (URL) is required');
       }
@@ -90,9 +101,9 @@ export function WelcomeUploadDocument() {
         stuDocName: document.filename,
         stuDocURL: document.content
       };
-      
+
       const newDocuments = [...uploadedDocs, newDoc];
-      
+
       await axiosInstance.post('/api/students/update-documents', {
         documents: newDocuments
       });
@@ -104,6 +115,68 @@ export function WelcomeUploadDocument() {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-6 w-2/3 mx-auto" />
+          </div>
+
+          {/* Uploaded Documents List Skeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-8 w-48 mb-4" />
+            <div className="space-y-4">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="flex items-center justify-between bg-secondary p-4 rounded-lg border border-border">
+                  <div className="flex items-center justify-between w-full">
+                    <div>
+                      <Skeleton className="h-5 w-48 mb-2" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Document Upload Form Skeleton */}
+          <div className="mb-4">
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48 mb-2" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-48 w-full rounded-lg" />
+              </div>
+              <div className="flex justify-end">
+                <Skeleton className="h-10 w-40 rounded-md" />
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Navigation Skeleton */}
+          <div className="mt-8 flex justify-between items-center mb-8">
+            <Skeleton className="h-4 w-64" />
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-40 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">

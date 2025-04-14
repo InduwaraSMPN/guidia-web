@@ -5,8 +5,9 @@ import { cn, formatShortDate } from '../lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { database } from '@/firebase/config';
 import { ref, onValue } from 'firebase/database';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatListProps {
   onSelectChat: (chatId: string) => void;
@@ -205,8 +206,21 @@ export function ChatList({ onSelectChat, selectedChat, userID }: ChatListProps) 
       </div>
       <div className="flex-1 overflow-auto">
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          <div className="divide-y">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="flex items-center gap-4 p-4">
+                <div className="relative">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                </div>
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="flex h-64 items-center justify-center">

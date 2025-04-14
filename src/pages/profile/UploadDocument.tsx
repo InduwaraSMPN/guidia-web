@@ -4,6 +4,7 @@ import { DocumentUploadForm } from '../../components/document/DocumentUploadForm
 import { DocumentData } from '../../interfaces/Document';
 import { useAuth } from '../../contexts/AuthContext';
 import axiosInstance from '../../lib/axios';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StudentDocument {
   stuDocType: string;
@@ -25,23 +26,35 @@ export function UploadDocument() {
   const { userID } = useParams();
   const { user } = useAuth();
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchExistingDocuments = async () => {
       try {
         const { data } = await axiosInstance.get<{studentDocuments: StudentDocument[]}>('/api/students/documents');
         const existingDocs = data.studentDocuments || [];
-        
+
         // Filter out categories that already have documents
         const existingCategories = existingDocs.map(doc => doc.stuDocType);
         const filteredCategories = DOCUMENT_CATEGORIES.filter(category => {
           if (category === 'Other') return true; // Always show 'Other' category
           return !existingCategories.includes(category); // Filter out categories that exist
         });
-        
+
         setAvailableCategories(filteredCategories);
       } catch (error) {
         console.error('Error fetching documents:', error);
+      } finally {
+        setPageLoading(false);
       }
     };
 
@@ -84,7 +97,7 @@ export function UploadDocument() {
 
       // Give UI time to show success state
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Navigate back to documents page
       navigate(`/students/profile/documents/${userID}`);
     } catch (error) {
@@ -92,6 +105,38 @@ export function UploadDocument() {
       throw error; // This will be caught by the DocumentUploadForm component
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
@@ -103,7 +148,7 @@ export function UploadDocument() {
         {availableCategories.length === 0 && !availableCategories.includes('Other') ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
-              You have already uploaded all required documents. 
+              You have already uploaded all required documents.
               You can still upload additional documents using the 'Other' category.
             </p>
             <button

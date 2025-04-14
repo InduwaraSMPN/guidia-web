@@ -1,7 +1,20 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TestimonialsPage() {
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -104,6 +117,83 @@ export function TestimonialsPage() {
       content: "As a growing company, finding the right talent is crucial. Guidia has helped us connect with promising graduates who bring fresh perspectives to our team. The platform's focus on career readiness ensures that the candidates we interview are well-prepared for the professional environment.",
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          {/* Header Skeleton */}
+          <div className="mb-16 text-center">
+            <Skeleton className="h-10 w-48 mx-auto mb-6" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto" />
+          </div>
+
+          {/* Student Testimonials Skeleton */}
+          <div className="mb-20">
+            <Skeleton className="h-8 w-64 mx-auto mb-8" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(6)].map((_, index) => (
+                <div key={index} className="bg-secondary p-6 rounded-xl shadow-sm border border-border flex flex-col h-full">
+                  <div className="flex items-center gap-4 mb-4">
+                    <Skeleton className="w-12 h-12 rounded-full" />
+                    <div>
+                      <Skeleton className="h-5 w-32 mb-1" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                  <div className="flex mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-4 w-4 rounded-full mr-1" />
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Company Testimonials Skeleton */}
+          <div>
+            <Skeleton className="h-8 w-64 mx-auto mb-8" />
+            <div className="grid md:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="bg-brand/5 p-8 rounded-xl border border-brand/10 flex flex-col h-full">
+                  <div className="mb-6">
+                    <Skeleton className="h-12 w-48 mb-4" />
+                    <div>
+                      <Skeleton className="h-5 w-40 mb-1" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Call to Action Skeleton */}
+          <div className="mt-20 bg-secondary p-10 rounded-2xl border border-border text-center">
+            <Skeleton className="h-8 w-64 mx-auto mb-4" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto mb-8" />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Skeleton className="h-12 w-48 rounded-lg" />
+              <Skeleton className="h-12 w-48 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
@@ -237,14 +327,14 @@ export function TestimonialsPage() {
             Whether you're a student starting your career journey or a company looking for talented professionals, Guidia is here to help you succeed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="/auth/register" 
+            <a
+              href="/auth/register"
               className="inline-flex items-center justify-center px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand/90 transition-colors"
             >
               Create a Free Account
             </a>
-            <a 
-              href="/contact" 
+            <a
+              href="/contact"
               className="inline-flex items-center justify-center px-6 py-3 bg-secondary-light text-foreground rounded-lg border border-border hover:bg-secondary-light/80 transition-colors"
             >
               Contact Us

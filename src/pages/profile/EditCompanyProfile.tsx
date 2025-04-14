@@ -9,6 +9,7 @@ import { FileUploader } from '@/components/FileUploader';
 import { ViewDocumentModal } from '@/components/ViewDocumentModal';
 import { FileText } from 'lucide-react';
 import CountrySelect from "@/components/ui/CountrySelect";
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   companyName: string;
@@ -26,6 +27,7 @@ export function EditCompanyProfile() {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showFileUploader, setShowFileUploader] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
@@ -41,10 +43,16 @@ export function EditCompanyProfile() {
   });
 
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
     const loadProfileData = async () => {
       if (!token || !user?.userID) {
         toast.error('Please login to continue');
         navigate('/auth/login');
+        setPageLoading(false);
         return;
       }
 
@@ -64,7 +72,7 @@ export function EditCompanyProfile() {
         }
 
         const data = await response.json();
-        
+
         setFormData({
           companyName: data.companyName || '',
           country: data.companyCountry || '',
@@ -79,10 +87,10 @@ export function EditCompanyProfile() {
         // Updated logo handling
         if (data.companyLogoPath) {
           // Check if the path is a full URL or a relative path
-          const logoUrl = data.companyLogoPath.startsWith('http') 
-            ? data.companyLogoPath 
+          const logoUrl = data.companyLogoPath.startsWith('http')
+            ? data.companyLogoPath
             : `${import.meta.env.VITE_API_BASE_URL}${data.companyLogoPath}`;
-          
+
           setPreviewUrl(logoUrl);
           setShowFileUploader(false);
         } else {
@@ -94,10 +102,14 @@ export function EditCompanyProfile() {
         toast.error('Failed to load company data');
       } finally {
         setIsLoading(false);
+        setPageLoading(false);
+        clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
       }
     };
 
     loadProfileData();
+
+    return () => clearTimeout(loadingTimer);
   }, [token, user, navigate]);
 
   const handleInputChange = (
@@ -159,7 +171,7 @@ export function EditCompanyProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!token || !user?.userID) {
       toast.error('Please login to update profile');
       return;
@@ -175,7 +187,7 @@ export function EditCompanyProfile() {
 
     try {
       let logoPath = previewUrl;
-      
+
       if (formData.image) {
         const imageFormData = new FormData();
         imageFormData.append('file', formData.image);
@@ -236,14 +248,75 @@ export function EditCompanyProfile() {
 
     } catch (error) {
       console.error('Error updating profile:', error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
+      const errorMessage = error instanceof Error
+        ? error.message
         : 'Failed to update profile. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto mb-16">
+          <Skeleton className="h-10 w-64 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-[160px] w-full rounded-md" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
@@ -361,10 +434,10 @@ export function EditCompanyProfile() {
                 onUpload={files => {
                   if (files.length > 0) {
                     const file = files[0];
-                    console.log('Selected file:', { 
-                      name: file.name, 
-                      size: file.size, 
-                      type: file.type 
+                    console.log('Selected file:', {
+                      name: file.name,
+                      size: file.size,
+                      type: file.type
                     });
                     setFormData(prev => ({ ...prev, image: file }));
                     const url = URL.createObjectURL(file);

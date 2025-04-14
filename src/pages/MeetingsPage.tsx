@@ -247,7 +247,7 @@ export function MeetingsPage() {
 
   if (isLoading) {
     return (
-      <div className="container pb-32 pt-32">
+      <div className="container pb-32 pt-32 max-w-[1216px]">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <Skeleton className="h-10 w-40" />
           <Skeleton className="h-10 w-36" />
@@ -322,7 +322,7 @@ export function MeetingsPage() {
   }
 
   return (
-    <div className="container pb-32 pt-32">
+    <div className="container pb-32 pt-32 max-w-[1216px]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">Meetings</h1>
         <div className="flex gap-2">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { MultipleInput } from '@/components/ui/MultipleInput';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Check, Plus, X } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AVAILABLE_SPECIALIZATIONS = [
   'Technology Career Paths',
@@ -26,13 +27,22 @@ export function EditSpecializations() {
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const navigate = useNavigate();
   const { user } = useAuth();
   const token = localStorage.getItem('token');
 
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
     const fetchSpecializations = async () => {
-      if (!user?.userID || !token) return;
+      if (!user?.userID || !token) {
+        setPageLoading(false);
+        return;
+      }
 
       try {
         const response = await fetch(
@@ -49,7 +59,7 @@ export function EditSpecializations() {
         }
 
         const data = await response.json();
-        
+
         // Handle both string and array formats
         let fetchedSpecializations: string[] = [];
         if (typeof data.counselorSpecializations === 'string') {
@@ -71,10 +81,15 @@ export function EditSpecializations() {
         console.error('Error fetching specializations:', error);
         toast.error('Failed to load specializations');
         setInitialLoad(false);
+      } finally {
+        setPageLoading(false);
+        clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
       }
     };
 
     fetchSpecializations();
+
+    return () => clearTimeout(loadingTimer);
   }, [user?.userID, token]);
 
   const handleSave = async () => {
@@ -126,22 +141,69 @@ export function EditSpecializations() {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.05 
+      transition: {
+        staggerChildren: 0.05
       }
     }
   };
-  
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 }
   };
 
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-secondary pt-32 pb-32 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Back navigation skeleton */}
+          <Skeleton className="h-10 w-32 mb-4" />
+
+          {/* Header skeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-10 w-64" />
+          </div>
+
+          {/* Main content skeleton */}
+          <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+            {/* Selected specializations section skeleton */}
+            <div className="p-6 border-b border-border">
+              <Skeleton className="h-5 w-48 mb-4" />
+              <div className="h-20 flex flex-col justify-center space-y-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            </div>
+
+            {/* Suggestions section skeleton */}
+            <div className="p-6">
+              <Skeleton className="h-5 w-48 mb-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[...Array(8)].map((_, index) => (
+                  <Skeleton key={index} className="h-12 w-full rounded-md" />
+                ))}
+              </div>
+            </div>
+
+            {/* Actions footer skeleton */}
+            <div className="px-6 py-4 bg-secondary border-t border-border flex justify-between items-center">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex gap-3">
+                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-32 rounded-md" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-secondary pt-32 pb-32 px-4 sm:px-6 lg:px-8">
-      <motion.div 
+      <motion.div
         className="max-w-3xl mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -167,13 +229,13 @@ export function EditSpecializations() {
           {/* Selected specializations section */}
           <div className="p-6 border-b border-border">
             <label className="block text-sm font-medium text-foreground mb-4">
-              Your Selected Specializations {selectedSpecializations.length > 0 && 
+              Your Selected Specializations {selectedSpecializations.length > 0 &&
                 <span className="text-muted-foreground font-normal">
                   ({selectedSpecializations.length}/10)
                 </span>
               }
             </label>
-            
+
             {initialLoad ? (
               <div className="h-20 flex items-center justify-center">
                 <div className="animate-pulse h-4 w-32 bg-secondary-dark rounded"></div>
@@ -202,13 +264,13 @@ export function EditSpecializations() {
             <h3 className="text-sm font-medium text-foreground mb-4">
               Suggested Specializations:
             </h3>
-            
+
             {filteredSuggestions.length === 0 ? (
               <p className="text-sm text-muted-foreground py-2">
                 All suggested specializations have been selected. You can add custom specializations above.
               </p>
             ) : (
-              <motion.div 
+              <motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 variants={containerVariants}
                 initial="hidden"
@@ -230,8 +292,8 @@ export function EditSpecializations() {
                       className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                     >
                       <span>{specialization}</span>
-                      <Plus 
-                        className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" 
+                      <Plus
+                        className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
                       />
                     </Button>
                   </motion.div>

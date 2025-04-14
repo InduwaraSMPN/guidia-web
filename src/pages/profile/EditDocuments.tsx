@@ -7,6 +7,7 @@ import axiosInstance from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { ViewDocumentModal } from '../../components/ViewDocumentModal';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Document {
   id: string;
@@ -31,6 +32,7 @@ export function EditDocuments() {
   const [selectedDocumentName, setSelectedDocumentName] = useState<string | null>(null);
   const [selectedDocumentType, setSelectedDocumentType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const getProfilePath = () => {
     if (!user) return '';
@@ -48,12 +50,21 @@ export function EditDocuments() {
     }
   };
 
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Load documents from API on component mount
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
         const { data } = await axiosInstance.get<{studentDocuments: StudentDocument[]}>('/api/students/documents');
-        
+
         // Convert API format to component format
         const formattedDocs = (data.studentDocuments || []).map((doc, index) => ({
           id: index.toString(),
@@ -61,11 +72,13 @@ export function EditDocuments() {
           filename: doc.stuDocName,
           url: doc.stuDocURL
         }));
-        
+
         setDocuments(formattedDocs);
         setOriginalDocuments(JSON.parse(JSON.stringify(formattedDocs))); // Deep copy
+        setPageLoading(false);
       } catch (error) {
         console.error('Error fetching documents:', error);
+        setPageLoading(false);
       }
     };
 
@@ -74,7 +87,7 @@ export function EditDocuments() {
 
   // Check for changes when documents are modified
   useEffect(() => {
-    const documentsChanged = 
+    const documentsChanged =
       JSON.stringify(documents) !== JSON.stringify(originalDocuments);
     setHasChanges(documentsChanged);
   }, [documents, originalDocuments]);
@@ -82,14 +95,14 @@ export function EditDocuments() {
   const handleDelete = async (id: string) => {
     const updatedDocs = documents.filter(doc => doc.id !== id);
     setDocuments(updatedDocs);
-    
+
     // Convert to API format and update
     const apiDocs = updatedDocs.map(doc => ({
       stuDocType: doc.type,
       stuDocName: doc.filename,
       stuDocURL: doc.url
     }));
-    
+
     try {
       await axiosInstance.post('/api/students/update-documents', {
         documents: apiDocs
@@ -110,11 +123,11 @@ export function EditDocuments() {
         stuDocName: doc.filename,
         stuDocURL: doc.url
       }));
-      
+
       await axiosInstance.post('/api/students/update-documents', {
         documents: apiDocs
       });
-      
+
       toast.success('Documents saved successfully');
       navigate(getProfilePath());
     } catch (error) {
@@ -144,7 +157,7 @@ export function EditDocuments() {
       });
       return;
     }
-    
+
     if (user?.userID) {
       navigate(`/students/profile/documents/upload/${user.userID}`);
     }
@@ -185,6 +198,44 @@ export function EditDocuments() {
     }
   };
 
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-32 rounded-md" />
+          </div>
+
+          <div className="bg-white rounded-lg border border-border p-6">
+            <div className="space-y-6">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-secondary rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-md" />
+                    <div>
+                      <Skeleton className="h-5 w-32 mb-1" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-9 w-9 rounded-md" />
+                    <Skeleton className="h-9 w-9 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <Skeleton className="h-9 w-16 rounded-md" />
+              <Skeleton className="h-9 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -192,7 +243,7 @@ export function EditDocuments() {
           <h1 className="text-3xl font-bold text-brand">
             Edit/Add Documents
           </h1>
-          
+
           <Button onClick={handleAddAnother}>
             Add Another
           </Button>

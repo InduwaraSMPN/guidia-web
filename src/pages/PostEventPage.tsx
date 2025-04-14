@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { FileText } from 'lucide-react';
 import { ViewDocumentModal } from '../components/ViewDocumentModal';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   title: string;
@@ -26,8 +27,14 @@ export function PostEventPage() {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
     if (id) {
       // Fetch existing event data for editing
       const fetchEventData = async () => {
@@ -37,13 +44,13 @@ export function PostEventPage() {
             throw new Error(`Failed to fetch event: ${response.status}`);
           }
           const eventData = await response.json();
-          
+
           setFormData({
             title: eventData.title,
             eventDate: new Date(eventData.eventDate).toISOString().split('T')[0],
             image: null,
           });
-          
+
           if (eventData.imageURL) {
             setExistingImageUrl(eventData.imageURL);
             setPreviewUrl(eventData.imageURL);
@@ -52,10 +59,15 @@ export function PostEventPage() {
         } catch (error) {
           console.error('Error fetching event:', error);
           toast.error('Failed to fetch event data');
+        } finally {
+          setLoading(false);
+          clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
         }
       };
       fetchEventData();
     }
+
+    return () => clearTimeout(loadingTimer);
   }, [id]);
 
   const handleChange = (
@@ -73,24 +85,24 @@ export function PostEventPage() {
     if (previewUrl && previewUrl !== existingImageUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    
+
     // Reset form data
     setFormData(prev => ({
       ...prev,
       image: null
     }));
-    
+
     // Clear existing image reference
     setExistingImageUrl('');
     setPreviewUrl('');
-    
+
     // Show file uploader again
     setShowFileUploader(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (!formData.image && !existingImageUrl) {
         toast.error('Please upload an event image');
@@ -122,7 +134,7 @@ export function PostEventPage() {
 
       // Create or update event
       const method = id ? 'PUT' : 'POST';
-      const url = id 
+      const url = id
         ? `${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`
         : `${import.meta.env.VITE_API_BASE_URL}/api/events`;
 
@@ -149,7 +161,7 @@ export function PostEventPage() {
       }
 
       toast.success(id ? 'Event updated successfully' : 'Event created successfully');
-      
+
       // Determine where to navigate based on current path
       const isAdminRoute = location.pathname.startsWith('/admin');
       navigate(isAdminRoute ? '/admin/events' : '/events');
@@ -158,6 +170,35 @@ export function PostEventPage() {
       toast.error(id ? 'Failed to update event' : 'Failed to create event');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+
+            <Skeleton className="h-10 w-32 mt-4" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
@@ -251,7 +292,7 @@ export function PostEventPage() {
                 </span>
               </div>
             )}
-            
+
             {showPreview && (
               <ViewDocumentModal
                 isOpen={showPreview}

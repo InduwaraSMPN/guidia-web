@@ -2,7 +2,7 @@ import type React from "react";
 
 import { useState } from "react";
 import { NewsModal } from "./NewsModal";
-import { Calendar, Trash2 } from "lucide-react";
+import { Calendar, Trash2, Newspaper } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -39,7 +39,7 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
               try {
                 setIsDeleting(true);
                 const response = await fetch(
-                  `http://localhost:3001/api/news/${news.id}`,
+                  `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/news/${news.id}`,
                   {
                     method: "DELETE",
                   }
@@ -85,13 +85,21 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
         onClick={() => setIsModalOpen(true)}
         className="rounded-lg border border-border overflow-hidden hover:border-border transition-all cursor-pointer relative group h-full flex flex-col"
       >
-        {news.images?.[0] && (
+        {news.images && news.images.length > 0 && news.images[0] ? (
           <div className="w-full h-48 overflow-hidden">
             <img
-              src={news.images[0] || "/placeholder.svg"}
+              src={news.images[0]}
               alt={news.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
+              }}
             />
+          </div>
+        ) : (
+          <div className="w-full h-48 overflow-hidden bg-secondary flex items-center justify-center">
+            <Newspaper className="h-12 w-12 text-muted-foreground opacity-50" />
           </div>
         )}
 

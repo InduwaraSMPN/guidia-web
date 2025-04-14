@@ -5,8 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { APP_SETTINGS } from "../config";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,16 @@ export function ContactPage() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -25,7 +36,7 @@ export function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       toast.success("Your message has been sent successfully!");
@@ -65,6 +76,52 @@ export function ContactPage() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="mb-16">
+            <Skeleton className="h-10 w-48 mb-6" />
+            <Skeleton className="h-5 w-full max-w-2xl" />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="bg-secondary p-6 rounded-xl shadow-sm border border-border">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="h-12 w-12 rounded-lg" />
+                  <div>
+                    <Skeleton className="h-6 w-24 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-5 w-full max-w-md" />
+
+              <div className="space-y-6">
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+                <Skeleton className="h-12 w-full rounded-md" />
+              </div>
+            </div>
+
+            <Skeleton className="bg-secondary rounded-xl h-[500px]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
       <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
@@ -97,8 +154,8 @@ export function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
-                  <a 
-                    href={item.link} 
+                  <a
+                    href={item.link}
                     target={item.title === "Address" ? "_blank" : undefined}
                     rel={item.title === "Address" ? "noopener noreferrer" : undefined}
                     className="text-muted-foreground hover:text-brand transition-colors"
@@ -169,9 +226,9 @@ export function ContactPage() {
                   required
                 />
               </div>
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

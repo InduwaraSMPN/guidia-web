@@ -1,18 +1,31 @@
 import { motion } from "framer-motion";
-import { 
-  Network, 
-  MessageSquare, 
-  Briefcase, 
-  Users, 
-  FileText, 
-  Calendar, 
-  Bell, 
-  Search, 
-  BarChart, 
-  Shield 
+import {
+  Network,
+  MessageSquare,
+  Briefcase,
+  Users,
+  FileText,
+  Calendar,
+  Bell,
+  Search,
+  BarChart,
+  Shield
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function FeaturesPage() {
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -71,6 +84,37 @@ export function FeaturesPage() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="mb-16 text-center">
+            <Skeleton className="h-10 w-48 mx-auto mb-6" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto" />
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(10)].map((_, index) => (
+              <div key={index} className="bg-secondary p-8 rounded-xl shadow-sm border border-border">
+                <Skeleton className="h-12 w-12 rounded-lg mb-5" />
+                <Skeleton className="h-6 w-48 mb-3" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-20 bg-brand/5 p-10 rounded-2xl border border-brand/10 text-center">
+            <Skeleton className="h-8 w-64 mx-auto mb-4" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto mb-8" />
+            <Skeleton className="h-12 w-48 mx-auto rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
       <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
@@ -125,8 +169,8 @@ export function FeaturesPage() {
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
             Join thousands of students and professionals who are already using our platform to advance their careers.
           </p>
-          <a 
-            href="/auth/register" 
+          <a
+            href="/auth/register"
             className="inline-flex items-center justify-center px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand/90 transition-colors"
           >
             Create a Free Account

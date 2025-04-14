@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { ViewDocumentModal } from "@/components/ViewDocumentModal";
 import { FileUploader } from "@/components/FileUploader";
 import { Select, Option } from "@/components/ui/Select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FormData {
   studentNumber: string;
@@ -30,6 +31,7 @@ export function EditStudentProfile() {
   const [showPreview, setShowPreview] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     studentNumber: "",
     studentName: "",
@@ -96,8 +98,14 @@ export function EditStudentProfile() {
 
   // Load existing profile data
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
     if (!token || !user) {
       setIsLoading(false);
+      setPageLoading(false);
       return;
     }
 
@@ -153,10 +161,14 @@ export function EditStudentProfile() {
         toast.error("Failed to load profile data");
       } finally {
         setIsLoading(false);
+        setPageLoading(false);
+        clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
       }
     };
 
     loadProfileData();
+
+    return () => clearTimeout(loadingTimer);
   }, [token, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -261,6 +273,72 @@ export function EditStudentProfile() {
         return "";
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto mb-16">
+          <Skeleton className="h-10 w-64 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-[160px] w-full rounded-md" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">

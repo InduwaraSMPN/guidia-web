@@ -23,8 +23,9 @@ export function NewsPage() {
   }, [])
 
   const fetchNews = async () => {
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/api/news")
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/news`)
       if (!response.ok) {
         throw new Error("Failed to fetch news")
       }
@@ -40,14 +41,17 @@ export function NewsPage() {
           month: "long",
           day: "numeric",
         }),
-        images: JSON.parse(news.imageURLs),
+        images: news.imageURLs ? JSON.parse(news.imageURLs) : [],
       }))
 
       setNewsItems(transformedData)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch news")
     } finally {
-      setLoading(false)
+      // Add a small delay to ensure the skeleton is visible for at least a moment
+      setTimeout(() => {
+        setLoading(false)
+      }, 500);
     }
   }
 

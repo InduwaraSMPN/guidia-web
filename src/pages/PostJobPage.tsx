@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { toast } from 'sonner';
 import axiosInstance from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   title: string;
@@ -19,6 +20,7 @@ export function PostJobPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     tags: '',
@@ -27,6 +29,15 @@ export function PostJobPage() {
     startDate: '',
     endDate: '',
   });
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -122,7 +133,7 @@ export function PostJobPage() {
       }
     } catch (error: any) {
       console.error('Error posting job:', error);
-      
+
       if (error.response?.status === 403) {
         if (error.response.data.error?.includes('Company profile not found')) {
           toast.error('Please complete your company profile first');
@@ -140,7 +151,7 @@ export function PostJobPage() {
       }
 
       toast.error(
-        error.response?.data?.error || 
+        error.response?.data?.error ||
         'Failed to post job. Please try again.'
       );
     } finally {
@@ -149,6 +160,57 @@ export function PostJobPage() {
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <Skeleton className="h-10 w-48 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-[200px] w-full rounded-md" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="flex justify-start">
+              <Skeleton className="h-12 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">

@@ -1,11 +1,61 @@
 import { motion } from "framer-motion";
 import { APP_SETTINGS } from "../config";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function TermsOfServicePage() {
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="mb-16">
+            <Skeleton className="h-10 w-48 mb-6" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+
+          <div className="space-y-8">
+            {[...Array(10)].map((_, index) => (
+              <div key={index} className="bg-secondary p-8 rounded-xl shadow-sm border border-border">
+                <Skeleton className="h-8 w-64 mb-4" />
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+
+                  {index % 2 === 0 && (
+                    <div className="pl-6 space-y-2 mt-4">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <Skeleton className="h-3 w-3 rounded-full" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">

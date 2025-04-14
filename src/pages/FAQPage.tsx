@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { APP_SETTINGS } from "../config";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FAQItem {
   question: string;
@@ -15,6 +16,16 @@ export function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -135,7 +146,7 @@ export function FAQPage() {
 
   // Filter FAQs based on search query and active category
   const filteredFAQs = faqItems.filter((faq) => {
-    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeCategory === "all" || faq.category === activeCategory;
     return matchesSearch && matchesCategory;
@@ -149,6 +160,51 @@ export function FAQPage() {
     setActiveCategory(category);
     setActiveIndex(null);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
+        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="mb-16 text-center">
+            <Skeleton className="h-10 w-64 mx-auto mb-6" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto mb-8" />
+
+            {/* Search Bar Skeleton */}
+            <div className="max-w-md mx-auto relative">
+              <Skeleton className="h-12 w-full rounded-md" />
+            </div>
+          </div>
+
+          {/* Category Tabs Skeleton */}
+          <div className="mb-10 overflow-x-auto">
+            <div className="flex space-x-2 min-w-max pb-2">
+              {[...Array(6)].map((_, index) => (
+                <Skeleton key={index} className="h-10 w-28 rounded-md" />
+              ))}
+            </div>
+          </div>
+
+          {/* FAQ Accordion Skeleton */}
+          <div className="space-y-4">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="border border-border rounded-lg overflow-hidden">
+                <div className="p-6 bg-secondary">
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Contact Support Section Skeleton */}
+          <div className="mt-20 bg-brand/5 p-10 rounded-2xl border border-brand/10 text-center">
+            <Skeleton className="h-8 w-64 mx-auto mb-4" />
+            <Skeleton className="h-5 w-full max-w-2xl mx-auto mb-8" />
+            <Skeleton className="h-12 w-48 mx-auto rounded-lg" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 pt-32">
@@ -253,8 +309,8 @@ export function FAQPage() {
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
             If you couldn't find the answer you were looking for, our support team is here to help. Contact us and we'll get back to you as soon as possible.
           </p>
-          <a 
-            href="/contact" 
+          <a
+            href="/contact"
             className="inline-flex items-center justify-center px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand/90 transition-colors"
           >
             Contact Support

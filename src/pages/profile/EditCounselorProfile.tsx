@@ -9,6 +9,7 @@ import { FileUploader } from '@/components/FileUploader';
 import { ViewDocumentModal } from '@/components/ViewDocumentModal';
 import { FileText, Trash2, LoaderCircle, X, Plus } from 'lucide-react';
 import { MultipleInput } from '@/components/ui/MultipleInput';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FormData {
   counselorName: string;
@@ -51,7 +52,7 @@ export function EditCounselorProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  
+
   // Add this check at the beginning of the component
   if (!userID || !user) {
     navigate('/');
@@ -60,6 +61,7 @@ export function EditCounselorProfile() {
 
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(true);
@@ -78,9 +80,15 @@ export function EditCounselorProfile() {
   });
 
   useEffect(() => {
+    // Simulate loading delay
+    const loadingTimer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
     const fetchCounselorData = async () => {
       if (!userID || !token) {
         console.log('Missing userID or token:', { userID, token });
+        setPageLoading(false);
         return;
       }
 
@@ -121,15 +129,20 @@ export function EditCounselorProfile() {
       } catch (error) {
         console.error('Error fetching counselor data:', error);
         toast.error('Failed to load counselor profile');
+      } finally {
+        setPageLoading(false);
+        clearTimeout(loadingTimer); // Clear the timer if fetch completes before timeout
       }
     };
 
     fetchCounselorData();
+
+    return () => clearTimeout(loadingTimer);
   }, [userID, token, user?.email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.userID || !token) {
       toast.error('Please login to continue');
       return;
@@ -142,17 +155,17 @@ export function EditCounselorProfile() {
 
     const loadingToast = toast.loading('Updating your profile...');
     setIsLoading(true);
-    
+
     try {
       // Use existing image path if no new image is uploaded
       let profileImagePath = previewUrl;
-      
+
       // Only upload new image if one is selected
       if (formData.image) {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
         imageFormData.append('type', 'counselor-profile');
-        
+
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           method: 'POST',
           headers: {
@@ -215,18 +228,18 @@ export function EditCounselorProfile() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'contactNumber') {
       // Remove any characters that aren't digits, spaces, dashes, parentheses, or plus
       const sanitizedValue = value.replace(/[^\d\s\-()+"]/g, '');
-      
+
       // Validate phone number
       if (sanitizedValue && !validatePhoneNumber(sanitizedValue)) {
         setPhoneError('Please enter a valid phone number');
       } else {
         setPhoneError(null);
       }
-      
+
       setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -262,13 +275,84 @@ export function EditCounselorProfile() {
       languages: prev.languages.filter(l => l !== language)
     }));
   };
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddLanguage();
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto mb-16">
+          <Skeleton className="h-10 w-64 mb-8" />
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-[160px] w-full rounded-md" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-32 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
@@ -414,10 +498,10 @@ export function EditCounselorProfile() {
                 onUpload={files => {
                   if (files.length > 0) {
                     const file = files[0];
-                    console.log('Selected file:', { 
-                      name: file.name, 
-                      size: file.size, 
-                      type: file.type 
+                    console.log('Selected file:', {
+                      name: file.name,
+                      size: file.size,
+                      type: file.type
                     });
                     setFormData(prev => ({ ...prev, image: file }));
                     const url = URL.createObjectURL(file);

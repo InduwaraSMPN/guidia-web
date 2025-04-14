@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileSection } from '@/interfaces/Profile';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function WelcomeEditStudentProfile() {
   const navigate = useNavigate();
@@ -12,6 +13,16 @@ export function WelcomeEditStudentProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [initialData, setInitialData] = useState<Record<string, any>>({});
   const [selectedStudyLevel, setSelectedStudyLevel] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  // Simulate loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Verify authentication
   useEffect(() => {
@@ -162,7 +173,7 @@ export function WelcomeEditStudentProfile() {
     try {
       setIsLoading(true);
       let profileImagePath = null;
-      
+
       if (formData.image instanceof File) {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
@@ -196,9 +207,9 @@ export function WelcomeEditStudentProfile() {
         studentLevel: formData.courseLevel,
         userID: user?.userID
       };
-      
+
       console.log('Submitting profile data:', { profileData, user });
-      
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/profile`, {
         method: 'POST',
         headers: {
@@ -216,7 +227,7 @@ export function WelcomeEditStudentProfile() {
 
       const responseData = await response.json();
       console.log('Profile update successful:', responseData);
-      
+
       toast.success(responseData.message || 'Profile created successfully!');
       navigate('/welcome/career');
     } catch (error) {
@@ -232,6 +243,84 @@ export function WelcomeEditStudentProfile() {
       setIsLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto mb-16">
+          <div className="text-center mb-12">
+            <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-6 w-2/3 mx-auto" />
+          </div>
+
+          <div className="space-y-8">
+            {/* Personal Information Section */}
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48 mb-2" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Academic Details Section */}
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48 mb-2" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Personal Details Section */}
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48 mb-2" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-[160px] w-full rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-48 w-full rounded-lg" />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-4 pt-4">
+              <Skeleton className="h-10 w-24 rounded-md" />
+              <Skeleton className="h-10 w-40 rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
