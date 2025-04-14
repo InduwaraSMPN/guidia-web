@@ -12,6 +12,12 @@ import { Loader2 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard"
 import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard"
+import { MeetingStatisticsCard } from "@/components/admin/MeetingStatisticsCard"
+import { UserActivityCard } from "@/components/admin/UserActivityCard"
+import { SecurityAuditCard } from "@/components/admin/SecurityAuditCard"
+import { CommunicationStatisticsCard } from "@/components/admin/CommunicationStatisticsCard"
+import { SystemHealthCard } from "@/components/admin/SystemHealthCard"
+import { ActivityFeedCard } from "@/components/admin/ActivityFeedCard"
 
 // Create a context to share the sidebar state
 import { createContext } from "react"
@@ -77,6 +83,104 @@ interface ApplicationStatistics {
   conversionRate: number
 }
 
+interface MeetingStatistics {
+  totalMeetings: number
+  meetingsByStatus: Array<{
+    status: string
+    count: number
+  }>
+  meetingsByType: Array<{
+    meetingType: string
+    count: number
+  }>
+  avgSuccessRating: number
+  avgPlatformRating: number
+  busiestDays: Array<{
+    dayOfWeek: string
+    count: number
+  }>
+  busiestHours: Array<{
+    hour: number
+    count: number
+  }>
+  upcomingMeetings: Array<{
+    meetingID: number
+    meetingTitle: string
+    meetingDate: string
+    startTime: string
+    endTime: string
+    requestorName: string
+    recipientName: string
+    status: string
+    meetingType: string
+  }>
+}
+
+interface UserActivity {
+  newUsers7Days: number
+  newUsers30Days: number
+  userRegistrationTrend: Array<{
+    date: string
+    count: number
+  }>
+  profileCompletion: {
+    student: number
+    counselor: number
+    company: number
+  }
+}
+
+interface SecurityStatistics {
+  recentEvents: Array<{
+    eventType: string
+    details: string
+    userID: number
+    timestamp: string
+  }>
+  loginAttempts: Array<{
+    eventType: string
+    count: number
+  }>
+  accountStatusChanges: number
+}
+
+interface CommunicationStatistics {
+  totalMessages: number
+  messages7Days: number
+  messages30Days: number
+  activeConversations: Array<{
+    user1ID: number
+    user2ID: number
+    messageCount: number
+    lastMessageTime: string
+    user1Name: string
+    user2Name: string
+  }>
+  unreadMessages: number
+  messageTrend: Array<{
+    date: string
+    count: number
+  }>
+}
+
+interface SystemHealth {
+  schedulerStatus: {
+    isRunning: boolean
+    scheduledJobs: Array<{
+      name: string
+      nextInvocation: string | null
+    }>
+  }
+  databaseStatus: string
+  serverTime: string
+}
+
+interface ActivityFeed {
+  type: string
+  timestamp: string
+  data: any
+}
+
 interface DashboardData {
   counts: {
     upcomingEvents: number
@@ -95,6 +199,12 @@ interface DashboardData {
   }
   jobStats?: JobStatistics
   applicationStats?: ApplicationStatistics
+  meetingStats?: MeetingStatistics
+  userActivity?: UserActivity
+  securityStats?: SecurityStatistics
+  communicationStats?: CommunicationStatistics
+  systemHealth?: SystemHealth
+  activityFeed?: ActivityFeed[]
 }
 
 interface SubStat {
@@ -220,6 +330,84 @@ export function AdminDashboard() {
         console.error("Failed to fetch application statistics")
       }
 
+      // Fetch meeting statistics
+      const meetingStatsRes = await fetch("/api/admin/meeting-statistics", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let meetingStatsData = null
+      if (meetingStatsRes.ok) {
+        meetingStatsData = await meetingStatsRes.json()
+      } else {
+        console.error("Failed to fetch meeting statistics")
+      }
+
+      // Fetch user activity statistics
+      const userActivityRes = await fetch("/api/admin/user-activity", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let userActivityData = null
+      if (userActivityRes.ok) {
+        userActivityData = await userActivityRes.json()
+      } else {
+        console.error("Failed to fetch user activity statistics")
+      }
+
+      // Fetch security statistics
+      const securityStatsRes = await fetch("/api/admin/security-statistics", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let securityStatsData = null
+      if (securityStatsRes.ok) {
+        securityStatsData = await securityStatsRes.json()
+      } else {
+        console.error("Failed to fetch security statistics")
+      }
+
+      // Fetch communication statistics
+      const commStatsRes = await fetch("/api/admin/communication-statistics", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let commStatsData = null
+      if (commStatsRes.ok) {
+        commStatsData = await commStatsRes.json()
+      } else {
+        console.error("Failed to fetch communication statistics")
+      }
+
+      // Fetch system health
+      const systemHealthRes = await fetch("/api/admin/system-health", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let systemHealthData = null
+      if (systemHealthRes.ok) {
+        systemHealthData = await systemHealthRes.json()
+      } else {
+        console.error("Failed to fetch system health")
+      }
+
+      // Fetch activity feed
+      const activityFeedRes = await fetch("/api/admin/activity-feed", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      let activityFeedData = null
+      if (activityFeedRes.ok) {
+        activityFeedData = await activityFeedRes.json()
+      } else {
+        console.error("Failed to fetch activity feed")
+      }
+
       setDashboardData({
         counts: {
           upcomingEvents: Number(countsData.upcomingEvents) || 0,
@@ -238,6 +426,12 @@ export function AdminDashboard() {
         },
         jobStats: jobStatsData,
         applicationStats: appStatsData,
+        meetingStats: meetingStatsData,
+        userActivity: userActivityData,
+        securityStats: securityStatsData,
+        communicationStats: commStatsData,
+        systemHealth: systemHealthData,
+        activityFeed: activityFeedData,
       })
       setError("")
     } catch (error) {
@@ -370,6 +564,130 @@ export function AdminDashboard() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Meeting Statistics Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-52 mb-5 pb-3" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            {[...Array(4)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Skeleton className="h-80 w-full" />
+                            <Skeleton className="h-80 w-full" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* User Activity Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-60 mb-5 pb-3" />
+                          <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
+                            {[...Array(2)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Skeleton className="h-80 w-full" />
+                            <Skeleton className="h-80 w-full" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Security Audit Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-44 mb-5 pb-3" />
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                            {[...Array(3)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Skeleton className="h-80 w-full" />
+                            <Skeleton className="h-80 w-full" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Communication Statistics Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-64 mb-5 pb-3" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            {[...Array(4)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg">
+                                <Skeleton className="h-8 w-16 mb-2" />
+                                <Skeleton className="h-4 w-24" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Skeleton className="h-80 w-full" />
+                            <Skeleton className="h-80 w-full" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* System Health Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-48 mb-5 pb-3" />
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            {[...Array(3)].map((_, index) => (
+                              <div key={index} className="bg-secondary/30 p-4 rounded-lg flex items-center">
+                                <Skeleton className="h-6 w-6 mr-3 rounded-full" />
+                                <div>
+                                  <Skeleton className="h-4 w-20 mb-1" />
+                                  <Skeleton className="h-3 w-16" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="space-y-4">
+                            {[...Array(3)].map((_, index) => (
+                              <div key={index} className="border rounded-lg p-4">
+                                <div className="flex justify-between items-start">
+                                  <Skeleton className="h-5 w-32" />
+                                  <Skeleton className="h-5 w-24 rounded-full" />
+                                </div>
+                                <Skeleton className="h-4 w-48 mt-2" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Activity Feed Skeleton */}
+                      <div className="bg-white overflow-hidden border rounded-lg shadow-sm">
+                        <div className="p-6">
+                          <Skeleton className="h-6 w-40 mb-5 pb-3" />
+                          <div className="space-y-4">
+                            {[...Array(5)].map((_, index) => (
+                              <div key={index} className="border rounded-lg p-4">
+                                <div className="flex justify-between items-start">
+                                  <Skeleton className="h-5 w-24 rounded-full" />
+                                  <Skeleton className="h-4 w-32" />
+                                </div>
+                                <Skeleton className="h-5 w-full mt-2" />
+                                <Skeleton className="h-4 w-3/4 mt-1" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : error ? (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -422,6 +740,48 @@ export function AdminDashboard() {
                       {dashboardData.applicationStats && (
                         <div className="mt-8">
                           <ApplicationStatisticsCard applicationStats={dashboardData.applicationStats} />
+                        </div>
+                      )}
+
+                      {/* Meeting Statistics Card */}
+                      {dashboardData.meetingStats && (
+                        <div className="mt-8">
+                          <MeetingStatisticsCard meetingStats={dashboardData.meetingStats} />
+                        </div>
+                      )}
+
+                      {/* User Activity Card */}
+                      {dashboardData.userActivity && (
+                        <div className="mt-8">
+                          <UserActivityCard userActivity={dashboardData.userActivity} />
+                        </div>
+                      )}
+
+                      {/* Security Audit Card */}
+                      {dashboardData.securityStats && (
+                        <div className="mt-8">
+                          <SecurityAuditCard securityStats={dashboardData.securityStats} />
+                        </div>
+                      )}
+
+                      {/* Communication Statistics Card */}
+                      {dashboardData.communicationStats && (
+                        <div className="mt-8">
+                          <CommunicationStatisticsCard communicationStats={dashboardData.communicationStats} />
+                        </div>
+                      )}
+
+                      {/* System Health Card */}
+                      {dashboardData.systemHealth && (
+                        <div className="mt-8">
+                          <SystemHealthCard systemHealth={dashboardData.systemHealth} />
+                        </div>
+                      )}
+
+                      {/* Activity Feed Card */}
+                      {dashboardData.activityFeed && (
+                        <div className="mt-8">
+                          <ActivityFeedCard activities={dashboardData.activityFeed} />
                         </div>
                       )}
                     </div>

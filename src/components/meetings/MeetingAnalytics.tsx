@@ -121,13 +121,13 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-2xl">{analyticsData.averageSuccessRating.toFixed(1)}</CardTitle>
+            <CardTitle className="text-2xl">{typeof analyticsData.averageSuccessRating === 'number' ? analyticsData.averageSuccessRating.toFixed(1) : '0.0'}</CardTitle>
             <CardDescription>Avg. Meeting Success Rating</CardDescription>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-2xl">{analyticsData.averagePlatformRating.toFixed(1)}</CardTitle>
+            <CardTitle className="text-2xl">{typeof analyticsData.averagePlatformRating === 'number' ? analyticsData.averagePlatformRating.toFixed(1) : '0.0'}</CardTitle>
             <CardDescription>Avg. Platform Experience Rating</CardDescription>
           </CardHeader>
         </Card>
@@ -144,15 +144,15 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg. Success Rating Given</p>
-                  <p className="text-2xl font-bold">{analyticsData.averageSuccessRatingGiven?.toFixed(1) || 'N/A'}</p>
+                  <p className="text-2xl font-bold">{typeof analyticsData.averageSuccessRatingGiven === 'number' ? analyticsData.averageSuccessRatingGiven.toFixed(1) : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg. Platform Rating Given</p>
-                  <p className="text-2xl font-bold">{analyticsData.averagePlatformRatingGiven?.toFixed(1) || 'N/A'}</p>
+                  <p className="text-2xl font-bold">{typeof analyticsData.averagePlatformRatingGiven === 'number' ? analyticsData.averagePlatformRatingGiven.toFixed(1) : 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg. Success Rating Received</p>
-                  <p className="text-2xl font-bold">{analyticsData.averageSuccessRatingReceived?.toFixed(1) || 'N/A'}</p>
+                  <p className="text-2xl font-bold">{typeof analyticsData.averageSuccessRatingReceived === 'number' ? analyticsData.averageSuccessRatingReceived.toFixed(1) : 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
