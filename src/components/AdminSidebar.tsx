@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 // import { useThemeContext } from "../contexts/ThemeContext"
 import {
   LayoutDashboard,
@@ -18,69 +18,69 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AdminSidebarProps {
-  onToggle: (collapsed: boolean) => void
+  onToggle: (collapsed: boolean) => void;
 }
 
 export function AdminSidebar({ onToggle }: AdminSidebarProps) {
-  const location = useLocation()
-  const [collapsed, setCollapsed] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   // const { isDark } = useThemeContext()
 
   // Check if screen is mobile size
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    checkIfMobile()
-    window.addEventListener("resize", checkIfMobile)
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
 
     return () => {
-      window.removeEventListener("resize", checkIfMobile)
-    }
-  }, [])
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
 
   // Collapse sidebar by default on mobile
   useEffect(() => {
     if (isMobile) {
-      setCollapsed(true)
+      setCollapsed(true);
     }
-  }, [isMobile])
+  }, [isMobile]);
 
   // Set initial open submenu based on current path
   useEffect(() => {
     if (location.pathname.includes("/admin/registrations")) {
-      setOpenSubMenu("registrations")
+      setOpenSubMenu("registrations");
     } else if (location.pathname.includes("/admin/users")) {
-      setOpenSubMenu("users")
+      setOpenSubMenu("users");
     }
-  }, [location.pathname])
+  }, [location.pathname]);
 
   const toggleSidebar = () => {
-    const newCollapsedState = !collapsed
-    setCollapsed(newCollapsedState)
-    onToggle(newCollapsedState)
-  }
+    const newCollapsedState = !collapsed;
+    setCollapsed(newCollapsedState);
+    onToggle(newCollapsedState);
+  };
 
   const toggleSubMenu = (menu: string) => {
-    if (collapsed) return
-    setOpenSubMenu(openSubMenu === menu ? null : menu)
-  }
+    if (collapsed) return;
+    setOpenSubMenu(openSubMenu === menu ? null : menu);
+  };
 
   const isActive = (path: string) => {
-    return location.pathname.includes(path)
-  }
+    return location.pathname.includes(path);
+  };
 
   return (
     <aside
       className={cn(
-        "fixed left-0 z-30 h-[calc(100vh-64px)] bg-sidebar transition-all duration-300 ease-in-out border-r border-sidebar-border shadow-sm",
+        "fixed left-0 z-30 h-[calc(100vh-64px)] bg-sidebar transition-all duration-300 ease-in-out",
         collapsed ? "w-[80px]" : "w-[250px]",
         "top-[64px]" // Add top position to account for navbar height
       )}
@@ -116,11 +116,13 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
               isActive("/admin") && location.pathname === "/admin"
                 ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1"
             )}
           >
             <LayoutDashboard size={18} className="flex-shrink-0 mr-2" />
-            <span className={cn("truncate", collapsed && "hidden")}>Dashboard</span>
+            <span className={cn("truncate", collapsed && "hidden")}>
+              Dashboard
+            </span>
           </Link>
 
           {/* Registrations */}
@@ -132,17 +134,22 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                 isActive("/registrations")
                   ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
-                "relative",
+                "relative"
               )}
             >
               <div className="flex items-center">
                 <UserPlus size={18} className="flex-shrink-0 mr-2" />
-                <span className={cn("truncate", collapsed && "hidden")}>Registrations</span>
+                <span className={cn("truncate", collapsed && "hidden")}>
+                  Registrations
+                </span>
               </div>
               {!collapsed && (
                 <ChevronRight
                   size={16}
-                  className={cn("transition-transform duration-200", openSubMenu === "registrations" && "rotate-90")}
+                  className={cn(
+                    "transition-transform duration-200",
+                    openSubMenu === "registrations" && "rotate-90"
+                  )}
                 />
               )}
             </button>
@@ -152,7 +159,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               className={cn(
                 "space-y-1 pl-10",
                 (collapsed || openSubMenu !== "registrations") && "hidden",
-                openSubMenu === "registrations" && "animate-slideDown",
+                openSubMenu === "registrations" && "animate-slideDown"
               )}
             >
               <Link
@@ -161,7 +168,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/registrations/pending")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <Clock size={16} className="flex-shrink-0 mr-2" />
@@ -173,7 +180,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/registrations/approved")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <CheckCircle size={16} className="flex-shrink-0 mr-2" />
@@ -185,7 +192,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/registrations/declined")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <XCircle size={16} className="flex-shrink-0 mr-2" />
@@ -198,7 +205,9 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               <div
                 className={cn(
                   "absolute left-full top-0 ml-2 bg-sidebar border border-sidebar-border rounded-md shadow-md w-48 py-1 z-50",
-                  isActive("/registrations") ? "block" : "hidden group-hover:block",
+                  isActive("/registrations")
+                    ? "block"
+                    : "hidden group-hover:block"
                 )}
               >
                 <Link
@@ -235,17 +244,22 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                 isActive("/users")
                   ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
-                "relative",
+                "relative"
               )}
             >
               <div className="flex items-center">
                 <Users size={18} className="flex-shrink-0 mr-2" />
-                <span className={cn("truncate", collapsed && "hidden")}>Users</span>
+                <span className={cn("truncate", collapsed && "hidden")}>
+                  Users
+                </span>
               </div>
               {!collapsed && (
                 <ChevronRight
                   size={16}
-                  className={cn("transition-transform duration-200", openSubMenu === "users" && "rotate-90")}
+                  className={cn(
+                    "transition-transform duration-200",
+                    openSubMenu === "users" && "rotate-90"
+                  )}
                 />
               )}
             </button>
@@ -255,7 +269,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               className={cn(
                 "space-y-1 pl-10",
                 (collapsed || openSubMenu !== "users") && "hidden",
-                openSubMenu === "users" && "animate-slideDown",
+                openSubMenu === "users" && "animate-slideDown"
               )}
             >
               <Link
@@ -264,7 +278,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/users/admins")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <ShieldCheck size={16} className="flex-shrink-0 mr-2" />
@@ -276,7 +290,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/users/students")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <GraduationCap size={16} className="flex-shrink-0 mr-2" />
@@ -288,7 +302,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/users/counselors")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <Users size={16} className="flex-shrink-0 mr-2" />
@@ -300,7 +314,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
                   "flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200",
                   isActive("/users/companies")
                     ? "text-brand font-medium"
-                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1",
+                    : "text-sidebar-foreground/80 hover:text-brand hover:translate-x-1"
                 )}
               >
                 <Building2 size={16} className="flex-shrink-0 mr-2" />
@@ -313,7 +327,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               <div
                 className={cn(
                   "absolute left-full top-0 ml-2 bg-sidebar border border-sidebar-border rounded-md shadow-md w-48 py-1 z-50",
-                  isActive("/users") ? "block" : "hidden group-hover:block",
+                  isActive("/users") ? "block" : "hidden group-hover:block"
                 )}
               >
                 <Link
@@ -355,7 +369,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
               isActive("/news")
                 ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1"
             )}
           >
             <Newspaper size={18} className="flex-shrink-0 mr-2" />
@@ -369,11 +383,13 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
               isActive("/events")
                 ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1"
             )}
           >
             <Calendar size={18} className="flex-shrink-0 mr-2" />
-            <span className={cn("truncate", collapsed && "hidden")}>Events</span>
+            <span className={cn("truncate", collapsed && "hidden")}>
+              Events
+            </span>
           </Link>
 
           {/* Settings */}
@@ -383,18 +399,18 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
               "flex items-center px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
               isActive("/settings")
                 ? "bg-sidebar-accent text-brand font-semibold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[3px] before:bg-brand before:rounded-r-sm"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1",
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-brand hover:translate-x-1"
             )}
           >
             <Settings size={18} className="flex-shrink-0 mr-2" />
-            <span className={cn("truncate", collapsed && "hidden")}>Admin Settings</span>
+            <span className={cn("truncate", collapsed && "hidden")}>
+              Admin Settings
+            </span>
           </Link>
         </nav>
       </div>
     </aside>
-  )
+  );
 }
 
-export default AdminSidebar
-
-
+export default AdminSidebar;
