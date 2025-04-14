@@ -25,31 +25,39 @@ interface SecurityStatisticsProps {
 // Event type icons
 const EVENT_ICONS = {
   login: <LogIn className="h-4 w-4" />,
+  login_success: <LogIn className="h-4 w-4" />,
   logout: <LogOut className="h-4 w-4" />,
   failed_login: <ShieldX className="h-4 w-4" />,
+  login_failed: <ShieldX className="h-4 w-4" />,
   lockout: <ShieldOff className="h-4 w-4" />,
   password_reset: <ShieldAlert className="h-4 w-4" />,
   account_activated: <UserCheck className="h-4 w-4" />,
   account_deactivated: <ShieldOff className="h-4 w-4" />,
+  account_status_change: <ShieldAlert className="h-4 w-4" />,
   role_change: <ShieldAlert className="h-4 w-4" />,
 }
 
 // Event type colors
 const EVENT_COLORS = {
   login: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+  login_success: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
   logout: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
   failed_login: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+  login_failed: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
   lockout: "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
   password_reset: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
   account_activated: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
   account_deactivated: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+  account_status_change: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
   role_change: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
 }
 
 // Login attempt colors
 const LOGIN_COLORS = {
   success: "#10b981",
+  login_success: "#10b981",
   failed: "#ef4444",
+  login_failed: "#ef4444",
   lockout: "#f97316",
   suspicious: "#f59e0b",
 }
@@ -83,15 +91,28 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
     }
   }
 
+  // Normalize event type for consistent matching
+  const normalizeEventType = (eventType: string): string => {
+    // Convert to lowercase and replace spaces with underscores
+    let normalized = eventType.toLowerCase().replace(/ /g, "_")
+
+    // Handle specific database event types
+    if (normalized === "login_success") return "login_success"
+    if (normalized === "login_failed") return "login_failed"
+    if (normalized === "account_status_change") return "account_status_change"
+
+    return normalized
+  }
+
   // Get icon for event type
   const getEventIcon = (eventType: string) => {
-    const normalizedType = eventType.toLowerCase().replace(/ /g, "_")
+    const normalizedType = normalizeEventType(eventType)
     return EVENT_ICONS[normalizedType as keyof typeof EVENT_ICONS] || <ShieldCheck className="h-4 w-4" />
   }
 
   // Get color for event type
   const getEventColor = (eventType: string) => {
-    const normalizedType = eventType.toLowerCase().replace(/ /g, "_")
+    const normalizedType = normalizeEventType(eventType)
     return (
       EVENT_COLORS[normalizedType as keyof typeof EVENT_COLORS] ||
       "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-300"
@@ -100,7 +121,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
 
   // Get color for login attempt
   const getLoginColor = (eventType: string) => {
-    const normalizedType = eventType.toLowerCase()
+    const normalizedType = normalizeEventType(eventType)
     return LOGIN_COLORS[normalizedType as keyof typeof LOGIN_COLORS] || "#9ca3af"
   }
 
@@ -141,7 +162,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                   </Pie>
                   <Legend />
                   <Tooltip
-                    formatter={(value, name) => [value, "Count"]}
+                    formatter={(value, _name) => [value, "Count"]}
                     contentStyle={{
                       backgroundColor: "var(--card)",
                       borderColor: "var(--border)",
@@ -160,7 +181,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
               <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
                 <div className="text-sm text-muted-foreground mb-1">Failed Logins</div>
                 <div className="text-2xl font-bold">
-                  {securityStats.loginAttempts.find((item) => item.eventType.toLowerCase() === "failed")?.count || 0}
+                  {securityStats.loginAttempts.find((item) => item.eventType.toLowerCase().includes("fail"))?.count || 0}
                 </div>
               </div>
             </div>

@@ -1,31 +1,69 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { verifyToken, verifyAdmin } = require('../middleware/auth');
+const { verifyToken, verifyAdmin } = require("../middleware/auth");
 
 // Get the scheduler instance
-const scheduler = require('../utils/scheduler');
+const scheduler = require("../utils/scheduler");
 
 // For date operations
-const moment = require('moment');
+const moment = require("moment");
+
+// For making HTTP requests
+const fetch = require('node-fetch');
+
+// Reference to the notification socket service
+let notificationSocketService;
+
+// Set the notification socket service
+router.setNotificationSocketService = (service) => {
+  notificationSocketService = service;
+};
+
+/**
+ * Trigger an admin dashboard update
+ * This function can be called from other parts of the application to notify admins of changes
+ * @param {string} updateType - The type of update (e.g., 'job_statistics_update')
+ * @param {Object} data - The data to send (optional)
+ */
+router.triggerAdminDashboardUpdate = (updateType, data = {}) => {
+  if (notificationSocketService) {
+    notificationSocketService.sendAdminDashboardUpdate({
+      type: updateType,
+      data: data,
+      timestamp: new Date().toISOString()
+    });
+    return true;
+  }
+  return false;
+};
 
 /**
  * Run a scheduled task manually (admin only)
  * POST /api/admin/run-task
  * Body: { taskType: 'daily' | 'weekly' | 'deadlineReminders' | 'expiringJobs' | 'incompleteProfiles' | 'jobStats' }
  */
-router.post('/run-task', verifyToken, verifyAdmin, async (req, res) => {
+router.post("/run-task", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { taskType } = req.body;
 
     if (!taskType) {
-      return res.status(400).json({ error: 'Task type is required' });
+      return res.status(400).json({ error: "Task type is required" });
     }
 
-    const validTaskTypes = ['daily', 'weekly', 'deadlineReminders', 'expiringJobs', 'incompleteProfiles', 'jobStats'];
+    const validTaskTypes = [
+      "daily",
+      "weekly",
+      "deadlineReminders",
+      "expiringJobs",
+      "incompleteProfiles",
+      "jobStats",
+    ];
 
     if (!validTaskTypes.includes(taskType)) {
       return res.status(400).json({
-        error: `Invalid task type. Must be one of: ${validTaskTypes.join(', ')}`
+        error: `Invalid task type. Must be one of: ${validTaskTypes.join(
+          ", "
+        )}`,
       });
     }
 
@@ -33,30 +71,33 @@ router.post('/run-task', verifyToken, verifyAdmin, async (req, res) => {
     console.log(`Manually running task: ${taskType}`);
 
     switch (taskType) {
-      case 'daily':
+      case "daily":
         await scheduler.runDailyTasks();
         break;
-      case 'weekly':
+      case "weekly":
         await scheduler.runWeeklyTasks();
         break;
-      case 'deadlineReminders':
+      case "deadlineReminders":
         await scheduler.scheduledTasks.sendApplicationDeadlineReminders();
         break;
-      case 'expiringJobs':
+      case "expiringJobs":
         await scheduler.scheduledTasks.checkExpiringJobs();
         break;
-      case 'incompleteProfiles':
+      case "incompleteProfiles":
         await scheduler.scheduledTasks.checkIncompleteProfiles();
         break;
-      case 'jobStats':
+      case "jobStats":
         await scheduler.scheduledTasks.sendJobPostingStats();
         break;
     }
 
-    res.json({ success: true, message: `Task ${taskType} executed successfully` });
+    res.json({
+      success: true,
+      message: `Task ${taskType} executed successfully`,
+    });
   } catch (error) {
     console.error(`Error running task: ${error}`);
-    res.status(500).json({ error: 'Failed to run task' });
+    res.status(500).json({ error: "Failed to run task" });
   }
 });
 
@@ -64,20 +105,20 @@ router.post('/run-task', verifyToken, verifyAdmin, async (req, res) => {
  * Get scheduler status
  * GET /api/admin/scheduler-status
  */
-router.get('/scheduler-status', verifyToken, verifyAdmin, (req, res) => {
+router.get("/scheduler-status", verifyToken, verifyAdmin, (req, res) => {
   try {
     const status = {
       isRunning: !!scheduler.jobs && Object.keys(scheduler.jobs).length > 0,
-      scheduledJobs: Object.keys(scheduler.jobs || {}).map(key => ({
+      scheduledJobs: Object.keys(scheduler.jobs || {}).map((key) => ({
         name: key,
-        nextInvocation: scheduler.jobs[key]?.nextInvocation() || null
-      }))
+        nextInvocation: scheduler.jobs[key]?.nextInvocation() || null,
+      })),
     };
 
     res.json(status);
   } catch (error) {
     console.error(`Error getting scheduler status: ${error}`);
-    res.status(500).json({ error: 'Failed to get scheduler status' });
+    res.status(500).json({ error: "Failed to get scheduler status" });
   }
 });
 
@@ -85,7 +126,7 @@ router.get('/scheduler-status', verifyToken, verifyAdmin, (req, res) => {
  * Get job statistics for admin dashboard
  * GET /api/admin/job-statistics
  */
-router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
+router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const now = new Date();
@@ -97,10 +138,10 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
     nextSevenDays.setDate(now.getDate() + 7);
 
     // Format dates for MySQL
-    const nowFormatted = moment(now).format('YYYY-MM-DD');
-    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format('YYYY-MM-DD');
-    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format('YYYY-MM-DD');
-    const nextSevenDaysFormatted = moment(nextSevenDays).format('YYYY-MM-DD');
+    const nowFormatted = moment(now).format("YYYY-MM-DD");
+    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
+    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format("YYYY-MM-DD");
+    const nextSevenDaysFormatted = moment(nextSevenDays).format("YYYY-MM-DD");
 
     // Get total active job postings
     const [totalActiveJobs] = await pool.execute(
@@ -110,13 +151,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
 
     // Get jobs posted in the last 7 days
     const [jobsLast7Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM jobs WHERE createdAt >= ?',
+      "SELECT COUNT(*) as count FROM jobs WHERE createdAt >= ?",
       [sevenDaysAgoFormatted]
     );
 
     // Get jobs posted in the last 30 days
     const [jobsLast30Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM jobs WHERE createdAt >= ?',
+      "SELECT COUNT(*) as count FROM jobs WHERE createdAt >= ?",
       [thirtyDaysAgoFormatted]
     );
 
@@ -127,7 +168,8 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
     );
 
     // Get most viewed jobs
-    const [mostViewedJobs] = await pool.execute(`
+    const [mostViewedJobs] = await pool.execute(
+      `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(jv.viewID) as viewCount
       FROM jobs j
       LEFT JOIN job_views jv ON j.jobID = jv.jobID
@@ -136,10 +178,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       GROUP BY j.jobID
       ORDER BY viewCount DESC
       LIMIT 5
-    `, [nowFormatted]);
+    `,
+      [nowFormatted]
+    );
 
     // Get least viewed jobs
-    const [leastViewedJobs] = await pool.execute(`
+    const [leastViewedJobs] = await pool.execute(
+      `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(jv.viewID) as viewCount
       FROM jobs j
       LEFT JOIN job_views jv ON j.jobID = jv.jobID
@@ -148,10 +193,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       GROUP BY j.jobID
       ORDER BY viewCount ASC
       LIMIT 5
-    `, [nowFormatted]);
+    `,
+      [nowFormatted]
+    );
 
     // Get jobs with most applications
-    const [mostApplicationJobs] = await pool.execute(`
+    const [mostApplicationJobs] = await pool.execute(
+      `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(ja.applicationID) as applicationCount
       FROM jobs j
       LEFT JOIN job_applications ja ON j.jobID = ja.jobID
@@ -160,10 +208,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       GROUP BY j.jobID
       ORDER BY applicationCount DESC
       LIMIT 5
-    `, [nowFormatted]);
+    `,
+      [nowFormatted]
+    );
 
     // Get jobs with least applications
-    const [leastApplicationJobs] = await pool.execute(`
+    const [leastApplicationJobs] = await pool.execute(
+      `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(ja.applicationID) as applicationCount
       FROM jobs j
       LEFT JOIN job_applications ja ON j.jobID = ja.jobID
@@ -172,10 +223,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       GROUP BY j.jobID
       ORDER BY applicationCount ASC
       LIMIT 5
-    `, [nowFormatted]);
+    `,
+      [nowFormatted]
+    );
 
     // Get job posting trend data (last 30 days)
-    const [jobPostingTrend] = await pool.execute(`
+    const [jobPostingTrend] = await pool.execute(
+      `
       SELECT
         DATE(createdAt) as date,
         COUNT(*) as count
@@ -183,10 +237,13 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       WHERE createdAt >= ?
       GROUP BY DATE(createdAt)
       ORDER BY date
-    `, [thirtyDaysAgoFormatted]);
+    `,
+      [thirtyDaysAgoFormatted]
+    );
 
     // Get job views trend data (last 30 days)
-    const [jobViewsTrend] = await pool.execute(`
+    const [jobViewsTrend] = await pool.execute(
+      `
       SELECT
         DATE(viewedAt) as date,
         COUNT(*) as count
@@ -194,9 +251,11 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       WHERE viewedAt >= ?
       GROUP BY DATE(viewedAt)
       ORDER BY date
-    `, [thirtyDaysAgoFormatted]);
+    `,
+      [thirtyDaysAgoFormatted]
+    );
 
-    res.json({
+    const jobStats = {
       totalActiveJobs: totalActiveJobs[0].count,
       jobsLast7Days: jobsLast7Days[0].count,
       jobsLast30Days: jobsLast30Days[0].count,
@@ -206,11 +265,21 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
       mostApplicationJobs,
       leastApplicationJobs,
       jobPostingTrend,
-      jobViewsTrend
-    });
+      jobViewsTrend,
+    };
+
+    // Send real-time update to admin dashboard
+    if (notificationSocketService) {
+      notificationSocketService.sendAdminDashboardUpdate({
+        type: 'job_statistics_update',
+        data: jobStats
+      });
+    }
+
+    res.json(jobStats);
   } catch (error) {
-    console.error('Error fetching job statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch job statistics' });
+    console.error("Error fetching job statistics:", error);
+    res.status(500).json({ error: "Failed to fetch job statistics" });
   }
 });
 
@@ -218,45 +287,50 @@ router.get('/job-statistics', verifyToken, verifyAdmin, async (req, res) => {
  * Get application statistics for admin dashboard
  * GET /api/admin/application-statistics
  */
-router.get('/application-statistics', verifyToken, verifyAdmin, async (req, res) => {
-  try {
-    const pool = req.app.locals.pool;
-    const now = new Date();
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(now.getDate() - 30);
+router.get(
+  "/application-statistics",
+  verifyToken,
+  verifyAdmin,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const now = new Date();
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
 
-    // Format dates for MySQL
-    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format('YYYY-MM-DD');
-    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format('YYYY-MM-DD');
+      // Format dates for MySQL
+      const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
+      const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format("YYYY-MM-DD");
 
-    // Get total applications
-    const [totalApplications] = await pool.execute(
-      'SELECT COUNT(*) as count FROM job_applications'
-    );
+      // Get total applications
+      const [totalApplications] = await pool.execute(
+        "SELECT COUNT(*) as count FROM job_applications"
+      );
 
-    // Get applications in the last 7 days
-    const [applicationsLast7Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM job_applications WHERE submittedAt >= ?',
-      [sevenDaysAgoFormatted]
-    );
+      // Get applications in the last 7 days
+      const [applicationsLast7Days] = await pool.execute(
+        "SELECT COUNT(*) as count FROM job_applications WHERE submittedAt >= ?",
+        [sevenDaysAgoFormatted]
+      );
 
-    // Get applications in the last 30 days
-    const [applicationsLast30Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM job_applications WHERE submittedAt >= ?',
-      [thirtyDaysAgoFormatted]
-    );
+      // Get applications in the last 30 days
+      const [applicationsLast30Days] = await pool.execute(
+        "SELECT COUNT(*) as count FROM job_applications WHERE submittedAt >= ?",
+        [thirtyDaysAgoFormatted]
+      );
 
-    // Get application status breakdown
-    const [applicationsByStatus] = await pool.execute(`
+      // Get application status breakdown
+      const [applicationsByStatus] = await pool.execute(`
       SELECT status, COUNT(*) as count
       FROM job_applications
       GROUP BY status
     `);
 
-    // Get application trend data (last 30 days)
-    const [applicationTrend] = await pool.execute(`
+      // Get application trend data (last 30 days)
+      const [applicationTrend] = await pool.execute(
+        `
       SELECT
         DATE(submittedAt) as date,
         COUNT(*) as count
@@ -264,85 +338,107 @@ router.get('/application-statistics', verifyToken, verifyAdmin, async (req, res)
       WHERE submittedAt >= ?
       GROUP BY DATE(submittedAt)
       ORDER BY date
-    `, [thirtyDaysAgoFormatted]);
+    `,
+        [thirtyDaysAgoFormatted]
+      );
 
-    // Calculate conversion rate (views to applications)
-    const [totalViews] = await pool.execute('SELECT COUNT(*) as count FROM job_views');
-    const conversionRate = totalViews[0].count > 0
-      ? (totalApplications[0].count / totalViews[0].count * 100).toFixed(2)
-      : 0;
+      // Calculate conversion rate (views to applications)
+      const [totalViews] = await pool.execute(
+        "SELECT COUNT(*) as count FROM job_views"
+      );
+      const conversionRate =
+        totalViews[0].count > 0
+          ? ((totalApplications[0].count / totalViews[0].count) * 100).toFixed(
+              2
+            )
+          : 0;
 
-    res.json({
-      totalApplications: totalApplications[0].count,
-      applicationsLast7Days: applicationsLast7Days[0].count,
-      applicationsLast30Days: applicationsLast30Days[0].count,
-      applicationsByStatus,
-      applicationTrend,
-      conversionRate
-    });
-  } catch (error) {
-    console.error('Error fetching application statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch application statistics' });
+      const appStats = {
+        totalApplications: totalApplications[0].count,
+        applicationsLast7Days: applicationsLast7Days[0].count,
+        applicationsLast30Days: applicationsLast30Days[0].count,
+        applicationsByStatus,
+        applicationTrend,
+        conversionRate,
+      };
+
+      // Send real-time update to admin dashboard
+      if (notificationSocketService) {
+        notificationSocketService.sendAdminDashboardUpdate({
+          type: 'application_statistics_update',
+          data: appStats
+        });
+      }
+
+      res.json(appStats);
+    } catch (error) {
+      console.error("Error fetching application statistics:", error);
+      res.status(500).json({ error: "Failed to fetch application statistics" });
+    }
   }
-});
+);
 
 /**
  * Get meeting statistics for admin dashboard
  * GET /api/admin/meeting-statistics
  */
-router.get('/meeting-statistics', verifyToken, verifyAdmin, async (req, res) => {
-  try {
-    const pool = req.app.locals.pool;
+router.get(
+  "/meeting-statistics",
+  verifyToken,
+  verifyAdmin,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
 
-    // Get total meetings count
-    const [totalMeetings] = await pool.execute(
-      'SELECT COUNT(*) as count FROM meetings'
-    );
+      // Get total meetings count
+      const [totalMeetings] = await pool.execute(
+        "SELECT COUNT(*) as count FROM meetings"
+      );
 
-    // Get meetings by status
-    const [meetingsByStatus] = await pool.execute(`
+      // Get meetings by status
+      const [meetingsByStatus] = await pool.execute(`
       SELECT status, COUNT(*) as count
       FROM meetings
       GROUP BY status
     `);
 
-    // Get meetings by type
-    const [meetingsByType] = await pool.execute(`
+      // Get meetings by type
+      const [meetingsByType] = await pool.execute(`
       SELECT meetingType, COUNT(*) as count
       FROM meetings
       GROUP BY meetingType
     `);
 
-    // Get average meeting success rating
-    const [avgSuccessRating] = await pool.execute(`
+      // Get average meeting success rating
+      const [avgSuccessRating] = await pool.execute(`
       SELECT AVG(meetingSuccessRating) as avgRating
       FROM meeting_feedback
     `);
 
-    // Get average platform experience rating
-    const [avgPlatformRating] = await pool.execute(`
+      // Get average platform experience rating
+      const [avgPlatformRating] = await pool.execute(`
       SELECT AVG(platformExperienceRating) as avgRating
       FROM meeting_feedback
     `);
 
-    // Get busiest days
-    const [busiestDays] = await pool.execute(`
+      // Get busiest days
+      const [busiestDays] = await pool.execute(`
       SELECT DAYNAME(meetingDate) as dayOfWeek, COUNT(*) as count
       FROM meetings
       GROUP BY DAYNAME(meetingDate)
       ORDER BY count DESC
     `);
 
-    // Get busiest hours
-    const [busiestHours] = await pool.execute(`
+      // Get busiest hours
+      const [busiestHours] = await pool.execute(`
       SELECT HOUR(startTime) as hour, COUNT(*) as count
       FROM meetings
       GROUP BY HOUR(startTime)
       ORDER BY count DESC
     `);
 
-    // Get upcoming meetings
-    const [upcomingMeetings] = await pool.execute(`
+      // Get upcoming meetings
+      const [upcomingMeetings] = await pool.execute(`
       SELECT m.*,
              u1.username as requestorName,
              u2.username as recipientName
@@ -354,27 +450,28 @@ router.get('/meeting-statistics', verifyToken, verifyAdmin, async (req, res) => 
       LIMIT 5
     `);
 
-    res.json({
-      totalMeetings: totalMeetings[0].count,
-      meetingsByStatus,
-      meetingsByType,
-      avgSuccessRating: avgSuccessRating[0].avgRating || 0,
-      avgPlatformRating: avgPlatformRating[0].avgRating || 0,
-      busiestDays,
-      busiestHours,
-      upcomingMeetings
-    });
-  } catch (error) {
-    console.error('Error fetching meeting statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch meeting statistics' });
+      res.json({
+        totalMeetings: totalMeetings[0].count,
+        meetingsByStatus,
+        meetingsByType,
+        avgSuccessRating: avgSuccessRating[0].avgRating || 0,
+        avgPlatformRating: avgPlatformRating[0].avgRating || 0,
+        busiestDays,
+        busiestHours,
+        upcomingMeetings,
+      });
+    } catch (error) {
+      console.error("Error fetching meeting statistics:", error);
+      res.status(500).json({ error: "Failed to fetch meeting statistics" });
+    }
   }
-});
+);
 
 /**
  * Get user activity statistics for admin dashboard
  * GET /api/admin/user-activity
  */
-router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
+router.get("/user-activity", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const pool = req.app.locals.pool;
     const now = new Date();
@@ -384,8 +481,8 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     // Format dates for MySQL
-    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format('YYYY-MM-DD');
-    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format('YYYY-MM-DD');
+    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
+    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format("YYYY-MM-DD");
 
     // Get new user registrations in the last 7 days
     const [newUsers7Days] = await pool.execute(
@@ -400,7 +497,8 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
     );
 
     // Get user registration trend (last 30 days)
-    const [userRegistrationTrend] = await pool.execute(`
+    const [userRegistrationTrend] = await pool.execute(
+      `
       SELECT
         DATE(createdAt) as date,
         COUNT(*) as count
@@ -408,7 +506,9 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
       WHERE status = "approved" AND createdAt >= ?
       GROUP BY DATE(createdAt)
       ORDER BY date
-    `, [thirtyDaysAgoFormatted]);
+    `,
+      [thirtyDaysAgoFormatted]
+    );
 
     // Get profile completion rates
     // This is a simplified example - you might need to adjust based on your actual schema
@@ -441,20 +541,39 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
     `);
 
     // Calculate completion percentages
-    const studentCompletionRate = studentProfiles[0].total > 0 ?
-      ((studentProfiles[0].withProfileImage + studentProfiles[0].withDescription +
-        studentProfiles[0].withCareerPathways + studentProfiles[0].withDocuments) /
-        (studentProfiles[0].total * 4) * 100).toFixed(1) : 0;
+    const studentCompletionRate =
+      studentProfiles[0].total > 0
+        ? (
+            ((studentProfiles[0].withProfileImage +
+              studentProfiles[0].withDescription +
+              studentProfiles[0].withCareerPathways +
+              studentProfiles[0].withDocuments) /
+              (studentProfiles[0].total * 4)) *
+            100
+          ).toFixed(1)
+        : 0;
 
-    const counselorCompletionRate = counselorProfiles[0].total > 0 ?
-      ((counselorProfiles[0].withProfileImage + counselorProfiles[0].withDescription +
-        counselorProfiles[0].withSpecializations) /
-        (counselorProfiles[0].total * 3) * 100).toFixed(1) : 0;
+    const counselorCompletionRate =
+      counselorProfiles[0].total > 0
+        ? (
+            ((counselorProfiles[0].withProfileImage +
+              counselorProfiles[0].withDescription +
+              counselorProfiles[0].withSpecializations) /
+              (counselorProfiles[0].total * 3)) *
+            100
+          ).toFixed(1)
+        : 0;
 
-    const companyCompletionRate = companyProfiles[0].total > 0 ?
-      ((companyProfiles[0].withLogo + companyProfiles[0].withDescription +
-        companyProfiles[0].withWebsite) /
-        (companyProfiles[0].total * 3) * 100).toFixed(1) : 0;
+    const companyCompletionRate =
+      companyProfiles[0].total > 0
+        ? (
+            ((companyProfiles[0].withLogo +
+              companyProfiles[0].withDescription +
+              companyProfiles[0].withWebsite) /
+              (companyProfiles[0].total * 3)) *
+            100
+          ).toFixed(1)
+        : 0;
 
     res.json({
       newUsers7Days: newUsers7Days[0].count,
@@ -463,12 +582,12 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
       profileCompletion: {
         student: studentCompletionRate,
         counselor: counselorCompletionRate,
-        company: companyCompletionRate
-      }
+        company: companyCompletionRate,
+      },
     });
   } catch (error) {
-    console.error('Error fetching user activity statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch user activity statistics' });
+    console.error("Error fetching user activity statistics:", error);
+    res.status(500).json({ error: "Failed to fetch user activity statistics" });
   }
 });
 
@@ -476,26 +595,31 @@ router.get('/user-activity', verifyToken, verifyAdmin, async (req, res) => {
  * Get security audit statistics for admin dashboard
  * GET /api/admin/security-statistics
  */
-router.get('/security-statistics', verifyToken, verifyAdmin, async (req, res) => {
-  try {
-    const pool = req.app.locals.pool;
-    const now = new Date();
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 7);
+router.get(
+  "/security-statistics",
+  verifyToken,
+  verifyAdmin,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const now = new Date();
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
 
-    // Format dates for MySQL
-    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format('YYYY-MM-DD');
+      // Format dates for MySQL
+      const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
 
-    // Get recent security events
-    const [recentEvents] = await pool.execute(`
+      // Get recent security events
+      const [recentEvents] = await pool.execute(`
       SELECT eventType, details, userID, timestamp
       FROM security_audit_log
       ORDER BY timestamp DESC
       LIMIT 10
     `);
 
-    // Get login attempts (successful/failed) in the last 7 days
-    const [loginAttempts] = await pool.execute(`
+      // Get login attempts (successful/failed) in the last 7 days
+      const [loginAttempts] = await pool.execute(
+        `
       SELECT
         eventType,
         COUNT(*) as count
@@ -503,64 +627,74 @@ router.get('/security-statistics', verifyToken, verifyAdmin, async (req, res) =>
       WHERE (eventType = 'LOGIN_SUCCESS' OR eventType = 'LOGIN_FAILED')
         AND timestamp >= ?
       GROUP BY eventType
-    `, [sevenDaysAgoFormatted]);
+    `,
+        [sevenDaysAgoFormatted]
+      );
 
-    // Get account status changes in the last 7 days
-    const [accountStatusChanges] = await pool.execute(`
+      // Get account status changes in the last 7 days
+      const [accountStatusChanges] = await pool.execute(
+        `
       SELECT
         COUNT(*) as count
       FROM security_audit_log
       WHERE eventType = 'ACCOUNT_STATUS_CHANGE'
         AND timestamp >= ?
-    `, [sevenDaysAgoFormatted]);
+    `,
+        [sevenDaysAgoFormatted]
+      );
 
-    res.json({
-      recentEvents,
-      loginAttempts,
-      accountStatusChanges: accountStatusChanges[0].count
-    });
-  } catch (error) {
-    console.error('Error fetching security statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch security statistics' });
+      res.json({
+        recentEvents,
+        loginAttempts,
+        accountStatusChanges: accountStatusChanges[0].count,
+      });
+    } catch (error) {
+      console.error("Error fetching security statistics:", error);
+      res.status(500).json({ error: "Failed to fetch security statistics" });
+    }
   }
-});
+);
 
 /**
  * Get communication statistics for admin dashboard
  * GET /api/admin/communication-statistics
  */
-router.get('/communication-statistics', verifyToken, verifyAdmin, async (req, res) => {
-  try {
-    const pool = req.app.locals.pool;
-    const now = new Date();
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(now.getDate() - 30);
+router.get(
+  "/communication-statistics",
+  verifyToken,
+  verifyAdmin,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+      const now = new Date();
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
 
-    // Format dates for MySQL
-    const sevenDaysAgoFormatted = moment(sevenDaysAgo).format('YYYY-MM-DD');
-    const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format('YYYY-MM-DD');
+      // Format dates for MySQL
+      const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
+      const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format("YYYY-MM-DD");
 
-    // Get total messages
-    const [totalMessages] = await pool.execute(
-      'SELECT COUNT(*) as count FROM messages'
-    );
+      // Get total messages
+      const [totalMessages] = await pool.execute(
+        "SELECT COUNT(*) as count FROM messages"
+      );
 
-    // Get messages sent in the last 7 days
-    const [messages7Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?',
-      [sevenDaysAgoFormatted]
-    );
+      // Get messages sent in the last 7 days
+      const [messages7Days] = await pool.execute(
+        "SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?",
+        [sevenDaysAgoFormatted]
+      );
 
-    // Get messages sent in the last 30 days
-    const [messages30Days] = await pool.execute(
-      'SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?',
-      [thirtyDaysAgoFormatted]
-    );
+      // Get messages sent in the last 30 days
+      const [messages30Days] = await pool.execute(
+        "SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?",
+        [thirtyDaysAgoFormatted]
+      );
 
-    // Get most active conversations (pairs of users with most messages)
-    const [activeConversations] = await pool.execute(`
+      // Get most active conversations (pairs of users with most messages)
+      const [activeConversations] = await pool.execute(`
       SELECT
         LEAST(senderID, receiverID) as user1ID,
         GREATEST(senderID, receiverID) as user2ID,
@@ -576,15 +710,16 @@ router.get('/communication-statistics', verifyToken, verifyAdmin, async (req, re
       LIMIT 5
     `);
 
-    // Get total unread messages
-    const [unreadMessages] = await pool.execute(`
+      // Get total unread messages
+      const [unreadMessages] = await pool.execute(`
       SELECT COUNT(*) as count
       FROM messages
       WHERE status = 'sent' OR status = 'delivered'
     `);
 
-    // Get message trend data (last 30 days)
-    const [messageTrend] = await pool.execute(`
+      // Get message trend data (last 30 days)
+      const [messageTrend] = await pool.execute(
+        `
       SELECT
         DATE(timestamp) as date,
         COUNT(*) as count
@@ -592,54 +727,69 @@ router.get('/communication-statistics', verifyToken, verifyAdmin, async (req, re
       WHERE timestamp >= ?
       GROUP BY DATE(timestamp)
       ORDER BY date
-    `, [thirtyDaysAgoFormatted]);
+    `,
+        [thirtyDaysAgoFormatted]
+      );
 
-    res.json({
-      totalMessages: totalMessages[0].count,
-      messages7Days: messages7Days[0].count,
-      messages30Days: messages30Days[0].count,
-      activeConversations,
-      unreadMessages: unreadMessages[0].count,
-      messageTrend
-    });
-  } catch (error) {
-    console.error('Error fetching communication statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch communication statistics' });
+      res.json({
+        totalMessages: totalMessages[0].count,
+        messages7Days: messages7Days[0].count,
+        messages30Days: messages30Days[0].count,
+        activeConversations,
+        unreadMessages: unreadMessages[0].count,
+        messageTrend,
+      });
+    } catch (error) {
+      console.error("Error fetching communication statistics:", error);
+      res
+        .status(500)
+        .json({ error: "Failed to fetch communication statistics" });
+    }
   }
-});
+);
 
 /**
  * Get system health statistics for admin dashboard
  * GET /api/admin/system-health
  */
-router.get('/system-health', verifyToken, verifyAdmin, async (req, res) => {
+router.get("/system-health", verifyToken, verifyAdmin, async (req, res) => {
   try {
     // Get scheduler status
     const schedulerStatus = {
       isRunning: !!scheduler.jobs && Object.keys(scheduler.jobs).length > 0,
-      scheduledJobs: Object.keys(scheduler.jobs || {}).map(key => ({
+      scheduledJobs: Object.keys(scheduler.jobs || {}).map((key) => ({
         name: key,
-        nextInvocation: scheduler.jobs[key]?.nextInvocation() || null
-      }))
+        nextInvocation: scheduler.jobs[key]?.nextInvocation() || null,
+      })),
     };
 
     // Check database connection
     const pool = req.app.locals.pool;
-    let dbStatus = 'connected';
+    let dbStatus = "connected";
     try {
-      await pool.execute('SELECT 1');
+      await pool.execute("SELECT 1");
     } catch (error) {
-      dbStatus = 'disconnected';
+      dbStatus = "disconnected";
     }
 
-    res.json({
+    const systemHealthData = {
       schedulerStatus,
       databaseStatus: dbStatus,
-      serverTime: new Date().toISOString()
-    });
+      serverTime: new Date().toISOString(),
+    };
+
+    // Send real-time update to admin dashboard
+    if (notificationSocketService) {
+      notificationSocketService.sendAdminDashboardUpdate({
+        type: 'system_health_update',
+        data: systemHealthData
+      });
+    }
+
+    res.json(systemHealthData);
   } catch (error) {
-    console.error('Error fetching system health statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch system health statistics' });
+    console.error("Error fetching system health statistics:", error);
+    res.status(500).json({ error: "Failed to fetch system health statistics" });
   }
 });
 
@@ -647,7 +797,7 @@ router.get('/system-health', verifyToken, verifyAdmin, async (req, res) => {
  * Get recent activity feed for admin dashboard
  * GET /api/admin/activity-feed
  */
-router.get('/activity-feed', verifyToken, verifyAdmin, async (req, res) => {
+router.get("/activity-feed", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const pool = req.app.locals.pool;
 
@@ -704,41 +854,134 @@ router.get('/activity-feed', verifyToken, verifyAdmin, async (req, res) => {
 
     // Combine all activities into a single feed with type and timestamp
     const activities = [
-      ...recentRegistrations.map(reg => ({
-        type: 'registration',
+      ...recentRegistrations.map((reg) => ({
+        type: "registration",
         timestamp: reg.createdAt,
-        data: reg
+        data: reg,
       })),
-      ...recentJobs.map(job => ({
-        type: 'job',
+      ...recentJobs.map((job) => ({
+        type: "job",
         timestamp: job.createdAt,
-        data: job
+        data: job,
       })),
-      ...recentApplications.map(app => ({
-        type: 'application',
+      ...recentApplications.map((app) => ({
+        type: "application",
         timestamp: app.submittedAt,
-        data: app
+        data: app,
       })),
-      ...recentMeetings.map(meeting => ({
-        type: 'meeting',
+      ...recentMeetings.map((meeting) => ({
+        type: "meeting",
         timestamp: meeting.createdAt,
-        data: meeting
+        data: meeting,
       })),
-      ...recentLogins.map(login => ({
-        type: 'login',
+      ...recentLogins.map((login) => ({
+        type: "login",
         timestamp: login.timestamp,
-        data: login
-      }))
+        data: login,
+      })),
     ];
 
     // Sort by timestamp (most recent first)
-    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    activities.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 
     // Return only the most recent 20 activities
-    res.json(activities.slice(0, 20));
+    const activityFeedData = activities.slice(0, 20);
+
+    // Send real-time update to admin dashboard
+    if (notificationSocketService) {
+      notificationSocketService.sendAdminDashboardUpdate({
+        type: 'activity_feed_update',
+        data: activityFeedData
+      });
+    }
+
+    res.json(activityFeedData);
   } catch (error) {
-    console.error('Error fetching activity feed:', error);
-    res.status(500).json({ error: 'Failed to fetch activity feed' });
+    console.error("Error fetching activity feed:", error);
+    res.status(500).json({ error: "Failed to fetch activity feed" });
+  }
+});
+
+/**
+ * Manually trigger a dashboard update
+ * POST /api/admin/trigger-dashboard-update
+ * Body: { updateType: string }
+ */
+router.post('/trigger-dashboard-update', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { updateType } = req.body;
+
+    if (!updateType) {
+      return res.status(400).json({ error: 'Update type is required' });
+    }
+
+    // Fetch the appropriate data based on the update type
+    let data = {};
+
+    switch (updateType) {
+      case 'job_statistics_update':
+        // Reuse the job statistics endpoint logic
+        const jobStatsRes = await fetch(`${req.protocol}://${req.get('host')}/api/admin/job-statistics`, {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        });
+        data = await jobStatsRes.json();
+        break;
+
+      case 'application_statistics_update':
+        // Reuse the application statistics endpoint logic
+        const appStatsRes = await fetch(`${req.protocol}://${req.get('host')}/api/admin/application-statistics`, {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        });
+        data = await appStatsRes.json();
+        break;
+
+      case 'activity_feed_update':
+        // Reuse the activity feed endpoint logic
+        const activityFeedRes = await fetch(`${req.protocol}://${req.get('host')}/api/admin/activity-feed`, {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        });
+        data = await activityFeedRes.json();
+        break;
+
+      case 'system_health_update':
+        // Reuse the system health endpoint logic
+        const systemHealthRes = await fetch(`${req.protocol}://${req.get('host')}/api/admin/system-health`, {
+          headers: {
+            Authorization: req.headers.authorization
+          }
+        });
+        data = await systemHealthRes.json();
+        break;
+
+      case 'all':
+        // Trigger update for all dashboard components
+        router.triggerAdminDashboardUpdate('dashboard_refresh', { message: 'Full dashboard refresh requested' });
+        return res.json({ success: true, message: 'Full dashboard refresh triggered' });
+
+      default:
+        return res.status(400).json({ error: `Unknown update type: ${updateType}` });
+    }
+
+    // Trigger the update
+    const success = router.triggerAdminDashboardUpdate(updateType, data);
+
+    if (success) {
+      res.json({ success: true, message: `${updateType} update triggered successfully` });
+    } else {
+      res.status(500).json({ error: 'Failed to trigger update, notification service not available' });
+    }
+  } catch (error) {
+    console.error(`Error triggering dashboard update: ${error}`);
+    res.status(500).json({ error: 'Failed to trigger dashboard update' });
   }
 });
 

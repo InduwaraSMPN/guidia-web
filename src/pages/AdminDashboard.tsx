@@ -5,6 +5,7 @@ import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState, useCallback, createContext } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useSocket } from "../contexts/SocketContext";
 import { toast } from "../components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdminSidebar from "../components/AdminSidebar";
@@ -269,6 +270,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, stats }) => {
 
 export function AdminDashboard() {
   const { user, isVerifyingToken } = useAuth();
+  const { socket } = useSocket();
   const navigate = useNavigate();
   const location = useLocation();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
@@ -280,10 +282,18 @@ export function AdminDashboard() {
 
   // Add state to track sidebar collapsed status
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Add state to track auto-refresh
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
 
   // Function to update sidebar state that will be passed to AdminSidebar
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
+  };
+
+  // Function to toggle auto-refresh
+  const toggleAutoRefresh = () => {
+    setAutoRefresh((prev) => !prev);
   };
 
   const fetchDashboardData = useCallback(async () => {
@@ -450,6 +460,78 @@ export function AdminDashboard() {
     }
   }, []);
 
+  // Track last update time to prevent too frequent updates
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
+  const UPDATE_THROTTLE_MS = 5000; // 5 seconds minimum between updates
+  const [lastToastTime, setLastToastTime] = useState<number>(0);
+  const TOAST_THROTTLE_MS = 30000; // 30 seconds minimum between toast notifications
+
+  // Handle admin dashboard update events
+  const handleAdminDashboardUpdate = useCallback(
+    (data: any) => {
+      console.log("Received admin dashboard update:", data);
+      // Only update if we're on the admin dashboard page
+      if (location.pathname === "/admin") {
+        const now = Date.now();
+
+        // Check if enough time has passed since the last update
+        if (now - lastUpdateTime > UPDATE_THROTTLE_MS) {
+          // Fetch fresh data when we receive an update
+          fetchDashboardData();
+          setLastUpdateTime(now);
+
+          // Only show toast notification if enough time has passed
+          if (now - lastToastTime > TOAST_THROTTLE_MS) {
+            toast.success("Dashboard data updated", {
+              description: "New data is now available",
+            });
+            setLastToastTime(now);
+          }
+        }
+      }
+    },
+    [location.pathname, fetchDashboardData, lastUpdateTime, lastToastTime]
+  );
+
+  // Effect for setting up auto-refresh
+  useEffect(() => {
+    if (autoRefresh && location.pathname === "/admin") {
+      // Set up a 60-second refresh interval
+      const interval = window.setInterval(() => {
+        if (!refreshing) {
+          const now = Date.now();
+          // Only refresh if enough time has passed since the last update
+          if (now - lastUpdateTime > UPDATE_THROTTLE_MS) {
+            console.log('Auto-refreshing dashboard data...');
+            fetchDashboardData();
+            setLastUpdateTime(now);
+
+            // Only show toast notification if enough time has passed
+            if (now - lastToastTime > TOAST_THROTTLE_MS) {
+              toast.success("Dashboard data refreshed", {
+                description: "Data has been automatically refreshed",
+              });
+              setLastToastTime(now);
+            }
+          }
+        }
+      }, 60000); // 60 seconds
+
+      setRefreshInterval(interval);
+
+      return () => {
+        if (interval) {
+          window.clearInterval(interval);
+          setRefreshInterval(null);
+        }
+      };
+    } else if (!autoRefresh && refreshInterval) {
+      // Clear the interval if auto-refresh is turned off
+      window.clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+  }, [autoRefresh, location.pathname, refreshing, fetchDashboardData, refreshInterval, lastUpdateTime, lastToastTime]);
+
   useEffect(() => {
     if (!user) {
       if (!isVerifyingToken) {
@@ -464,7 +546,26 @@ export function AdminDashboard() {
     }
 
     fetchDashboardData();
-  }, [user, isVerifyingToken, navigate, fetchDashboardData]);
+
+    // Set up socket event listener for admin dashboard updates
+    if (socket && user.roleId === 1) {
+      socket.on("admin_dashboard_update", handleAdminDashboardUpdate);
+    }
+
+    // Clean up event listener
+    return () => {
+      if (socket) {
+        socket.off("admin_dashboard_update", handleAdminDashboardUpdate);
+      }
+    };
+  }, [
+    user,
+    isVerifyingToken,
+    navigate,
+    fetchDashboardData,
+    socket,
+    handleAdminDashboardUpdate,
+  ]);
 
   return (
     <SidebarContext.Provider value={{ collapsed: sidebarCollapsed }}>
@@ -486,22 +587,44 @@ export function AdminDashboard() {
                     subtitle="Overview of system statistics and activities"
                     className="mb-8"
                     action={
-                      refreshing ? (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-sm">Refreshing...</span>
-                        </div>
-                      ) : (
+                      <div className="flex items-center gap-2">
+                        {refreshing ? (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">Refreshing...</span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const now = Date.now();
+                              // Only refresh if enough time has passed since the last update
+                              if (now - lastUpdateTime > UPDATE_THROTTLE_MS) {
+                                fetchDashboardData();
+                                setLastUpdateTime(now);
+                              } else {
+                                // Show a message that we're throttling
+                                toast.info("Refresh throttled", {
+                                  description: `Please wait ${Math.ceil((UPDATE_THROTTLE_MS - (now - lastUpdateTime)) / 1000)} seconds before refreshing again`,
+                                });
+                              }
+                            }}
+                            className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                            <span>Refresh Data</span>
+                          </Button>
+                        )}
                         <Button
-                          variant="outline"
+                          variant={autoRefresh ? "default" : "outline"}
                           size="sm"
-                          onClick={() => fetchDashboardData()}
-                          className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                          onClick={toggleAutoRefresh}
+                          className={`flex items-center gap-1.5 transition-all duration-200 hover:scale-105 ${autoRefresh ? 'bg-green-600 hover:bg-green-700' : ''}`}
                         >
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          <span>Refresh Data</span>
+                          <span>{autoRefresh ? "Auto-Refresh: ON" : "Auto-Refresh: OFF"}</span>
                         </Button>
-                      )
+                      </div>
                     }
                   />
 
