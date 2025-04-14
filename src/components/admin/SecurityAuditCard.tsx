@@ -34,6 +34,7 @@ const EVENT_ICONS = {
   account_activated: <UserCheck className="h-4 w-4" />,
   account_deactivated: <ShieldOff className="h-4 w-4" />,
   account_status_change: <ShieldAlert className="h-4 w-4" />,
+  user_status_changed: <ShieldAlert className="h-4 w-4" />,
   role_change: <ShieldAlert className="h-4 w-4" />,
 }
 
@@ -49,6 +50,7 @@ const EVENT_COLORS = {
   account_activated: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
   account_deactivated: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
   account_status_change: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
+  user_status_changed: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
   role_change: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300",
 }
 
@@ -100,6 +102,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
     if (normalized === "login_success") return "login_success"
     if (normalized === "login_failed") return "login_failed"
     if (normalized === "account_status_change") return "account_status_change"
+    if (normalized === "user_status_changed") return "user_status_changed"
 
     return normalized
   }

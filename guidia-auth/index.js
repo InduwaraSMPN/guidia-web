@@ -784,12 +784,40 @@ app.patch(
       if (!["active", "blocked"].includes(status))
         return res.status(400).json({ error: "Invalid status value" });
 
+      // Get current user status before update
+      const [currentUser] = await pool.query(
+        "SELECT userID, email, username, roleID, status FROM users WHERE userID = ?",
+        [req.params.id]
+      );
+
+      if (currentUser.length === 0)
+        return res.status(404).json({ error: "User not found" });
+
+      const oldStatus = currentUser[0].status;
+
+      // Only update if status has changed
+      if (oldStatus === status) {
+        return res.json(currentUser[0]);
+      }
+
       const [result] = await pool.query(
         "UPDATE users SET status = ? WHERE userID = ?",
         [status, req.params.id]
       );
-      if (result.affectedRows === 0)
-        return res.status(404).json({ error: "User not found" });
+
+      // Log the status change event
+      await logSecurityEvent(
+        "USER_STATUS_CHANGED",
+        {
+          oldStatus: oldStatus,
+          newStatus: status,
+          targetUserID: req.params.id,
+          targetUserEmail: currentUser[0].email,
+          changedBy: req.user.id,
+          ip: req.ip
+        },
+        req.user.id // Admin who made the change
+      );
 
       const [updatedUser] = await pool.query(
         "SELECT userID, email, username, roleID, status FROM users WHERE userID = ?",

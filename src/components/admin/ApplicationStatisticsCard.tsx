@@ -70,7 +70,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-brand" />
-          <CardTitle>Application Statistics</CardTitle>
+          <CardTitle>Job Application Statistics</CardTitle>
         </div>
         <CardDescription>Overview of job applications and their statuses</CardDescription>
       </CardHeader>
@@ -79,7 +79,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
           <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <FileText className="h-4 w-4" />
-              <span className="text-sm">Total Applications</span>
+              <span className="text-sm">Total Job Applications</span>
             </div>
             <div className="text-2xl font-bold">{applicationStats.totalApplications}</div>
           </div>
@@ -109,7 +109,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
         <Tabs defaultValue="trend" className="w-full">
           <TabsList className="mb-6 w-full justify-start border-b pb-px">
             <TabsTrigger value="trend" className="data-[state=active]:bg-background">
-              Application Trend
+              Job Application Trend
             </TabsTrigger>
             <TabsTrigger value="status" className="data-[state=active]:bg-background">
               Status Breakdown
@@ -122,7 +122,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
           >
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-brand" />
-              <span>Application Trend (Last 30 Days)</span>
+              <span>Job Application Trend (Last 30 Days)</span>
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -161,7 +161,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
               <div>
                 <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                   <PieChartIcon className="h-4 w-4 text-brand" />
-                  <span>Applications by Status</span>
+                  <span>Job Applications by Status</span>
                 </h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -200,7 +200,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
               <div>
                 <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-brand" />
-                  <span>Status Distribution</span>
+                  <span>Job Applications Status Distribution</span>
                 </h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">

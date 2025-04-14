@@ -637,7 +637,7 @@ router.get(
       SELECT
         COUNT(*) as count
       FROM security_audit_log
-      WHERE eventType = 'ACCOUNT_STATUS_CHANGE'
+      WHERE (eventType = 'ACCOUNT_STATUS_CHANGE' OR eventType = 'USER_STATUS_CHANGED')
         AND timestamp >= ?
     `,
         [sevenDaysAgoFormatted]
@@ -683,13 +683,13 @@ router.get(
 
       // Get messages sent in the last 7 days
       const [messages7Days] = await pool.execute(
-        "SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?",
+        "SELECT COUNT(*) as count FROM messages WHERE DATE(timestamp) >= ?",
         [sevenDaysAgoFormatted]
       );
 
       // Get messages sent in the last 30 days
       const [messages30Days] = await pool.execute(
-        "SELECT COUNT(*) as count FROM messages WHERE timestamp >= ?",
+        "SELECT COUNT(*) as count FROM messages WHERE DATE(timestamp) >= ?",
         [thirtyDaysAgoFormatted]
       );
 
@@ -724,7 +724,7 @@ router.get(
         DATE(timestamp) as date,
         COUNT(*) as count
       FROM messages
-      WHERE timestamp >= ?
+      WHERE DATE(timestamp) >= ?
       GROUP BY DATE(timestamp)
       ORDER BY date
     `,
