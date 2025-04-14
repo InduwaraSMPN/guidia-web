@@ -1,38 +1,64 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
+const firebaseMessageUtils = require('../utils/firebaseMessageUtils');
+const admin = require('firebase-admin');
 
 // Get chat messages between two users
 router.get('/:userType/messages/:receiverId', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
     const senderId = req.user.id;
     const { receiverId } = req.params;
 
-    const [messages] = await pool.execute(`
+    console.log(`Fetching messages between ${senderId} and ${receiverId} using Firebase`);
+
+    // Get messages from Firebase
+    const messages = await firebaseMessageUtils.getMessagesBetweenUsers(senderId, receiverId);
+
+    // Get user details for sender and receiver to add names and images
+    const pool = req.app.locals.pool;
+    const [userDetails] = await pool.execute(`
       SELECT
-        m.*,
+        u.userID,
         CASE
           WHEN s.studentName IS NOT NULL THEN s.studentName
           WHEN c.counselorName IS NOT NULL THEN c.counselorName
           WHEN comp.companyName IS NOT NULL THEN comp.companyName
-        END as senderName,
+          ELSE u.username
+        END as name,
         CASE
           WHEN s.studentProfileImagePath IS NOT NULL THEN s.studentProfileImagePath
           WHEN c.counselorProfileImagePath IS NOT NULL THEN c.counselorProfileImagePath
           WHEN comp.companyLogoPath IS NOT NULL THEN comp.companyLogoPath
-        END as senderImage,
-        m.senderID = ? as isSender
-      FROM messages m
-      LEFT JOIN students s ON m.senderID = s.userID
-      LEFT JOIN counselors c ON m.senderID = c.userID
-      LEFT JOIN companies comp ON m.senderID = comp.userID
-      WHERE (m.senderID = ? AND m.receiverID = ?)
-         OR (m.senderID = ? AND m.receiverID = ?)
-      ORDER BY m.timestamp ASC
-    `, [senderId, senderId, receiverId, receiverId, senderId]);
+          ELSE NULL
+        END as image
+      FROM users u
+      LEFT JOIN students s ON u.userID = s.userID
+      LEFT JOIN counselors c ON u.userID = c.userID
+      LEFT JOIN companies comp ON u.userID = comp.userID
+      WHERE u.userID IN (?, ?)
+    `, [senderId, receiverId]);
 
-    res.json(messages);
+    // Create a map of user details
+    const userDetailsMap = {};
+    userDetails.forEach(user => {
+      userDetailsMap[user.userID] = {
+        name: user.name,
+        image: user.image
+      };
+    });
+
+    // Add user details to messages
+    const messagesWithDetails = messages.map(message => ({
+      ...message,
+      senderName: userDetailsMap[message.senderID]?.name || '',
+      senderImage: userDetailsMap[message.senderID]?.image || ''
+    }));
+
+    // Mark messages as read
+    await firebaseMessageUtils.markMessagesAsRead(senderId, receiverId);
+
+    res.json(messagesWithDetails);
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).json({ error: 'Failed to fetch messages' });
@@ -41,20 +67,23 @@ router.get('/:userType/messages/:receiverId', verifyToken, async (req, res) => {
 
 // Send a new message
 router.post('/', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
-    const { receiverId, message } = req.body;
+    const { receiverId, message, messageType = 'text', mediaUrl = null, replyToId = null } = req.body;
     const senderId = req.user.id;
 
-    const [result] = await pool.execute(
-      'INSERT INTO messages (senderID, receiverID, message) VALUES (?, ?, ?)',
-      [senderId, receiverId, message]
+    console.log(`Sending message from ${senderId} to ${receiverId} using Firebase`);
+
+    // Send message using Firebase
+    const result = await firebaseMessageUtils.sendMessage(
+      senderId,
+      receiverId,
+      message,
+      messageType,
+      mediaUrl,
+      replyToId
     );
 
-    res.status(201).json({
-      messageId: result.insertId,
-      timestamp: new Date().toISOString()
-    });
+    res.status(201).json(result);
   } catch (error) {
     console.error('Error sending message:', error);
     res.status(500).json({ error: 'Failed to send message' });
@@ -63,84 +92,73 @@ router.post('/', verifyToken, async (req, res) => {
 
 // Get all conversations for a user
 router.get('/conversations', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
     const userId = req.user.id;
 
-    const [conversations] = await pool.execute(`
+    console.log(`Fetching conversations for user ${userId} using Firebase`);
+
+    // Get conversations from Firebase
+    const conversations = await firebaseMessageUtils.getUserConversations(userId);
+
+    // Get user details for all participants
+    const pool = req.app.locals.pool;
+    const otherUserIds = conversations.map(conv => conv.otherUserId);
+
+    if (otherUserIds.length === 0) {
+      return res.json([]);
+    }
+
+    const placeholders = otherUserIds.map(() => '?').join(',');
+    const [userDetails] = await pool.execute(`
       SELECT
-        DISTINCT
+        u.userID,
         CASE
-          WHEN m.senderID = ? THEN m.receiverID
-          ELSE m.senderID
-        END as userId,
-        CASE
-          WHEN m.senderID = ? THEN
-            CASE
-              WHEN s2.studentName IS NOT NULL THEN s2.studentName
-              WHEN c2.counselorName IS NOT NULL THEN c2.counselorName
-              WHEN comp2.companyName IS NOT NULL THEN comp2.companyName
-            END
-          ELSE
-            CASE
-              WHEN s1.studentName IS NOT NULL THEN s1.studentName
-              WHEN c1.counselorName IS NOT NULL THEN c1.counselorName
-              WHEN comp1.companyName IS NOT NULL THEN comp1.companyName
-            END
+          WHEN s.studentName IS NOT NULL THEN s.studentName
+          WHEN c.counselorName IS NOT NULL THEN c.counselorName
+          WHEN comp.companyName IS NOT NULL THEN comp.companyName
+          ELSE u.username
         END as name,
         CASE
-          WHEN m.senderID = ? THEN
-            CASE
-              WHEN s2.studentProfileImagePath IS NOT NULL THEN s2.studentProfileImagePath
-              WHEN c2.counselorProfileImagePath IS NOT NULL THEN c2.counselorProfileImagePath
-              WHEN comp2.companyLogoPath IS NOT NULL THEN comp2.companyLogoPath
-            END
-          ELSE
-            CASE
-              WHEN s1.studentProfileImagePath IS NOT NULL THEN s1.studentProfileImagePath
-              WHEN c1.counselorProfileImagePath IS NOT NULL THEN c1.counselorProfileImagePath
-              WHEN comp1.companyLogoPath IS NOT NULL THEN comp1.companyLogoPath
-            END
+          WHEN s.studentProfileImagePath IS NOT NULL THEN s.studentProfileImagePath
+          WHEN c.counselorProfileImagePath IS NOT NULL THEN c.counselorProfileImagePath
+          WHEN comp.companyLogoPath IS NOT NULL THEN comp.companyLogoPath
+          ELSE NULL
         END as image,
         CASE
-          WHEN m.senderID = ? THEN
-            CASE
-              WHEN s2.userID IS NOT NULL THEN 'student'
-              WHEN c2.userID IS NOT NULL THEN 'counselor'
-              WHEN comp2.userID IS NOT NULL THEN 'company'
-            END
-          ELSE
-            CASE
-              WHEN s1.userID IS NOT NULL THEN 'student'
-              WHEN c1.userID IS NOT NULL THEN 'counselor'
-              WHEN comp1.userID IS NOT NULL THEN 'company'
-            END
-        END as type,
-        m.message as lastMessage,
-        m.timestamp,
-        COUNT(CASE WHEN m2.isRead = 0 AND m2.receiverID = ? THEN 1 END) as unreadCount
-      FROM messages m
-      LEFT JOIN messages m2 ON
-        ((m2.senderID = m.senderID AND m2.receiverID = m.receiverID) OR
-         (m2.senderID = m.receiverID AND m2.receiverID = m.senderID))
-      LEFT JOIN students s1 ON m.senderID = s1.userID
-      LEFT JOIN counselors c1 ON m.senderID = c1.userID
-      LEFT JOIN companies comp1 ON m.senderID = comp1.userID
-      LEFT JOIN students s2 ON m.receiverID = s2.userID
-      LEFT JOIN counselors c2 ON m.receiverID = c2.userID
-      LEFT JOIN companies comp2 ON m.receiverID = comp2.userID
-      WHERE m.senderID = ? OR m.receiverID = ?
-      GROUP BY
-        CASE WHEN m.senderID = ? THEN m.receiverID ELSE m.senderID END,
-        name,
-        image,
-        type,
-        m.message,
-        m.timestamp
-      ORDER BY m.timestamp DESC
-    `, [userId, userId, userId, userId, userId, userId, userId, userId]);
+          WHEN s.userID IS NOT NULL THEN 'student'
+          WHEN c.userID IS NOT NULL THEN 'counselor'
+          WHEN comp.userID IS NOT NULL THEN 'company'
+          ELSE 'user'
+        END as type
+      FROM users u
+      LEFT JOIN students s ON u.userID = s.userID
+      LEFT JOIN counselors c ON u.userID = c.userID
+      LEFT JOIN companies comp ON u.userID = comp.userID
+      WHERE u.userID IN (${placeholders})
+    `, otherUserIds);
 
-    res.json(conversations);
+    // Create a map of user details
+    const userDetailsMap = {};
+    userDetails.forEach(user => {
+      userDetailsMap[user.userID] = {
+        name: user.name,
+        image: user.image,
+        type: user.type
+      };
+    });
+
+    // Format conversations with user details
+    const formattedConversations = conversations.map(conv => ({
+      userId: conv.otherUserId,
+      name: userDetailsMap[conv.otherUserId]?.name || 'Unknown User',
+      image: userDetailsMap[conv.otherUserId]?.image || null,
+      type: userDetailsMap[conv.otherUserId]?.type || 'user',
+      lastMessage: conv.lastMessage,
+      timestamp: conv.timestamp,
+      unreadCount: conv.unreadCount
+    }));
+
+    res.json(formattedConversations);
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({ error: 'Failed to fetch conversations' });
@@ -149,16 +167,45 @@ router.get('/conversations', verifyToken, async (req, res) => {
 
 // Mark all messages as read
 router.post('/mark-all-read', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
     const userId = req.user.id;
+    console.log(`Marking all messages as read for user ${userId} using Firebase`);
 
-    await pool.execute(
-      'UPDATE messages SET isRead = 1 WHERE receiverID = ? AND isRead = 0',
-      [userId]
-    );
+    // Get all conversations for this user
+    const database = admin.database();
+    const conversationsRef = database.ref('messages/conversations');
+    const snapshot = await conversationsRef.once('value');
+    const conversations = snapshot.val() || {};
 
-    res.status(200).json({ message: 'All messages marked as read' });
+    let totalMarked = 0;
+    const updates = {};
+
+    // Find all conversations where this user is a participant
+    for (const [conversationId, conversation] of Object.entries(conversations)) {
+      if (!conversation.participants || !conversation.participants[userId]) {
+        continue;
+      }
+
+      // Find unread messages sent to this user
+      if (conversation.messages) {
+        for (const [messageId, message] of Object.entries(conversation.messages)) {
+          if (!message.read && message.receiver === userId.toString()) {
+            updates[`messages/conversations/${conversationId}/messages/${messageId}/read`] = true;
+            totalMarked++;
+          }
+        }
+      }
+    }
+
+    // Apply updates if there are any
+    if (Object.keys(updates).length > 0) {
+      await database.ref().update(updates);
+    }
+
+    res.status(200).json({
+      message: 'All messages marked as read',
+      count: totalMarked
+    });
   } catch (error) {
     console.error('Error marking messages as read:', error);
     res.status(500).json({ error: 'Failed to mark messages as read' });
@@ -168,31 +215,51 @@ router.post('/mark-all-read', verifyToken, async (req, res) => {
 // Get unread message count for a user by user type
 // This endpoint handles both /api/:userType/messages/unread-count and /api/messages/:userType/messages/unread-count
 router.get('/:userType/messages/unread-count', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
     const userId = req.user.id;
-    
-    // Get detailed unread messages info
-    const [messages] = await pool.execute(`
-      SELECT m.*, 
-        CASE
-          WHEN s.studentName IS NOT NULL THEN s.studentName
-          WHEN c.counselorName IS NOT NULL THEN c.counselorName
-          WHEN comp.companyName IS NOT NULL THEN comp.companyName
-        END as senderName
-      FROM messages m
-      LEFT JOIN students s ON m.senderID = s.userID
-      LEFT JOIN counselors c ON m.senderID = c.userID
-      LEFT JOIN companies comp ON m.senderID = comp.userID
-      WHERE m.receiverID = ? 
-      AND m.isRead = 0
-      AND m.deleted = 0
-    `, [userId]);
+    console.log(`Fetching unread message count for user ${userId} using Firebase`);
+
+    // Get detailed unread messages from Firebase
+    const unreadMessages = await firebaseMessageUtils.getDetailedUnreadMessages(userId);
+
+    // Get sender details for these messages
+    const pool = req.app.locals.pool;
+    const senderIds = [...new Set(unreadMessages.map(msg => msg.senderID))];
+
+    if (senderIds.length > 0) {
+      const placeholders = senderIds.map(() => '?').join(',');
+      const [senderDetails] = await pool.execute(`
+        SELECT
+          u.userID,
+          CASE
+            WHEN s.studentName IS NOT NULL THEN s.studentName
+            WHEN c.counselorName IS NOT NULL THEN c.counselorName
+            WHEN comp.companyName IS NOT NULL THEN comp.companyName
+            ELSE u.username
+          END as senderName
+        FROM users u
+        LEFT JOIN students s ON u.userID = s.userID
+        LEFT JOIN counselors c ON u.userID = c.userID
+        LEFT JOIN companies comp ON u.userID = comp.userID
+        WHERE u.userID IN (${placeholders})
+      `, senderIds);
+
+      // Create a map of sender names
+      const senderNamesMap = {};
+      senderDetails.forEach(sender => {
+        senderNamesMap[sender.userID] = sender.senderName;
+      });
+
+      // Add sender names to messages
+      unreadMessages.forEach(message => {
+        message.senderName = senderNamesMap[message.senderID] || 'Unknown User';
+      });
+    }
 
     // Return both count and details for debugging
     res.json({
-      count: messages.length,
-      messages: messages
+      count: unreadMessages.length,
+      messages: unreadMessages
     });
   } catch (error) {
     console.error('Error fetching unread message count:', error);
@@ -202,17 +269,13 @@ router.get('/:userType/messages/unread-count', verifyToken, async (req, res) => 
 
 // Additional endpoint to handle direct access without userType
 router.get('/unread-count', verifyToken, async (req, res) => {
-  const pool = req.app.locals.pool;
   try {
     const userId = req.user.id;
-    console.log(`Fetching unread message count for user ${userId} (direct endpoint)`);
+    console.log(`Fetching unread message count for user ${userId} (direct endpoint) using Firebase`);
 
-    const [result] = await pool.execute(
-      'SELECT COUNT(*) as count FROM messages WHERE receiverID = ? AND isRead = 0',
-      [userId]
-    );
+    // Get unread count from Firebase
+    const count = await firebaseMessageUtils.getUnreadMessageCount(userId);
 
-    const count = Number(result[0].count);
     console.log(`Unread message count for user ${userId}: ${count}`);
     res.json({ count });
   } catch (error) {

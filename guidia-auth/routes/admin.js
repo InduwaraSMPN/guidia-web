@@ -665,78 +665,164 @@ router.get(
   verifyAdmin,
   async (req, res) => {
     try {
+      // Get Firebase database reference
+      let { database } = require('../firebase-admin');
       const pool = req.app.locals.pool;
+
       const now = new Date();
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(now.getDate() - 7);
       const thirtyDaysAgo = new Date(now);
       thirtyDaysAgo.setDate(now.getDate() - 30);
 
-      // Format dates for MySQL
-      const sevenDaysAgoFormatted = moment(sevenDaysAgo).format("YYYY-MM-DD");
-      const thirtyDaysAgoFormatted = moment(thirtyDaysAgo).format("YYYY-MM-DD");
+      // Get all conversations from Firebase
+      const conversationsSnapshot = await database.ref('messages/conversations').once('value');
+      const conversations = conversationsSnapshot.val() || {};
 
-      // Get total messages
-      const [totalMessages] = await pool.execute(
-        "SELECT COUNT(*) as count FROM messages"
-      );
+      // Process all messages
+      let allMessages = [];
+      let unreadCount = 0;
+      let activeConversations = [];
 
-      // Get messages sent in the last 7 days
-      const [messages7Days] = await pool.execute(
-        "SELECT COUNT(*) as count FROM messages WHERE DATE(timestamp) >= ?",
-        [sevenDaysAgoFormatted]
-      );
+      // Track conversation message counts
+      const conversationCounts = {};
 
-      // Get messages sent in the last 30 days
-      const [messages30Days] = await pool.execute(
-        "SELECT COUNT(*) as count FROM messages WHERE DATE(timestamp) >= ?",
-        [thirtyDaysAgoFormatted]
-      );
+      // Process each conversation
+      for (const [conversationId, conversation] of Object.entries(conversations)) {
+        if (!conversation.messages) continue;
 
-      // Get most active conversations (pairs of users with most messages)
-      const [activeConversations] = await pool.execute(`
-      SELECT
-        LEAST(senderID, receiverID) as user1ID,
-        GREATEST(senderID, receiverID) as user2ID,
-        COUNT(*) as messageCount,
-        MAX(timestamp) as lastMessageTime,
-        u1.username as user1Name,
-        u2.username as user2Name
-      FROM messages m
-      JOIN users u1 ON LEAST(m.senderID, m.receiverID) = u1.userID
-      JOIN users u2 ON GREATEST(m.senderID, m.receiverID) = u2.userID
-      GROUP BY LEAST(senderID, receiverID), GREATEST(senderID, receiverID)
-      ORDER BY messageCount DESC
-      LIMIT 5
-    `);
+        // Get user IDs from conversation ID (format: userId1_userId2)
+        const [user1ID, user2ID] = conversationId.split('_');
 
-      // Get total unread messages
-      const [unreadMessages] = await pool.execute(`
-      SELECT COUNT(*) as count
-      FROM messages
-      WHERE status = 'sent' OR status = 'delivered'
-    `);
+        // Initialize conversation count
+        if (!conversationCounts[conversationId]) {
+          conversationCounts[conversationId] = {
+            user1ID,
+            user2ID,
+            messageCount: 0,
+            lastMessageTime: null
+          };
+        }
 
-      // Get message trend data (last 30 days)
-      const [messageTrend] = await pool.execute(
-        `
-      SELECT
-        DATE(timestamp) as date,
-        COUNT(*) as count
-      FROM messages
-      WHERE DATE(timestamp) >= ?
-      GROUP BY DATE(timestamp)
-      ORDER BY date
-    `,
-        [thirtyDaysAgoFormatted]
-      );
+        // Process messages in this conversation
+        for (const [messageId, message] of Object.entries(conversation.messages)) {
+          // Skip system messages or invalid messages
+          if (!message.timestamp || !message.sender || !message.receiver) continue;
+
+          // Convert Firebase timestamp to Date object
+          const timestamp = new Date(message.timestamp);
+
+          // Add to all messages array
+          allMessages.push({
+            id: messageId,
+            sender: message.sender,
+            receiver: message.receiver,
+            content: message.content,
+            timestamp,
+            read: message.read || false
+          });
+
+          // Count unread messages
+          if (!message.read) {
+            unreadCount++;
+          }
+
+          // Update conversation counts
+          conversationCounts[conversationId].messageCount++;
+
+          // Update last message time if newer
+          if (!conversationCounts[conversationId].lastMessageTime ||
+              timestamp > conversationCounts[conversationId].lastMessageTime) {
+            conversationCounts[conversationId].lastMessageTime = timestamp;
+          }
+        }
+      }
+
+      // Get usernames for active conversations
+      const conversationEntries = Object.values(conversationCounts);
+      conversationEntries.sort((a, b) => b.messageCount - a.messageCount);
+
+      // Get top 5 active conversations
+      const top5Conversations = conversationEntries.slice(0, 5);
+
+      // Get usernames for these conversations
+      for (const conv of top5Conversations) {
+        try {
+          // Get user1 name
+          const [user1Result] = await pool.execute(
+            'SELECT username FROM users WHERE userID = ?',
+            [conv.user1ID]
+          );
+
+          // Get user2 name
+          const [user2Result] = await pool.execute(
+            'SELECT username FROM users WHERE userID = ?',
+            [conv.user2ID]
+          );
+
+          activeConversations.push({
+            user1ID: conv.user1ID,
+            user2ID: conv.user2ID,
+            messageCount: conv.messageCount,
+            lastMessageTime: conv.lastMessageTime.toISOString(),
+            user1Name: user1Result[0]?.username || `User ${conv.user1ID}`,
+            user2Name: user2Result[0]?.username || `User ${conv.user2ID}`
+          });
+        } catch (error) {
+          console.error(`Error getting usernames for conversation ${conv.user1ID}_${conv.user2ID}:`, error);
+          // Add conversation with default names if we can't get the real names
+          activeConversations.push({
+            user1ID: conv.user1ID,
+            user2ID: conv.user2ID,
+            messageCount: conv.messageCount,
+            lastMessageTime: conv.lastMessageTime.toISOString(),
+            user1Name: `User ${conv.user1ID}`,
+            user2Name: `User ${conv.user2ID}`
+          });
+        }
+      }
+
+      // Count messages in time periods
+      const totalMessages = allMessages.length;
+      const messages7Days = allMessages.filter(msg => msg.timestamp >= sevenDaysAgo).length;
+      const messages30Days = allMessages.filter(msg => msg.timestamp >= thirtyDaysAgo).length;
+
+      // Generate message trend data (last 30 days)
+      const messageTrend = [];
+      const trendMap = new Map();
+
+      // Initialize with all dates in the last 30 days
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        trendMap.set(dateString, 0);
+      }
+
+      // Count messages per day
+      allMessages.forEach(msg => {
+        if (msg.timestamp >= thirtyDaysAgo) {
+          const dateString = msg.timestamp.toISOString().split('T')[0];
+          if (trendMap.has(dateString)) {
+            trendMap.set(dateString, trendMap.get(dateString) + 1);
+          }
+        }
+      });
+
+      // Convert map to array of objects
+      trendMap.forEach((count, date) => {
+        messageTrend.push({ date, count });
+      });
+
+      // Sort by date
+      messageTrend.sort((a, b) => a.date.localeCompare(b.date));
 
       res.json({
-        totalMessages: totalMessages[0].count,
-        messages7Days: messages7Days[0].count,
-        messages30Days: messages30Days[0].count,
+        totalMessages,
+        messages7Days,
+        messages30Days,
         activeConversations,
-        unreadMessages: unreadMessages[0].count,
+        unreadMessages: unreadCount,
         messageTrend,
       });
     } catch (error) {

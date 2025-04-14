@@ -13,6 +13,8 @@ const { Server } = require("socket.io");
 const getOTPEmailTemplate = require("./email-templates/otp-template");
 const getRegistrationPendingTemplate = require("./email-templates/registration-pending-template");
 const getRegistrationApprovedTemplate = require("./email-templates/registration-approved-template");
+const firebaseMessageUtils = require("./utils/firebaseMessageUtils");
+const { database } = require("./firebase-admin");
 const getRegistrationDeclinedTemplate = require("./email-templates/registration-declined-template");
 const getPasswordResetTemplate = require("./email-templates/password-reset-template");
 
@@ -1339,46 +1341,54 @@ io.on("connection", (socket) => {
   // Handle new messages
   socket.on("send_message", async (data) => {
     try {
-      const { receiverId, message } = data;
+      const { receiverId, message, messageType = 'text', mediaUrl = null, replyToId = null } = data;
       const senderId = socket.user.id;
 
-      // Save to database
-      const [result] = await pool.execute(
-        "INSERT INTO messages (senderID, receiverID, message) VALUES (?, ?, ?)",
-        [senderId, receiverId, message]
+      console.log(`Socket: Sending message from ${senderId} to ${receiverId} using Firebase`);
+
+      // Save to Firebase
+      const result = await firebaseMessageUtils.sendMessage(
+        senderId,
+        receiverId,
+        message,
+        messageType,
+        mediaUrl,
+        replyToId
       );
 
-      // Get sender information
-      const [senderInfo] = await pool.execute(
-        `
+      // Get sender info for the frontend
+      const [senderInfo] = await pool.execute(`
         SELECT
           CASE
             WHEN s.studentName IS NOT NULL THEN s.studentName
             WHEN c.counselorName IS NOT NULL THEN c.counselorName
             WHEN comp.companyName IS NOT NULL THEN comp.companyName
+            ELSE u.username
           END as senderName,
           CASE
             WHEN s.studentProfileImagePath IS NOT NULL THEN s.studentProfileImagePath
             WHEN c.counselorProfileImagePath IS NOT NULL THEN c.counselorProfileImagePath
             WHEN comp.companyLogoPath IS NOT NULL THEN comp.companyLogoPath
+            ELSE NULL
           END as senderImage
         FROM users u
         LEFT JOIN students s ON u.userID = s.userID
         LEFT JOIN counselors c ON u.userID = c.userID
         LEFT JOIN companies comp ON u.userID = comp.userID
         WHERE u.userID = ?
-      `,
-        [senderId]
-      );
+      `, [senderId]);
 
       const messageData = {
-        messageID: result.insertId,
+        messageID: result.messageId, // Use the Firebase message ID
         senderID: senderId,
         receiverID: receiverId,
         message: message,
-        timestamp: new Date().toISOString(),
+        timestamp: result.timestamp,
         senderName: senderInfo[0]?.senderName || "",
         senderImage: senderInfo[0]?.senderImage || "",
+        messageType: messageType,
+        mediaUrl: mediaUrl,
+        replyToId: replyToId
       };
 
       // Send to sender
@@ -1404,20 +1414,90 @@ io.on("connection", (socket) => {
   // Handle read receipts
   socket.on("mark_read", async (data) => {
     try {
-      const { messageIds } = data;
-      await pool.execute(
-        "UPDATE messages SET isRead = 1 WHERE messageID IN (?)",
-        [messageIds]
-      );
-      // Notify sender that messages were read
-      const [messages] = await pool.execute(
-        "SELECT senderID FROM messages WHERE messageID IN (?)",
-        [messageIds]
-      );
-      const senderIds = [...new Set(messages.map((m) => m.senderID))];
-      senderIds.forEach((senderId) => {
-        io.to(`user_${senderId}`).emit("messages_read", { messageIds });
-      });
+      const { conversationId, messageIds } = data;
+      const userId = socket.user.id;
+
+      console.log(`Socket: Marking messages as read in conversation ${conversationId}`);
+
+      // If we have a conversation ID, use it directly
+      if (conversationId) {
+        // Mark messages as read in Firebase
+        const messagesRef = database.ref(`messages/conversations/${conversationId}/messages`);
+        const snapshot = await messagesRef.once('value');
+        const messages = snapshot.val() || {};
+
+        const updates = {};
+        const senderIds = new Set();
+
+        // Find unread messages sent to the current user
+        for (const [messageId, message] of Object.entries(messages)) {
+          // If specific message IDs were provided, only mark those
+          if (messageIds && !messageIds.includes(messageId)) {
+            continue;
+          }
+
+          if (!message.read && message.receiver === userId.toString()) {
+            updates[`${messageId}/read`] = true;
+            senderIds.add(message.sender);
+          }
+        }
+
+        // Apply updates if there are any
+        if (Object.keys(updates).length > 0) {
+          await messagesRef.update(updates);
+
+          // Notify senders that messages were read
+          Array.from(senderIds).forEach(senderId => {
+            io.to(`user_${senderId}`).emit("messages_read", {
+              conversationId,
+              messageIds: Object.keys(updates)
+            });
+          });
+        }
+      }
+      // If we have specific message IDs but no conversation ID
+      else if (messageIds && messageIds.length > 0) {
+        console.log(`Socket: Marking specific messages as read: ${messageIds.join(', ')}`);
+
+        // We need to find these messages in Firebase
+        const conversationsRef = database.ref('messages/conversations');
+        const snapshot = await conversationsRef.once('value');
+        const conversations = snapshot.val() || {};
+
+        const updates = {};
+        const notificationData = {};
+
+        // Search for these messages in all conversations
+        for (const [convId, conversation] of Object.entries(conversations)) {
+          if (!conversation.messages) continue;
+
+          for (const messageId of messageIds) {
+            if (conversation.messages[messageId] &&
+                !conversation.messages[messageId].read &&
+                conversation.messages[messageId].receiver === userId.toString()) {
+
+              updates[`messages/conversations/${convId}/messages/${messageId}/read`] = true;
+
+              // Track which messages to notify each sender about
+              const senderId = conversation.messages[messageId].sender;
+              if (!notificationData[senderId]) {
+                notificationData[senderId] = { conversationId: convId, messageIds: [] };
+              }
+              notificationData[senderId].messageIds.push(messageId);
+            }
+          }
+        }
+
+        // Apply updates if there are any
+        if (Object.keys(updates).length > 0) {
+          await database.ref().update(updates);
+
+          // Notify senders that messages were read
+          Object.entries(notificationData).forEach(([senderId, data]) => {
+            io.to(`user_${senderId}`).emit("messages_read", data);
+          });
+        }
+      }
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
