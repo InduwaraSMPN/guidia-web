@@ -1,237 +1,241 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useNavigate, Outlet, useLocation } from "react-router-dom"
-import { useEffect, useState, useCallback, createContext } from "react"
-import { Loader2 } from "lucide-react"
-import { useAuth } from "../contexts/AuthContext"
-import { toast } from "../components/ui/sonner"
-import { Skeleton } from "@/components/ui/skeleton"
-import AdminSidebar from "../components/AdminSidebar"
-import PageHeading from "../components/PageHeading"
-import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard"
-import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard"
-import { MeetingStatisticsCard } from "@/components/admin/MeetingStatisticsCard"
-import { UserActivityCard } from "@/components/admin/UserActivityCard"
-import { SecurityAuditCard } from "@/components/admin/SecurityAuditCard"
-import { CommunicationStatisticsCard } from "@/components/admin/CommunicationStatisticsCard"
-import { SystemHealthCard } from "@/components/admin/SystemHealthCard"
-import { ActivityFeedCard } from "@/components/admin/ActivityFeedCard"
-import { Button } from "@/components/ui/button"
-import { RefreshCw } from "lucide-react"
+import type React from "react";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState, useCallback, createContext } from "react";
+import { Loader2 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "../components/ui/sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import AdminSidebar from "../components/AdminSidebar";
+import PageHeading from "../components/PageHeading";
+import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard";
+import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard";
+import { MeetingStatisticsCard } from "@/components/admin/MeetingStatisticsCard";
+import { UserActivityCard } from "@/components/admin/UserActivityCard";
+import { SecurityAuditCard } from "@/components/admin/SecurityAuditCard";
+import { CommunicationStatisticsCard } from "@/components/admin/CommunicationStatisticsCard";
+import { SystemHealthCard } from "@/components/admin/SystemHealthCard";
+import { ActivityFeedCard } from "@/components/admin/ActivityFeedCard";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 // Define SidebarContext
-export const SidebarContext = createContext({ collapsed: false })
+export const SidebarContext = createContext({ collapsed: false });
 
 interface JobStatistics {
-  totalActiveJobs: number
-  jobsLast7Days: number
-  jobsLast30Days: number
-  jobsExpiringSoon: number
+  totalActiveJobs: number;
+  jobsLast7Days: number;
+  jobsLast30Days: number;
+  jobsExpiringSoon: number;
   mostViewedJobs: Array<{
-    jobID: number
-    title: string
-    companyID: number
-    companyName: string
-    viewCount: number
-  }>
+    jobID: number;
+    title: string;
+    companyID: number;
+    companyName: string;
+    viewCount: number;
+  }>;
   leastViewedJobs: Array<{
-    jobID: number
-    title: string
-    companyID: number
-    companyName: string
-    viewCount: number
-  }>
+    jobID: number;
+    title: string;
+    companyID: number;
+    companyName: string;
+    viewCount: number;
+  }>;
   mostApplicationJobs: Array<{
-    jobID: number
-    title: string
-    companyID: number
-    companyName: string
-    applicationCount: number
-  }>
+    jobID: number;
+    title: string;
+    companyID: number;
+    companyName: string;
+    applicationCount: number;
+  }>;
   leastApplicationJobs: Array<{
-    jobID: number
-    title: string
-    companyID: number
-    companyName: string
-    applicationCount: number
-  }>
+    jobID: number;
+    title: string;
+    companyID: number;
+    companyName: string;
+    applicationCount: number;
+  }>;
   jobPostingTrend: Array<{
-    date: string
-    count: number
-  }>
+    date: string;
+    count: number;
+  }>;
   jobViewsTrend: Array<{
-    date: string
-    count: number
-  }>
+    date: string;
+    count: number;
+  }>;
 }
 
 interface ApplicationStatistics {
-  totalApplications: number
-  applicationsLast7Days: number
-  applicationsLast30Days: number
+  totalApplications: number;
+  applicationsLast7Days: number;
+  applicationsLast30Days: number;
   applicationsByStatus: Array<{
-    status: string
-    count: number
-  }>
+    status: string;
+    count: number;
+  }>;
   applicationTrend: Array<{
-    date: string
-    count: number
-  }>
-  conversionRate: number
+    date: string;
+    count: number;
+  }>;
+  conversionRate: number;
 }
 
 interface MeetingStatistics {
-  totalMeetings: number
+  totalMeetings: number;
   meetingsByStatus: Array<{
-    status: string
-    count: number
-  }>
+    status: string;
+    count: number;
+  }>;
   meetingsByType: Array<{
-    meetingType: string
-    count: number
-  }>
-  avgSuccessRating: number
-  avgPlatformRating: number
+    meetingType: string;
+    count: number;
+  }>;
+  avgSuccessRating: number;
+  avgPlatformRating: number;
   busiestDays: Array<{
-    dayOfWeek: string
-    count: number
-  }>
+    dayOfWeek: string;
+    count: number;
+  }>;
   busiestHours: Array<{
-    hour: number
-    count: number
-  }>
+    hour: number;
+    count: number;
+  }>;
   upcomingMeetings: Array<{
-    meetingID: number
-    meetingTitle: string
-    meetingDate: string
-    startTime: string
-    endTime: string
-    requestorName: string
-    recipientName: string
-    status: string
-    meetingType: string
-  }>
+    meetingID: number;
+    meetingTitle: string;
+    meetingDate: string;
+    startTime: string;
+    endTime: string;
+    requestorName: string;
+    recipientName: string;
+    status: string;
+    meetingType: string;
+  }>;
 }
 
 interface UserActivity {
-  newUsers7Days: number
-  newUsers30Days: number
+  newUsers7Days: number;
+  newUsers30Days: number;
   userRegistrationTrend: Array<{
-    date: string
-    count: number
-  }>
+    date: string;
+    count: number;
+  }>;
   profileCompletion: {
-    student: number
-    counselor: number
-    company: number
-  }
+    student: number;
+    counselor: number;
+    company: number;
+  };
 }
 
 interface SecurityStatistics {
   recentEvents: Array<{
-    eventType: string
-    details: string
-    userID: number
-    timestamp: string
-  }>
+    eventType: string;
+    details: string;
+    userID: number;
+    timestamp: string;
+  }>;
   loginAttempts: Array<{
-    eventType: string
-    count: number
-  }>
-  accountStatusChanges: number
+    eventType: string;
+    count: number;
+  }>;
+  accountStatusChanges: number;
 }
 
 interface CommunicationStatistics {
-  totalMessages: number
-  messages7Days: number
-  messages30Days: number
+  totalMessages: number;
+  messages7Days: number;
+  messages30Days: number;
   activeConversations: Array<{
-    user1ID: number
-    user2ID: number
-    messageCount: number
-    lastMessageTime: string
-    user1Name: string
-    user2Name: string
-  }>
-  unreadMessages: number
+    user1ID: number;
+    user2ID: number;
+    messageCount: number;
+    lastMessageTime: string;
+    user1Name: string;
+    user2Name: string;
+  }>;
+  unreadMessages: number;
   messageTrend: Array<{
-    date: string
-    count: number
-  }>
+    date: string;
+    count: number;
+  }>;
 }
 
 interface SystemHealth {
   schedulerStatus: {
-    isRunning: boolean
+    isRunning: boolean;
     scheduledJobs: Array<{
-      name: string
-      nextInvocation: string | null
-    }>
-  }
-  databaseStatus: string
-  serverTime: string
+      name: string;
+      nextInvocation: string | null;
+    }>;
+  };
+  databaseStatus: string;
+  serverTime: string;
 }
 
 interface ActivityFeed {
-  type: string
-  timestamp: string
-  data: any
+  type: string;
+  timestamp: string;
+  data: any;
 }
 
 interface DashboardData {
   counts: {
-    upcomingEvents: number
-    pastEvents: number
-    newsCount: number
+    upcomingEvents: number;
+    pastEvents: number;
+    newsCount: number;
     registrations: {
-      pending: number
-      approved: number
-      declined: number
-    }
+      pending: number;
+      approved: number;
+      declined: number;
+    };
     users: {
-      students: number
-      counselors: number
-      companies: number
-    }
-  }
-  jobStats?: JobStatistics
-  applicationStats?: ApplicationStatistics
-  meetingStats?: MeetingStatistics
-  userActivity?: UserActivity
-  securityStats?: SecurityStatistics
-  communicationStats?: CommunicationStatistics
-  systemHealth?: SystemHealth
-  activityFeed?: ActivityFeed[]
+      students: number;
+      counselors: number;
+      companies: number;
+    };
+  };
+  jobStats?: JobStatistics;
+  applicationStats?: ApplicationStatistics;
+  meetingStats?: MeetingStatistics;
+  userActivity?: UserActivity;
+  securityStats?: SecurityStatistics;
+  communicationStats?: CommunicationStatistics;
+  systemHealth?: SystemHealth;
+  activityFeed?: ActivityFeed[];
 }
 
 interface SubStat {
-  label: string | React.ReactNode
-  value: string
+  label: string | React.ReactNode;
+  value: string;
 }
 
 interface Stat {
-  label: string
-  value?: string
-  subItems?: SubStat[]
+  label: string;
+  value?: string;
+  subItems?: SubStat[];
 }
 
 interface DashboardCardProps {
-  title: string
-  stats: Stat[]
+  title: string;
+  stats: Stat[];
 }
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ title, stats }) => {
   return (
     <div className="bg-card rounded-lg shadow-sm border border-border transition-all duration-200 hover:shadow-md overflow-hidden">
       <div className="p-5">
-        <h3 className="text-lg font-semibold text-card-foreground mb-4 pb-2 border-b border-border">{title}</h3>
+        <h3 className="text-lg font-semibold text-card-foreground mb-4 pb-2 border-b border-border">
+          {title}
+        </h3>
         <ul className="space-y-2">
           {stats.map((stat, index) => (
             <li key={index} className="group">
               {/* Main List Item */}
               <div className="flex justify-between items-center p-2.5 rounded-md transition-all duration-200 hover:bg-accent group-hover:translate-x-1">
-                <span className="text-sm font-medium text-foreground">{stat.label}</span>
+                <span className="text-sm font-medium text-foreground">
+                  {stat.label}
+                </span>
                 <span className="bg-accent/50 text-foreground text-sm px-3 py-1 rounded-full font-medium transition-all duration-200 group-hover:bg-accent/80">
                   {stat.value}
                 </span>
@@ -245,7 +249,9 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, stats }) => {
                       key={subIndex}
                       className="flex justify-between items-center p-2 rounded-md transition-all duration-200 hover:bg-accent hover:translate-x-1"
                     >
-                      <span className="text-sm text-muted-foreground">{subItem.label}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {subItem.label}
+                      </span>
                       <span className="bg-accent/50 text-foreground text-xs px-2.5 py-0.5 rounded-full font-medium">
                         {subItem.value}
                       </span>
@@ -258,61 +264,63 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, stats }) => {
         </ul>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export function AdminDashboard() {
-  const { user, isVerifyingToken } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [refreshing, setRefreshing] = useState(false)
+  const { user, isVerifyingToken } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Add state to track sidebar collapsed status
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Function to update sidebar state that will be passed to AdminSidebar
   const handleSidebarToggle = (collapsed: boolean) => {
-    setSidebarCollapsed(collapsed)
-  }
+    setSidebarCollapsed(collapsed);
+  };
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      setRefreshing(true)
-      setLoading(true)
+      setRefreshing(true);
+      setLoading(true);
 
       // Fetch counts
-      const countsRes = await fetch("/api/counts")
+      const countsRes = await fetch("/api/counts");
       if (!countsRes.ok) {
-        throw new Error("Failed to fetch counts")
+        throw new Error("Failed to fetch counts");
       }
-      const countsData = await countsRes.json()
+      const countsData = await countsRes.json();
 
       // Fetch user counts with authorization header
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
       const userCountsRes = await fetch("/api/admin/user-counts", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      });
       if (!userCountsRes.ok) {
-        throw new Error("Failed to fetch user counts")
+        throw new Error("Failed to fetch user counts");
       }
-      const userCountsData = await userCountsRes.json()
+      const userCountsData = await userCountsRes.json();
 
       // Fetch job statistics
       const jobStatsRes = await fetch("/api/admin/job-statistics", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let jobStatsData = null
+      });
+      let jobStatsData = null;
       if (jobStatsRes.ok) {
-        jobStatsData = await jobStatsRes.json()
+        jobStatsData = await jobStatsRes.json();
       } else {
-        console.error("Failed to fetch job statistics")
+        console.error("Failed to fetch job statistics");
       }
 
       // Fetch application statistics
@@ -320,12 +328,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let appStatsData = null
+      });
+      let appStatsData = null;
       if (appStatsRes.ok) {
-        appStatsData = await appStatsRes.json()
+        appStatsData = await appStatsRes.json();
       } else {
-        console.error("Failed to fetch application statistics")
+        console.error("Failed to fetch application statistics");
       }
 
       // Fetch meeting statistics
@@ -333,12 +341,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let meetingStatsData = null
+      });
+      let meetingStatsData = null;
       if (meetingStatsRes.ok) {
-        meetingStatsData = await meetingStatsRes.json()
+        meetingStatsData = await meetingStatsRes.json();
       } else {
-        console.error("Failed to fetch meeting statistics")
+        console.error("Failed to fetch meeting statistics");
       }
 
       // Fetch user activity statistics
@@ -346,12 +354,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let userActivityData = null
+      });
+      let userActivityData = null;
       if (userActivityRes.ok) {
-        userActivityData = await userActivityRes.json()
+        userActivityData = await userActivityRes.json();
       } else {
-        console.error("Failed to fetch user activity statistics")
+        console.error("Failed to fetch user activity statistics");
       }
 
       // Fetch security statistics
@@ -359,12 +367,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let securityStatsData = null
+      });
+      let securityStatsData = null;
       if (securityStatsRes.ok) {
-        securityStatsData = await securityStatsRes.json()
+        securityStatsData = await securityStatsRes.json();
       } else {
-        console.error("Failed to fetch security statistics")
+        console.error("Failed to fetch security statistics");
       }
 
       // Fetch communication statistics
@@ -372,12 +380,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let commStatsData = null
+      });
+      let commStatsData = null;
       if (commStatsRes.ok) {
-        commStatsData = await commStatsRes.json()
+        commStatsData = await commStatsRes.json();
       } else {
-        console.error("Failed to fetch communication statistics")
+        console.error("Failed to fetch communication statistics");
       }
 
       // Fetch system health
@@ -385,12 +393,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let systemHealthData = null
+      });
+      let systemHealthData = null;
       if (systemHealthRes.ok) {
-        systemHealthData = await systemHealthRes.json()
+        systemHealthData = await systemHealthRes.json();
       } else {
-        console.error("Failed to fetch system health")
+        console.error("Failed to fetch system health");
       }
 
       // Fetch activity feed
@@ -398,12 +406,12 @@ export function AdminDashboard() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      let activityFeedData = null
+      });
+      let activityFeedData = null;
       if (activityFeedRes.ok) {
-        activityFeedData = await activityFeedRes.json()
+        activityFeedData = await activityFeedRes.json();
       } else {
-        console.error("Failed to fetch activity feed")
+        console.error("Failed to fetch activity feed");
       }
 
       setDashboardData({
@@ -430,33 +438,33 @@ export function AdminDashboard() {
         communicationStats: commStatsData,
         systemHealth: systemHealthData,
         activityFeed: activityFeedData,
-      })
-      setError("")
+      });
+      setError("");
     } catch (error) {
-      setError("Failed to load dashboard data")
-      console.error(error)
-      toast.error("Failed to load dashboard data")
+      setError("Failed to load dashboard data");
+      console.error(error);
+      toast.error("Failed to load dashboard data");
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false);
+      setRefreshing(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!user) {
       if (!isVerifyingToken) {
-        navigate("/auth/login")
+        navigate("/auth/login");
       }
-      return
+      return;
     }
 
     if (user.roleId !== 1) {
-      navigate("/")
-      return
+      navigate("/");
+      return;
     }
 
-    fetchDashboardData()
-  }, [user, isVerifyingToken, navigate, fetchDashboardData])
+    fetchDashboardData();
+  }, [user, isVerifyingToken, navigate, fetchDashboardData]);
 
   return (
     <SidebarContext.Provider value={{ collapsed: sidebarCollapsed }}>
@@ -464,36 +472,37 @@ export function AdminDashboard() {
         <AdminSidebar onToggle={handleSidebarToggle} />
         <div
           className="flex-1 transition-all duration-300 ease-in-out"
-          style={{ marginLeft: sidebarCollapsed ? "80px" : "250px" }}
+          style={{
+            marginLeft: sidebarCollapsed ? "80px" : "250px",
+            marginTop: "64px",
+          }}
         >
-          <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-6 py-3 bg-background/95 backdrop-blur-sm border-b border-border">
-            <h1 className="text-xl font-semibold">Admin Portal</h1>
-            {refreshing ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Refreshing...</span>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchDashboardData()}
-                className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                <span>Refresh Data</span>
-              </Button>
-            )}
-          </header>
-
           <main className="p-6">
             {location.pathname === "/admin" ? (
               <>
-                <div className="max-w-7xl mx-auto">
+                <div className="p-6 max-w-[1216px] mx-auto">
                   <PageHeading
                     title="Admin Dashboard"
                     subtitle="Overview of system statistics and activities"
                     className="mb-8"
+                    action={
+                      refreshing ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Refreshing...</span>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchDashboardData()}
+                          className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          <span>Refresh Data</span>
+                        </Button>
+                      )
+                    }
                   />
 
                   {loading && !refreshing ? (
@@ -509,7 +518,11 @@ export function AdminDashboard() {
                   ) : error ? (
                     <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4 animate-in fade-in-50">
                       <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -519,7 +532,8 @@ export function AdminDashboard() {
                         <p className="font-medium">{error}</p>
                       </div>
                       <p className="mt-2 text-sm">
-                        Please try refreshing the page or contact support if the issue persists.
+                        Please try refreshing the page or contact support if the
+                        issue persists.
                       </p>
                     </div>
                   ) : dashboardData ? (
@@ -529,9 +543,21 @@ export function AdminDashboard() {
                         <DashboardCard
                           title="Users Overview"
                           stats={[
-                            { label: "Students", value: dashboardData.counts.users.students.toString() },
-                            { label: "Counselors", value: dashboardData.counts.users.counselors.toString() },
-                            { label: "Companies", value: dashboardData.counts.users.companies.toString() },
+                            {
+                              label: "Students",
+                              value:
+                                dashboardData.counts.users.students.toString(),
+                            },
+                            {
+                              label: "Counselors",
+                              value:
+                                dashboardData.counts.users.counselors.toString(),
+                            },
+                            {
+                              label: "Companies",
+                              value:
+                                dashboardData.counts.users.companies.toString(),
+                            },
                           ]}
                         />
                         <DashboardCard
@@ -539,13 +565,27 @@ export function AdminDashboard() {
                           stats={[
                             {
                               label: "Events",
-                              value: (dashboardData.counts.upcomingEvents + dashboardData.counts.pastEvents).toString(),
+                              value: (
+                                dashboardData.counts.upcomingEvents +
+                                dashboardData.counts.pastEvents
+                              ).toString(),
                               subItems: [
-                                { label: "Upcoming Events", value: dashboardData.counts.upcomingEvents.toString() },
-                                { label: "Past Events", value: dashboardData.counts.pastEvents.toString() },
+                                {
+                                  label: "Upcoming Events",
+                                  value:
+                                    dashboardData.counts.upcomingEvents.toString(),
+                                },
+                                {
+                                  label: "Past Events",
+                                  value:
+                                    dashboardData.counts.pastEvents.toString(),
+                                },
                               ],
                             },
-                            { label: "News Posts", value: dashboardData.counts.newsCount.toString() },
+                            {
+                              label: "News Posts",
+                              value: dashboardData.counts.newsCount.toString(),
+                            },
                           ]}
                         />
                       </div>
@@ -553,36 +593,62 @@ export function AdminDashboard() {
                       {/* Statistics Cards */}
                       <div className="space-y-6">
                         {/* Job Statistics Card */}
-                        {dashboardData.jobStats && <JobStatisticsCard jobStats={dashboardData.jobStats} />}
+                        {dashboardData.jobStats && (
+                          <JobStatisticsCard
+                            jobStats={dashboardData.jobStats}
+                          />
+                        )}
 
                         {/* Application Statistics Card */}
                         {dashboardData.applicationStats && (
-                          <ApplicationStatisticsCard applicationStats={dashboardData.applicationStats} />
+                          <ApplicationStatisticsCard
+                            applicationStats={dashboardData.applicationStats}
+                          />
                         )}
 
                         {/* Meeting Statistics Card */}
                         {dashboardData.meetingStats && (
-                          <MeetingStatisticsCard meetingStats={dashboardData.meetingStats} />
+                          <MeetingStatisticsCard
+                            meetingStats={dashboardData.meetingStats}
+                          />
                         )}
 
                         {/* User Activity Card */}
-                        {dashboardData.userActivity && <UserActivityCard userActivity={dashboardData.userActivity} />}
+                        {dashboardData.userActivity && (
+                          <UserActivityCard
+                            userActivity={dashboardData.userActivity}
+                          />
+                        )}
 
                         {/* Security Audit Card */}
                         {dashboardData.securityStats && (
-                          <SecurityAuditCard securityStats={dashboardData.securityStats} />
+                          <SecurityAuditCard
+                            securityStats={dashboardData.securityStats}
+                          />
                         )}
 
                         {/* Communication Statistics Card */}
                         {dashboardData.communicationStats && (
-                          <CommunicationStatisticsCard communicationStats={dashboardData.communicationStats} />
+                          <CommunicationStatisticsCard
+                            communicationStats={
+                              dashboardData.communicationStats
+                            }
+                          />
                         )}
 
                         {/* System Health Card */}
-                        {dashboardData.systemHealth && <SystemHealthCard systemHealth={dashboardData.systemHealth} />}
+                        {dashboardData.systemHealth && (
+                          <SystemHealthCard
+                            systemHealth={dashboardData.systemHealth}
+                          />
+                        )}
 
                         {/* Activity Feed Card */}
-                        {dashboardData.activityFeed && <ActivityFeedCard activities={dashboardData.activityFeed} />}
+                        {dashboardData.activityFeed && (
+                          <ActivityFeedCard
+                            activities={dashboardData.activityFeed}
+                          />
+                        )}
                       </div>
                     </div>
                   ) : null}
@@ -595,7 +661,7 @@ export function AdminDashboard() {
         </div>
       </div>
     </SidebarContext.Provider>
-  )
+  );
 }
 
-export default AdminDashboard
+export default AdminDashboard;

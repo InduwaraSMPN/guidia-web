@@ -30,8 +30,8 @@ interface MeetingStatisticsProps {
       meetingType: string
       count: number
     }>
-    avgSuccessRating: number
-    avgPlatformRating: number
+    avgSuccessRating: number | null | undefined
+    avgPlatformRating: number | null | undefined
     busiestDays: Array<{
       dayOfWeek: string
       count: number
@@ -97,9 +97,12 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
   }))
 
   // Format rating as stars
-  const formatRating = (rating: number) => {
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 >= 0.5
+  const formatRating = (rating: number | null | undefined) => {
+    // Ensure rating is a number and has a valid value
+    const numericRating = typeof rating === 'number' ? rating : 0
+
+    const fullStars = Math.floor(numericRating)
+    const hasHalfStar = numericRating % 1 >= 0.5
     const maxStars = 5
 
     return (
@@ -119,7 +122,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
         {Array.from({ length: maxStars - fullStars - (hasHalfStar ? 1 : 0) }).map((_, i) => (
           <Star key={`empty-${i}`} className="h-4 w-4 text-muted-foreground/30" />
         ))}
-        <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
+        <span className="ml-1 text-sm font-medium">{numericRating.toFixed(1)}</span>
       </div>
     )
   }

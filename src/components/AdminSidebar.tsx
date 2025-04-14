@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { useThemeContext } from "../contexts/ThemeContext"
+// import { useThemeContext } from "../contexts/ThemeContext"
 import {
   LayoutDashboard,
   UserPlus,
@@ -30,7 +30,7 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null)
-  const { isDark } = useThemeContext()
+  // const { isDark } = useThemeContext()
 
   // Check if screen is mobile size
   useEffect(() => {
@@ -80,11 +80,12 @@ export function AdminSidebar({ onToggle }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 z-50 h-screen bg-sidebar transition-all duration-300 ease-in-out border-r border-sidebar-border shadow-sm",
+        "fixed left-0 z-30 h-[calc(100vh-64px)] bg-sidebar transition-all duration-300 ease-in-out border-r border-sidebar-border shadow-sm",
         collapsed ? "w-[80px]" : "w-[250px]",
+        "top-[64px]" // Add top position to account for navbar height
       )}
     >
-      <div className="flex flex-col h-full pt-16 pb-4 overflow-y-auto">
+      <div className="flex flex-col h-full pt-4 pb-4 overflow-y-auto">
         {/* Toggler */}
         <div className="px-4 mb-6">
           <button
