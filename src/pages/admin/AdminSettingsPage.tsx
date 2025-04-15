@@ -8,9 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import { Select } from '@/components/ui/Select';
-import { Loader2, RefreshCw, Play, Calendar, Clock, Bell, Send, MessageSquare } from 'lucide-react';
+import { Loader2, RefreshCw, Play, Calendar, Clock, Bell, Send, Check, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -602,31 +602,51 @@ export function AdminSettingsPage() {
 
                 <div>
                   <Label className="block mb-2">Send To</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="student-role"
-                        checked={announcement.targetRoles.includes('Student')}
-                        onCheckedChange={(checked) => handleRoleChange('Student', checked as boolean)}
-                      />
-                      <Label htmlFor="student-role" className="cursor-pointer">Students</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="counselor-role"
-                        checked={announcement.targetRoles.includes('Counselor')}
-                        onCheckedChange={(checked) => handleRoleChange('Counselor', checked as boolean)}
-                      />
-                      <Label htmlFor="counselor-role" className="cursor-pointer">Counselors</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="company-role"
-                        checked={announcement.targetRoles.includes('Company')}
-                        onCheckedChange={(checked) => handleRoleChange('Company', checked as boolean)}
-                      />
-                      <Label htmlFor="company-role" className="cursor-pointer">Companies</Label>
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <Button
+                      type="button"
+                      variant={announcement.targetRoles.includes('Student') ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleRoleChange('Student', !announcement.targetRoles.includes('Student'))}
+                      className={`text-sm w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200 ${announcement.targetRoles.includes('Student') ? 'bg-brand text-white' : 'text-brand hover:bg-brand-dark hover:text-white'}`}
+                    >
+                      <span>Students</span>
+                      {announcement.targetRoles.includes('Student') ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant={announcement.targetRoles.includes('Counselor') ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleRoleChange('Counselor', !announcement.targetRoles.includes('Counselor'))}
+                      className={`text-sm w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200 ${announcement.targetRoles.includes('Counselor') ? 'bg-brand text-white' : 'text-brand hover:bg-brand-dark hover:text-white'}`}
+                    >
+                      <span>Counselors</span>
+                      {announcement.targetRoles.includes('Counselor') ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant={announcement.targetRoles.includes('Company') ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleRoleChange('Company', !announcement.targetRoles.includes('Company'))}
+                      className={`text-sm w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200 ${announcement.targetRoles.includes('Company') ? 'bg-brand text-white' : 'text-brand hover:bg-brand-dark hover:text-white'}`}
+                    >
+                      <span>Companies</span>
+                      {announcement.targetRoles.includes('Company') ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
