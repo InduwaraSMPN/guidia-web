@@ -104,7 +104,7 @@ const pool = mysql.createPool({
 pool
   .getConnection()
   .then((connection) => {
-    console.log("Successfully connected to MySQL database");
+    console.log("\x1b[33mSuccessfully connected to MySQL database\x1b[0m");
     connection.release();
   })
   .catch((err) => {

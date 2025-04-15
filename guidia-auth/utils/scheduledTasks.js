@@ -238,14 +238,11 @@ class ScheduledTasks {
       // Get meetings that are happening within the next 24 hours
       const [upcomingMeetings] = await this.pool.execute(`
         SELECT m.*,
-               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail,
-               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail,
-               r1.roleID as requestorRoleID, r2.roleID as recipientRoleID
+               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail, u1.roleID as requestorRoleID,
+               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail, u2.roleID as recipientRoleID
         FROM meetings m
         JOIN users u1 ON m.requestorID = u1.userID
         JOIN users u2 ON m.recipientID = u2.userID
-        JOIN users_roles r1 ON u1.userID = r1.userID
-        JOIN users_roles r2 ON u2.userID = r2.userID
         WHERE m.status = 'accepted'
         AND m.meetingDate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR)
         AND m.reminderSent = 0
@@ -334,14 +331,11 @@ class ScheduledTasks {
       // Get meetings that have been completed but no feedback has been requested yet
       const [completedMeetings] = await this.pool.execute(`
         SELECT m.*,
-               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail,
-               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail,
-               r1.roleID as requestorRoleID, r2.roleID as recipientRoleID
+               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail, u1.roleID as requestorRoleID,
+               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail, u2.roleID as recipientRoleID
         FROM meetings m
         JOIN users u1 ON m.requestorID = u1.userID
         JOIN users u2 ON m.recipientID = u2.userID
-        JOIN users_roles r1 ON u1.userID = r1.userID
-        JOIN users_roles r2 ON u2.userID = r2.userID
         WHERE m.status = 'completed'
         AND m.feedbackRequestSent = 0
         AND m.meetingDate < NOW()
