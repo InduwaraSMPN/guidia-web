@@ -715,6 +715,13 @@ export function AdminDashboard() {
 
                       {/* Statistics Cards */}
                       <div className="space-y-6">
+                        {/* User Activity Card */}
+                        {dashboardData.userActivity && (
+                          <UserActivityCard
+                            userActivity={dashboardData.userActivity}
+                          />
+                        )}
+
                         {/* Job Statistics Card */}
                         {dashboardData.jobStats && (
                           <JobStatisticsCard
@@ -736,20 +743,6 @@ export function AdminDashboard() {
                           />
                         )}
 
-                        {/* User Activity Card */}
-                        {dashboardData.userActivity && (
-                          <UserActivityCard
-                            userActivity={dashboardData.userActivity}
-                          />
-                        )}
-
-                        {/* Security Audit Card */}
-                        {dashboardData.securityStats && (
-                          <SecurityAuditCard
-                            securityStats={dashboardData.securityStats}
-                          />
-                        )}
-
                         {/* Communication Statistics Card */}
                         {dashboardData.communicationStats && (
                           <CommunicationStatisticsCard
@@ -763,6 +756,13 @@ export function AdminDashboard() {
                         {dashboardData.systemHealth && (
                           <SystemHealthCard
                             systemHealth={dashboardData.systemHealth}
+                          />
+                        )}
+
+                        {/* Security Audit Card */}
+                        {dashboardData.securityStats && (
+                          <SecurityAuditCard
+                            securityStats={dashboardData.securityStats}
                           />
                         )}
 

@@ -62,6 +62,7 @@ const LOGIN_COLORS = {
   login_failed: "#ef4444",
   lockout: "#f97316",
   suspicious: "#f59e0b",
+  account_status_change: "#8b5cf6", // Purple color for account status changes
 }
 
 export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
@@ -69,6 +70,22 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleString()
+  }
+
+  // Prepare combined data for the pie chart (login attempts + account status changes)
+  const preparePieChartData = () => {
+    // Start with the login attempts data
+    const combinedData = [...securityStats.loginAttempts]
+
+    // Add account status changes if there are any
+    if (securityStats.accountStatusChanges > 0) {
+      combinedData.push({
+        eventType: "Account Status Changes",
+        count: securityStats.accountStatusChanges
+      })
+    }
+
+    return combinedData
   }
 
   // Format relative time
@@ -142,13 +159,13 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
           <div>
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-brand" />
-              <span>Login Attempts</span>
+              <span>Security Activity</span>
             </h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={securityStats.loginAttempts}
+                    data={preparePieChartData()}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -159,8 +176,13 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                     animationDuration={1000}
                     label={({ eventType, percent }) => `${eventType}: ${(percent * 100).toFixed(0)}%`}
                   >
-                    {securityStats.loginAttempts.map((entry, index) => (
-                      <Cell key={`login-${index}`} fill={getLoginColor(entry.eventType)} />
+                    {preparePieChartData().map((entry, index) => (
+                      <Cell
+                        key={`login-${index}`}
+                        fill={entry.eventType === "Account Status Changes"
+                          ? LOGIN_COLORS.account_status_change
+                          : getLoginColor(entry.eventType)}
+                      />
                     ))}
                   </Pie>
                   <Legend />
