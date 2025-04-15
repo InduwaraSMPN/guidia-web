@@ -5,4 +5,16 @@ schedule meeting
 email notify job submit
 
 http://localhost:1030/admin/settings page features fix
-remove twst and dummy data
+remove test and dummy data
+
+
+job emails updates send -NEW
+
+View Resume to use document viewer 
+
+Your application for d at Innovatech Solutions has been reviewed but the description not going to the student 
+
+check emails
+
+
+welcome to guida emails

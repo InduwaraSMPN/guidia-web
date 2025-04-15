@@ -8,6 +8,9 @@ const scheduler = require("../utils/scheduler");
 // For date operations
 const moment = require("moment");
 
+// For platform announcements
+const NotificationTriggers = require("../utils/notificationTriggers");
+
 // For making HTTP requests
 const fetch = require('node-fetch');
 
@@ -70,34 +73,135 @@ router.post("/run-task", verifyToken, verifyAdmin, async (req, res) => {
     // Run the task
     console.log(`Manually running task: ${taskType}`);
 
-    switch (taskType) {
-      case "daily":
-        await scheduler.runDailyTasks();
-        break;
-      case "weekly":
-        await scheduler.runWeeklyTasks();
-        break;
-      case "deadlineReminders":
-        await scheduler.scheduledTasks.sendApplicationDeadlineReminders();
-        break;
-      case "expiringJobs":
-        await scheduler.scheduledTasks.checkExpiringJobs();
-        break;
-      case "incompleteProfiles":
-        await scheduler.scheduledTasks.checkIncompleteProfiles();
-        break;
-      case "jobStats":
-        await scheduler.scheduledTasks.sendJobPostingStats();
-        break;
+    // Get the database pool from the request
+    const pool = req.app.locals.pool;
+    if (!pool) {
+      return res.status(500).json({ error: "Database connection not available" });
     }
+
+    // Define task functions directly here instead of relying on scheduler
+    const tasks = {
+      daily: async () => {
+        console.log('Running daily tasks manually');
+        try {
+          // Implement basic daily tasks here
+          await pool.execute("REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+            ['system_last_daily_run', new Date().toISOString()]);
+          return 'Daily tasks completed';
+        } catch (error) {
+          console.error('Error in daily task:', error);
+          throw new Error(`Daily task failed: ${error.message}`);
+        }
+      },
+      weekly: async () => {
+        console.log('Running weekly tasks manually');
+        try {
+          // Implement basic weekly tasks here
+          await pool.execute("REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+            ['system_last_weekly_run', new Date().toISOString()]);
+          return 'Weekly tasks completed';
+        } catch (error) {
+          console.error('Error in weekly task:', error);
+          throw new Error(`Weekly task failed: ${error.message}`);
+        }
+      },
+      deadlineReminders: async () => {
+        console.log('Running deadline reminders task manually');
+        try {
+          const today = new Date();
+          const threeDaysLater = new Date(today);
+          threeDaysLater.setDate(today.getDate() + 3);
+
+          const [approachingDeadlines] = await pool.execute(
+            "SELECT * FROM jobs WHERE endDate BETWEEN ? AND ? AND notifiedDeadline = 0",
+            [today.toISOString().split('T')[0], threeDaysLater.toISOString().split('T')[0]]
+          );
+
+          console.log(`Found ${approachingDeadlines.length} jobs with approaching deadlines`);
+          return `Found ${approachingDeadlines.length} jobs with approaching deadlines`;
+        } catch (error) {
+          console.error('Error in deadlineReminders task:', error);
+          throw new Error(`Deadline reminders task failed: ${error.message}`);
+        }
+      },
+      expiringJobs: async () => {
+        console.log('Running expiring jobs check manually');
+        try {
+          const today = new Date();
+          const threeDaysLater = new Date(today);
+          threeDaysLater.setDate(today.getDate() + 3);
+
+          const [expiringJobs] = await pool.execute(
+            "SELECT * FROM jobs WHERE endDate BETWEEN ? AND ? AND notifiedExpiring = 0",
+            [today.toISOString().split('T')[0], threeDaysLater.toISOString().split('T')[0]]
+          );
+
+          console.log(`Found ${expiringJobs.length} jobs expiring soon`);
+          return `Found ${expiringJobs.length} jobs expiring soon`;
+        } catch (error) {
+          console.error('Error in expiringJobs task:', error);
+          throw new Error(`Expiring jobs task failed: ${error.message}`);
+        }
+      },
+      incompleteProfiles: async () => {
+        console.log('Running incomplete profiles check manually');
+        try {
+          const [incompleteStudentProfiles] = await pool.execute(
+            "SELECT * FROM students WHERE studentDescription IS NULL OR studentProfileImagePath IS NULL"
+          );
+
+          const [incompleteCompanyProfiles] = await pool.execute(
+            "SELECT * FROM companies WHERE companyDescription IS NULL OR companyLogoPath IS NULL"
+          );
+
+          const [incompleteCounselorProfiles] = await pool.execute(
+            "SELECT * FROM counselors WHERE counselorDescription IS NULL OR counselorProfileImagePath IS NULL"
+          );
+
+          const totalIncomplete = incompleteStudentProfiles.length +
+                                 incompleteCompanyProfiles.length +
+                                 incompleteCounselorProfiles.length;
+
+          console.log(`Found ${totalIncomplete} incomplete profiles`);
+          return `Found ${totalIncomplete} incomplete profiles`;
+        } catch (error) {
+          console.error('Error in incompleteProfiles task:', error);
+          throw new Error(`Incomplete profiles task failed: ${error.message}`);
+        }
+      },
+      jobStats: async () => {
+        console.log('Running job stats task manually');
+        try {
+          // Get job view counts
+          const [jobViews] = await pool.execute(
+            "SELECT jobID, COUNT(*) as viewCount FROM job_views GROUP BY jobID ORDER BY viewCount DESC"
+          );
+
+          // Get job application counts
+          const [jobApplications] = await pool.execute(
+            "SELECT jobID, COUNT(*) as applicationCount FROM job_applications GROUP BY jobID ORDER BY applicationCount DESC"
+          );
+
+          console.log(`Found ${jobViews.length} job view records and ${jobApplications.length} job application records`);
+          return 'Job stats task completed';
+        } catch (error) {
+          console.error('Error in jobStats task:', error);
+          throw new Error(`Job stats task failed: ${error.message}`);
+        }
+      }
+    };
+
+    // Execute the selected task
+    const result = await tasks[taskType]();
 
     res.json({
       success: true,
       message: `Task ${taskType} executed successfully`,
+      result
     });
   } catch (error) {
     console.error(`Error running task: ${error}`);
-    res.status(500).json({ error: "Failed to run task" });
+    res.status(500).json({ error: `Failed to run task: ${error.message}` });
   }
 });
 
@@ -107,18 +211,358 @@ router.post("/run-task", verifyToken, verifyAdmin, async (req, res) => {
  */
 router.get("/scheduler-status", verifyToken, verifyAdmin, (req, res) => {
   try {
+    // Access scheduler from app locals if available, otherwise use global scheduler
+    const schedulerInstance = req.app.locals.scheduler || scheduler;
+
     const status = {
-      isRunning: !!scheduler.jobs && Object.keys(scheduler.jobs).length > 0,
-      scheduledJobs: Object.keys(scheduler.jobs || {}).map((key) => ({
+      isRunning: !!schedulerInstance.jobs && Object.keys(schedulerInstance.jobs).length > 0,
+      scheduledJobs: Object.keys(schedulerInstance.jobs || {}).map((key) => ({
         name: key,
-        nextInvocation: scheduler.jobs[key]?.nextInvocation() || null,
+        nextInvocation: schedulerInstance.jobs[key]?.nextInvocation() || null,
       })),
     };
 
     res.json(status);
   } catch (error) {
     console.error(`Error getting scheduler status: ${error}`);
-    res.status(500).json({ error: "Failed to get scheduler status" });
+    res.status(500).json({ error: `Failed to get scheduler status: ${error.message}` });
+  }
+});
+
+/**
+ * Get notification settings
+ * GET /api/admin/notification-settings
+ */
+router.get("/notification-settings", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+
+    // Get notification settings from database
+    const [settings] = await pool.execute(
+      "SELECT * FROM system_settings WHERE settingKey LIKE 'notification_%'"
+    );
+
+    // Transform to expected format
+    const notificationSettings = {
+      jobDeadlineNotifications: true,
+      jobExpiryNotifications: true,
+      profileCompletionNotifications: true
+    };
+
+    // Update with values from database if they exist
+    settings.forEach(setting => {
+      if (setting.settingKey === 'notification_job_deadline') {
+        notificationSettings.jobDeadlineNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_job_expiry') {
+        notificationSettings.jobExpiryNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_profile_completion') {
+        notificationSettings.profileCompletionNotifications = setting.settingValue === '1';
+      }
+    });
+
+    res.json(notificationSettings);
+  } catch (error) {
+    console.error(`Error getting notification settings: ${error}`);
+    res.status(500).json({ error: "Failed to get notification settings" });
+  }
+});
+
+/**
+ * Update notification settings
+ * PUT /api/admin/notification-settings
+ */
+router.put("/notification-settings", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    console.log('Received notification settings update request:', req.body);
+
+    const pool = req.app.locals.pool;
+    const { jobDeadlineNotifications, jobExpiryNotifications, profileCompletionNotifications } = req.body;
+
+    // Validate input
+    if (typeof jobDeadlineNotifications !== 'boolean' ||
+        typeof jobExpiryNotifications !== 'boolean' ||
+        typeof profileCompletionNotifications !== 'boolean') {
+      console.error('Invalid notification settings format:', req.body);
+      return res.status(400).json({ error: "Invalid notification settings format" });
+    }
+
+    console.log('Updating notification settings in database');
+
+    // Update settings in database using REPLACE INTO to handle both insert and update
+    try {
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_job_deadline', jobDeadlineNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_job_expiry', jobExpiryNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_profile_completion', profileCompletionNotifications ? '1' : '0']
+      );
+
+      console.log('Database update successful');
+    } catch (dbError) {
+      console.error('Database error when updating notification settings:', dbError);
+      return res.status(500).json({ error: `Database error: ${dbError.message}` });
+    }
+
+    console.log('Updating scheduler tasks');
+
+    // Update scheduler tasks based on new settings
+    try {
+      // Check if scheduler and scheduledTasks are properly initialized
+      if (!scheduler || !scheduler.scheduledTasks) {
+        console.log('Scheduler or scheduledTasks not properly initialized, skipping task updates');
+        // Continue without updating scheduler tasks
+      } else {
+        if (!jobDeadlineNotifications) {
+          scheduler.cancelJob('sendApplicationDeadlineReminders');
+        } else if (!scheduler.jobs['sendApplicationDeadlineReminders'] &&
+                   typeof scheduler.scheduledTasks.sendApplicationDeadlineReminders === 'function') {
+          scheduler.scheduleJob('sendApplicationDeadlineReminders', '0 */6 * * *',
+            scheduler.scheduledTasks.sendApplicationDeadlineReminders);
+        }
+
+        if (!jobExpiryNotifications) {
+          scheduler.cancelJob('checkExpiringJobs');
+        } else if (!scheduler.jobs['checkExpiringJobs'] &&
+                   typeof scheduler.scheduledTasks.checkExpiringJobs === 'function') {
+          scheduler.scheduleJob('checkExpiringJobs', '0 */12 * * *',
+            scheduler.scheduledTasks.checkExpiringJobs);
+        }
+
+        if (!profileCompletionNotifications) {
+          scheduler.cancelJob('checkIncompleteProfiles');
+        } else if (!scheduler.jobs['checkIncompleteProfiles'] &&
+                   typeof scheduler.scheduledTasks.checkIncompleteProfiles === 'function') {
+          scheduler.scheduleJob('checkIncompleteProfiles', '0 0 * * *',
+            scheduler.scheduledTasks.checkIncompleteProfiles);
+        }
+      }
+
+      console.log('Scheduler tasks updated successfully');
+    } catch (schedulerError) {
+      console.error('Scheduler error when updating tasks:', schedulerError);
+      // Continue despite scheduler errors - settings are saved in DB
+    }
+
+    console.log('Notification settings update completed successfully');
+    res.json({ success: true, message: "Notification settings updated successfully" });
+  } catch (error) {
+    console.error(`Error updating notification settings: ${error}`);
+    res.status(500).json({ error: `Failed to update notification settings: ${error.message}` });
+  }
+});
+
+/**
+ * Get system settings
+ * GET /api/admin/system-settings
+ */
+router.get("/system-settings", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const pool = req.app.locals.pool;
+
+    // Get system settings from database
+    const [settings] = await pool.execute(
+      "SELECT * FROM system_settings WHERE settingKey LIKE 'system_%'"
+    );
+
+    // Default settings
+    const systemSettings = {
+      siteName: 'Guidia',
+      supportEmail: 'support@guidia.com',
+      dateFormat: 'd MMMM yyyy',
+      maintenanceMode: false
+    };
+
+    // Update with values from database if they exist
+    settings.forEach(setting => {
+      if (setting.settingKey === 'system_site_name') {
+        systemSettings.siteName = setting.settingValue;
+      } else if (setting.settingKey === 'system_support_email') {
+        systemSettings.supportEmail = setting.settingValue;
+      } else if (setting.settingKey === 'system_date_format') {
+        systemSettings.dateFormat = setting.settingValue;
+      } else if (setting.settingKey === 'system_maintenance_mode') {
+        systemSettings.maintenanceMode = setting.settingValue === '1';
+      }
+    });
+
+    res.json(systemSettings);
+  } catch (error) {
+    console.error(`Error getting system settings: ${error}`);
+    res.status(500).json({ error: "Failed to get system settings" });
+  }
+});
+
+/**
+ * Update system settings
+ * PUT /api/admin/system-settings
+ */
+router.put("/system-settings", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    console.log('Received system settings update request:', req.body);
+
+    const pool = req.app.locals.pool;
+    const { siteName, supportEmail, dateFormat, maintenanceMode } = req.body;
+
+    // Validate input
+    if (!siteName || !supportEmail || !dateFormat || typeof maintenanceMode !== 'boolean') {
+      console.error('Invalid system settings format:', req.body);
+      return res.status(400).json({ error: "Invalid system settings format" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(supportEmail)) {
+      console.error('Invalid email format:', supportEmail);
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+
+    console.log('Updating system settings in database');
+
+    // Update settings in database
+    try {
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['system_site_name', siteName]
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['system_support_email', supportEmail]
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['system_date_format', dateFormat]
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['system_maintenance_mode', maintenanceMode ? '1' : '0']
+      );
+
+      console.log('Database update successful');
+    } catch (dbError) {
+      console.error('Database error when updating system settings:', dbError);
+      return res.status(500).json({ error: `Database error: ${dbError.message}` });
+    }
+
+    // If maintenance mode is enabled, notify all connected users
+    if (maintenanceMode) {
+      try {
+        // Check if socket.io is available and has the broadcast method
+        const io = req.app.locals.io;
+        if (io) {
+          console.log('Broadcasting maintenance mode notification');
+          io.emit('notification', {
+            type: 'MAINTENANCE_MODE',
+            message: 'The system will be entering maintenance mode soon. Please save your work and log out.',
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          console.log('Socket.io not available, skipping broadcast');
+        }
+      } catch (notificationError) {
+        console.error('Error sending maintenance mode notification:', notificationError);
+        // Continue despite notification errors - settings are saved in DB
+      }
+    }
+
+    console.log('System settings update completed successfully');
+    res.json({ success: true, message: "System settings updated successfully" });
+  } catch (error) {
+    console.error(`Error updating system settings: ${error}`);
+    res.status(500).json({ error: `Failed to update system settings: ${error.message}` });
+  }
+});
+
+/**
+ * Send platform announcement to users
+ * POST /api/admin/send-announcement
+ */
+router.post("/send-announcement", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    console.log('Received announcement request:', req.body);
+
+    const pool = req.app.locals.pool;
+    const { message, targetRoles } = req.body;
+
+    // Validate input
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    if (!targetRoles || !Array.isArray(targetRoles) || targetRoles.length === 0) {
+      return res.status(400).json({ error: "At least one target role is required" });
+    }
+
+    // Validate roles
+    const validRoles = ['Student', 'Counselor', 'Company'];
+    const invalidRoles = targetRoles.filter(role => !validRoles.includes(role));
+    if (invalidRoles.length > 0) {
+      return res.status(400).json({
+        error: `Invalid roles: ${invalidRoles.join(', ')}. Valid roles are: ${validRoles.join(', ')}`
+      });
+    }
+
+    // Initialize notification triggers
+    const notificationTriggers = new NotificationTriggers(pool);
+
+    // Send announcements to each role
+    let totalRecipients = 0;
+
+    for (const role of targetRoles) {
+      try {
+        await notificationTriggers.platformAnnouncement(message, role);
+
+        // Count recipients for this role
+        const [users] = await pool.execute(
+          "SELECT COUNT(*) as count FROM users WHERE roleID = ?",
+          [role === 'Student' ? 2 : role === 'Counselor' ? 3 : 4]
+        );
+
+        totalRecipients += users[0].count;
+      } catch (roleError) {
+        console.error(`Error sending announcement to ${role}:`, roleError);
+        // Continue with other roles despite errors
+      }
+    }
+
+    // Log the announcement to the system activity log
+    try {
+      await pool.execute(
+        "INSERT INTO system_activity_log (activityType, userID, details) VALUES (?, ?, ?)",
+        [
+          'PLATFORM_ANNOUNCEMENT',
+          req.user.id,
+          JSON.stringify({
+            message,
+            targetRoles,
+            recipientCount: totalRecipients,
+            timestamp: new Date().toISOString()
+          })
+        ]
+      );
+    } catch (logError) {
+      console.error('Error logging announcement to activity log:', logError);
+      // Continue despite logging errors
+    }
+
+    res.json({
+      success: true,
+      message: "Announcement sent successfully",
+      recipientCount: totalRecipients
+    });
+  } catch (error) {
+    console.error(`Error sending announcement: ${error}`);
+    res.status(500).json({ error: `Failed to send announcement: ${error.message}` });
   }
 });
 

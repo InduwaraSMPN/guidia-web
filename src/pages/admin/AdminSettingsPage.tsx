@@ -7,8 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select } from '@/components/ui/Select';
-import { Loader2, RefreshCw, Play, Calendar, Clock, Bell } from 'lucide-react';
+import { Loader2, RefreshCw, Play, Calendar, Clock, Bell, Send, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -20,6 +22,24 @@ interface SchedulerStatus {
   }[];
 }
 
+interface NotificationSettings {
+  jobDeadlineNotifications: boolean;
+  jobExpiryNotifications: boolean;
+  profileCompletionNotifications: boolean;
+}
+
+interface AnnouncementData {
+  message: string;
+  targetRoles: string[];
+}
+
+interface SystemSettings {
+  siteName: string;
+  supportEmail: string;
+  dateFormat: string;
+  maintenanceMode: boolean;
+}
+
 export function AdminSettingsPage() {
   const { } = useAuth(); // We'll use this context later if needed
   const [isLoading, setIsLoading] = useState(false);
@@ -27,15 +47,38 @@ export function AdminSettingsPage() {
   const [selectedTask, setSelectedTask] = useState('daily');
   const [isRunningTask, setIsRunningTask] = useState(false);
 
+  // Notification settings state
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    jobDeadlineNotifications: true,
+    jobExpiryNotifications: true,
+    profileCompletionNotifications: true
+  });
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
+
+  // System settings state
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>({
+    siteName: 'Guidia',
+    supportEmail: 'support@guidia.com',
+    dateFormat: 'd MMMM yyyy',
+    maintenanceMode: false
+  });
+  const [isSavingSystem, setIsSavingSystem] = useState(false);
+
+  // Announcement state
+  const [announcement, setAnnouncement] = useState<AnnouncementData>({
+    message: '',
+    targetRoles: ['Student', 'Counselor', 'Company']
+  });
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+
   // Fetch scheduler status
   const fetchSchedulerStatus = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const headers = await createAuthHeaders();
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/scheduler-status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -56,22 +99,24 @@ export function AdminSettingsPage() {
   const runTask = async (taskType: string) => {
     setIsRunningTask(true);
     try {
-      const token = localStorage.getItem('token');
+      console.log(`Running task: ${taskType}`);
+      const headers = await createAuthHeaders();
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/run-task`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({ taskType }),
+        credentials: 'include'
       });
 
+      // Parse the response data
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to run task');
+        throw new Error(data.error || 'Failed to run task');
       }
 
-      toast.success(`Task ${taskType} executed successfully`);
+      console.log('Task response:', data);
+      toast.success(`Task ${taskType} executed successfully: ${data.result || ''}`);
       // Refresh scheduler status after running a task
       fetchSchedulerStatus();
     } catch (error) {
@@ -82,9 +127,170 @@ export function AdminSettingsPage() {
     }
   };
 
-  // Load scheduler status on component mount
+  // Create auth headers with CSRF token
+  const createAuthHeaders = async () => {
+    const token = localStorage.getItem('token');
+    const csrfToken = localStorage.getItem('csrfToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'X-CSRF-Token': csrfToken || ''
+    };
+  };
+
+  // Save notification settings
+  const saveNotificationSettings = async () => {
+    setIsSavingNotifications(true);
+    try {
+      const headers = await createAuthHeaders();
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/notification-settings`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(notificationSettings),
+        credentials: 'include' // Important for cookies
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save notification settings');
+      }
+
+      toast.success('Notification settings saved successfully');
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+      toast.error(`Failed to save notification settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSavingNotifications(false);
+    }
+  };
+
+  // Save system settings
+  const saveSystemSettings = async () => {
+    setIsSavingSystem(true);
+    try {
+      const headers = await createAuthHeaders();
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/system-settings`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(systemSettings),
+        credentials: 'include' // Important for cookies
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save system settings');
+      }
+
+      toast.success('System settings saved successfully');
+    } catch (error) {
+      console.error('Error saving system settings:', error);
+      toast.error(`Failed to save system settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSavingSystem(false);
+    }
+  };
+
+  // Fetch notification settings
+  const fetchNotificationSettings = async () => {
+    try {
+      const headers = await createAuthHeaders();
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/notification-settings`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch notification settings');
+      }
+
+      const data = await response.json();
+      setNotificationSettings(data);
+    } catch (error) {
+      console.error('Error fetching notification settings:', error);
+      // Don't show error toast here, just use defaults
+    }
+  };
+
+  // Fetch system settings
+  const fetchSystemSettings = async () => {
+    try {
+      const headers = await createAuthHeaders();
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/system-settings`, {
+        headers,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch system settings');
+      }
+
+      const data = await response.json();
+      setSystemSettings(data);
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      // Don't show error toast here, just use defaults
+    }
+  };
+
+  // Send platform announcement
+  const sendAnnouncement = async () => {
+    if (!announcement.message.trim()) {
+      toast.error('Please enter an announcement message');
+      return;
+    }
+
+    if (announcement.targetRoles.length === 0) {
+      toast.error('Please select at least one user role');
+      return;
+    }
+
+    setIsSendingAnnouncement(true);
+    try {
+      const headers = await createAuthHeaders();
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/send-announcement`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(announcement),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to send announcement');
+      }
+
+      const data = await response.json();
+      toast.success(`Announcement sent to ${data.recipientCount} users`);
+
+      // Reset the form
+      setAnnouncement({
+        message: '',
+        targetRoles: ['Student', 'Counselor', 'Company']
+      });
+    } catch (error) {
+      console.error('Error sending announcement:', error);
+      toast.error(`Failed to send announcement: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSendingAnnouncement(false);
+    }
+  };
+
+  // Handle role checkbox change
+  const handleRoleChange = (role: string, checked: boolean) => {
+    setAnnouncement(prev => {
+      if (checked) {
+        return { ...prev, targetRoles: [...prev.targetRoles, role] };
+      } else {
+        return { ...prev, targetRoles: prev.targetRoles.filter(r => r !== role) };
+      }
+    });
+  };
+
+  // Load data on component mount
   useEffect(() => {
     fetchSchedulerStatus();
+    fetchNotificationSettings();
+    fetchSystemSettings();
   }, []);
 
   // Format date for display
@@ -183,6 +389,7 @@ export function AdminSettingsPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="scheduler">Task Scheduler</TabsTrigger>
           <TabsTrigger value="notifications">Notification Settings</TabsTrigger>
+          <TabsTrigger value="announcements">Announcements</TabsTrigger>
           <TabsTrigger value="system">System Settings</TabsTrigger>
         </TabsList>
 
@@ -325,7 +532,11 @@ export function AdminSettingsPage() {
                     <Label htmlFor="job-deadline-notifications" className="block">Job Deadline Notifications</Label>
                     <p className="text-sm text-muted-foreground">Send reminders for approaching job application deadlines</p>
                   </div>
-                  <Switch id="job-deadline-notifications" defaultChecked />
+                  <Switch
+                    id="job-deadline-notifications"
+                    checked={notificationSettings.jobDeadlineNotifications}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobDeadlineNotifications: checked }))}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -333,7 +544,11 @@ export function AdminSettingsPage() {
                     <Label htmlFor="job-expiry-notifications" className="block">Job Expiry Notifications</Label>
                     <p className="text-sm text-muted-foreground">Notify companies when their job postings are about to expire</p>
                   </div>
-                  <Switch id="job-expiry-notifications" defaultChecked />
+                  <Switch
+                    id="job-expiry-notifications"
+                    checked={notificationSettings.jobExpiryNotifications}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobExpiryNotifications: checked }))}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -341,12 +556,99 @@ export function AdminSettingsPage() {
                     <Label htmlFor="profile-completion-notifications" className="block">Profile Completion Reminders</Label>
                     <p className="text-sm text-muted-foreground">Remind users to complete their profiles</p>
                   </div>
-                  <Switch id="profile-completion-notifications" defaultChecked />
+                  <Switch
+                    id="profile-completion-notifications"
+                    checked={notificationSettings.profileCompletionNotifications}
+                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, profileCompletionNotifications: checked }))}
+                  />
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="ml-auto">Save Settings</Button>
+              <Button
+                className="ml-auto"
+                onClick={saveNotificationSettings}
+                disabled={isSavingNotifications}
+              >
+                {isSavingNotifications ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Save Settings'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="announcements">
+          <Card>
+            <CardHeader>
+              <CardTitle>Send Platform Announcement</CardTitle>
+              <CardDescription>Send announcements to all users or specific user types</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="announcement-message" className="block mb-2">Announcement Message</Label>
+                  <Textarea
+                    id="announcement-message"
+                    placeholder="Enter your announcement message here..."
+                    value={announcement.message}
+                    onChange={(e) => setAnnouncement(prev => ({ ...prev, message: e.target.value }))}
+                    className="min-h-[120px]"
+                  />
+                </div>
+
+                <div>
+                  <Label className="block mb-2">Send To</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="student-role"
+                        checked={announcement.targetRoles.includes('Student')}
+                        onCheckedChange={(checked) => handleRoleChange('Student', checked as boolean)}
+                      />
+                      <Label htmlFor="student-role" className="cursor-pointer">Students</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="counselor-role"
+                        checked={announcement.targetRoles.includes('Counselor')}
+                        onCheckedChange={(checked) => handleRoleChange('Counselor', checked as boolean)}
+                      />
+                      <Label htmlFor="counselor-role" className="cursor-pointer">Counselors</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="company-role"
+                        checked={announcement.targetRoles.includes('Company')}
+                        onCheckedChange={(checked) => handleRoleChange('Company', checked as boolean)}
+                      />
+                      <Label htmlFor="company-role" className="cursor-pointer">Companies</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="ml-auto"
+                onClick={sendAnnouncement}
+                disabled={isSendingAnnouncement}
+              >
+                {isSendingAnnouncement ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Announcement
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -361,12 +663,20 @@ export function AdminSettingsPage() {
               <div className="space-y-6">
                 <div>
                   <Label htmlFor="site-name" className="block mb-2">Site Name</Label>
-                  <Input id="site-name" defaultValue="Guidia" />
+                  <Input
+                    id="site-name"
+                    value={systemSettings.siteName}
+                    onChange={(e) => setSystemSettings(prev => ({ ...prev, siteName: e.target.value }))}
+                  />
                 </div>
 
                 <div>
                   <Label htmlFor="support-email" className="block mb-2">Support Email</Label>
-                  <Input id="support-email" defaultValue="support@guidia.com" />
+                  <Input
+                    id="support-email"
+                    value={systemSettings.supportEmail}
+                    onChange={(e) => setSystemSettings(prev => ({ ...prev, supportEmail: e.target.value }))}
+                  />
                 </div>
 
                 <div>
@@ -380,10 +690,14 @@ export function AdminSettingsPage() {
                       { value: 'MMMM d, yyyy', label: 'MMMM D, YYYY (April 9, 2025)' }
                     ]}
                     value={{
-                      value: 'd MMMM yyyy',
-                      label: 'D MMMM YYYY (9 April 2025)'
+                      value: systemSettings.dateFormat,
+                      label: systemSettings.dateFormat === 'MM/dd/yyyy' ? 'MM/DD/YYYY (04/09/2025)' :
+                             systemSettings.dateFormat === 'dd/MM/yyyy' ? 'DD/MM/YYYY (09/04/2025)' :
+                             systemSettings.dateFormat === 'yyyy-MM-dd' ? 'YYYY-MM-DD (2025-04-09)' :
+                             systemSettings.dateFormat === 'd MMMM yyyy' ? 'D MMMM YYYY (9 April 2025)' :
+                             'MMMM D, YYYY (April 9, 2025)'
                     }}
-                    onChange={() => {}}
+                    onChange={(option) => option && setSystemSettings(prev => ({ ...prev, dateFormat: option.value }))}
                     placeholder="Select date format"
                   />
                 </div>
@@ -392,13 +706,28 @@ export function AdminSettingsPage() {
                   <Label htmlFor="maintenance-mode" className="block">Maintenance Mode</Label>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-sm text-muted-foreground">Put the site in maintenance mode</p>
-                    <Switch id="maintenance-mode" />
+                    <Switch
+                      id="maintenance-mode"
+                      checked={systemSettings.maintenanceMode}
+                      onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, maintenanceMode: checked }))}
+                    />
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="ml-auto">Save Settings</Button>
+              <Button
+                className="ml-auto"
+                onClick={saveSystemSettings}
+                disabled={isSavingSystem}
+              >
+                {isSavingSystem ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Save Settings'}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
