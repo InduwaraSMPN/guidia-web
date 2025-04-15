@@ -25,6 +25,7 @@ interface Company {
 
 interface CompanyData {
   companyID: number;
+  userID: string;
   companyName: string;
   companyCountry: string;
   companyCity: string;
@@ -84,18 +85,18 @@ const ProfileSkeleton = () => (
 );
 
 // Chat button component
-function ChatButton({ companyData, userID }: { companyData: CompanyData, userID: string | undefined }) {
+function ChatButton({ companyData }: { companyData: CompanyData }) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   // Check if current user is viewing their own profile
-  const isCurrentUser = user?.userID === userID;
+  const isCurrentUser = user?.userType === "Company" && user?.userID === companyData.userID;
 
   const handleChat = () => {
     if (!isCurrentUser && user?.userType && user?.userID) {
       const userTypePath = user.userType.toLowerCase();
       // Navigate to chat using the new URL format
-      navigate(`/${userTypePath}/${user.userID}/messages/${userID}?type=company`);
+      navigate(`/${userTypePath}/${user.userID}/messages/${companyData.companyID}?type=company`);
     }
   };
 
@@ -131,10 +132,10 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
 
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/api/companies/profile/${userID}`,
+
+        // First, fetch all companies
+        const allCompaniesResponse = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/companies`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -143,12 +144,37 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           }
         );
 
-        if (!response.ok) {
-          const errorData = await response.json();
+        if (!allCompaniesResponse.ok) {
+          const errorData = await allCompaniesResponse.json();
+          throw new Error(errorData.error || "Failed to fetch companies");
+        }
+
+        const allCompanies = await allCompaniesResponse.json();
+
+        // Find the company with the matching companyID
+        const company = allCompanies.find((c: any) => String(c.companyID) === String(userID));
+
+        if (!company) {
+          throw new Error("Company not found");
+        }
+
+        // Now fetch the company profile with posted jobs using the userID
+        const profileResponse = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile/${company.userID}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!profileResponse.ok) {
+          const errorData = await profileResponse.json();
           throw new Error(errorData.error || "Failed to fetch company profile");
         }
 
-        const data = await response.json();
+        const data = await profileResponse.json();
         setCompanyData(data);
       } catch (err) {
         console.error("Profile fetch error:", err);
@@ -275,7 +301,7 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
                 <img
                   src={companyData.companyLogoPath}
                   alt={companyData.companyName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-lg"
                   onError={(e) => {
                     e.currentTarget.src = "/default-company-logo.png";
                   }}
@@ -406,10 +432,10 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center gap-4"
         >
-          <ChatButton companyData={companyData} userID={userID} />
+          <ChatButton companyData={companyData} />
           {userID && (
             <MeetingRequestButton
-              recipientID={parseInt(userID)}
+              recipientID={companyData.companyID}
               recipientName={companyData.companyName}
               recipientType="Company"
               size="lg"

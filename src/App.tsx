@@ -1,5 +1,6 @@
 import './index.css';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './pages/HomePage';
 import { Login } from './pages/auth/Login';
@@ -24,7 +25,6 @@ import { DeclinedRegistrations } from './pages/registrations/DeclinedRegistratio
 import { StudentProfilePage } from './pages/StudentProfilePage';
 import { CounselorProfilePage } from './pages/CounselorProfilePage';
 import { CompanyProfilePage } from './pages/CompanyProfilePage';
-import { CompanyDetailsPage } from './pages/CompanyDetailsPage';
 import { CompanyJobsPage } from './pages/CompanyJobsPage';
 import { CompanyApplicationsPage } from './pages/CompanyApplicationsPage';
 import { SavedJobsPage } from './pages/SavedJobsPage';
@@ -42,7 +42,6 @@ import { JobDetailsPage } from './pages/JobDetailsPage';
 import { EditJobPage } from './pages/EditJobPage';
 import { PostJobPage } from './pages/PostJobPage';
 import { ChatPage } from './pages/ChatPage';
-import { ChatList } from './pages/ChatList';
 import { ConversationsList } from './pages/ConversationsList';
 import { StudentMessagesPage } from './pages/StudentMessagesPage';
 import { CounselorMessagesPage } from './pages/CounselorMessagesPage';
@@ -98,6 +97,22 @@ function RedirectToProfile() {
   return <Navigate to="/" />;
 }
 
+
+
+function CompanyProfileRedirect() {
+  const { companyID } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (companyID) {
+      // Redirect to the company details page using the companyID
+      navigate(`/company/${companyID}/details`, { replace: true });
+    }
+  }, [companyID, navigate]);
+
+  return null;
+}
+
 function AppContent() {
   const location = useLocation();
   const { isVerifyingToken } = useAuth();
@@ -111,8 +126,6 @@ function AppContent() {
     );
   }
 
-  // Check if we're on the home page
-  const isHomePage = location.pathname === '/';
 
   // Keep the auth page check for navbar logo only display
   const isAuthPage = [
@@ -196,8 +209,10 @@ function AppContent() {
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
+          {/* Company routes */}
           <Route path="/companies/:id/jobs" element={<CompanyJobsPage />} />
-          <Route path="/companies/:id/details" element={<CompanyDetailsPage />} />
+          <Route path="/companies/:id/details" element={<PublicCompanyProfile />} />
+
           <Route path="/counselors" element={<CounselorsPage />} />
           <Route path="/students" element={<StudentsPage />} />
           <Route path="/jobs" element={<JobsPage />} />
@@ -369,6 +384,10 @@ function AppContent() {
           <Route path="/company">
             {/* Public view for directory access */}
             <Route path=":userID/details" element={<PublicCompanyProfile />} />
+            <Route path=":id/jobs" element={<CompanyJobsPage />} />
+
+            {/* Redirect for company details by companyID */}
+            <Route path=":companyID/profile" element={<CompanyProfileRedirect />} />
 
             <Route path="profile/:userID" element={
               <ProtectedRoute requiredUserType={["Company", "Admin"]}>

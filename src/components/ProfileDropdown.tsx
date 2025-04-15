@@ -220,7 +220,7 @@ export function ProfileDropdown() {
           <img
             src={imagePath}
             alt={getUserName()}
-            className={`${size} object-cover`}
+            className={`${size} object-cover rounded-full`}
             onError={(e) => {
               e.currentTarget.src = "/default-avatar.png"
             }}

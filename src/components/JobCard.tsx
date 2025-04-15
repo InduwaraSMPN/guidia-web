@@ -178,7 +178,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                 </motion.h3>
 
                 <Link
-                  to={`/companies/${job.companyId || "1"}/details`}
+                  to={`/company/${job.companyId || "1"}/details`}
                   className="text-brand font-medium mt-1 hover:underline inline-flex items-center truncate block w-full"
                   onClick={(e) => e.stopPropagation()}
                   title={job.company}

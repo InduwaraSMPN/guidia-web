@@ -39,6 +39,8 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
 
   const handleViewProfile = () => {
     if (type === "company") {
+      // For companies, we need to use the company's userID to view the profile
+      // We'll fetch all companies and find the one with matching companyID
       navigate(`/company/${id}/details`)
     } else if (type === "counselor") {
       navigate(`/counselors/${id}/details`)
@@ -54,20 +56,18 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
     >
       <div className="flex items-center gap-3">
         {image ? (
-          <div className="overflow-hidden rounded-lg flex-shrink-0">
+          <div className="overflow-hidden flex-shrink-0 rounded-lg">
             <motion.img
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
               src={image}
               alt={name}
-              className={`${type === "company" ? "w-16 h-10 object-contain" : "w-14 h-14 object-cover"}`}
+              className="w-14 h-14 object-cover rounded-lg"
             />
           </div>
         ) : (
           <div
-            className={`rounded-lg bg-secondary-light flex items-center justify-center flex-shrink-0 ${
-              type === "company" ? "w-16 h-10" : "w-14 h-14"
-            }`}
+            className="rounded-lg bg-secondary-light flex items-center justify-center flex-shrink-0 w-14 h-14"
           >
             <User className="w-6 h-6 text-muted-foreground" />
           </div>

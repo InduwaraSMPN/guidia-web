@@ -165,7 +165,7 @@ export function CompanyJobsPage() {
               <img
                 src={company.logo}
                 alt={company.name}
-                className="w-20 h-20 object-contain"
+                className="w-20 h-20 object-contain rounded-lg"
               />
             ) : (
               <div className="w-20 h-20 bg-secondary-light rounded-lg flex items-center justify-center">

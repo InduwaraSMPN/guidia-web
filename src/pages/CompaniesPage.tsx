@@ -43,11 +43,11 @@ export function CompaniesPage() {
   const filterPanelRef = useRef<HTMLDivElement>(null)
 
   // Get unique values from actual data
-  const countries = companies.length > 0 
+  const countries = companies.length > 0
     ? [...new Set(companies.map(company => company.companyCountry))]
     : ["Sri Lanka", "Pakistan", "India", "Bangladesh"]; // Default values based on region
 
-  const cities = companies.length > 0 
+  const cities = companies.length > 0
     ? [...new Set(companies.map(company => company.companyCity))]
     : ["Colombo", "Karachi", "Mumbai", "Dhaka"]; // Default values based on region
 
@@ -85,12 +85,12 @@ export function CompaniesPage() {
             'Content-Type': 'application/json',
           },
         })
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `Failed to fetch companies: ${response.status}`);
         }
-        
+
         const data = await response.json()
         setCompanies(data)
         setFilteredCompanies(data)
@@ -217,8 +217,8 @@ export function CompaniesPage() {
     }
   ]
 
-  const activeFilterCount = 
-    filters.countries.length + 
+  const activeFilterCount =
+    filters.countries.length +
     filters.cities.length;
 
   return (
@@ -285,10 +285,10 @@ export function CompaniesPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
             {filteredCompanies.map((company) => (
-              <motion.div key={company.userID} variants={itemVariants}>
+              <motion.div key={company.companyID} variants={itemVariants}>
                 <DirectoryCard
                   type="company"
-                  id={company.userID}
+                  id={company.companyID}
                   name={company.companyName}
                   subtitle={company.companyCategory}
                   email={company.companyEmail}
