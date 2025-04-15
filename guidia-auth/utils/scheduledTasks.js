@@ -228,6 +228,190 @@ class ScheduledTasks {
   }
 
   /**
+   * Send reminders for upcoming meetings
+   * This should be run every 4 hours
+   */
+  async sendMeetingReminders() {
+    try {
+      console.log('Running scheduled task: sendMeetingReminders');
+
+      // Get meetings that are happening within the next 24 hours
+      const [upcomingMeetings] = await this.pool.execute(`
+        SELECT m.*,
+               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail,
+               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail,
+               r1.roleID as requestorRoleID, r2.roleID as recipientRoleID
+        FROM meetings m
+        JOIN users u1 ON m.requestorID = u1.userID
+        JOIN users u2 ON m.recipientID = u2.userID
+        JOIN users_roles r1 ON u1.userID = r1.userID
+        JOIN users_roles r2 ON u2.userID = r2.userID
+        WHERE m.status = 'accepted'
+        AND m.meetingDate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR)
+        AND m.reminderSent = 0
+      `);
+
+      console.log(`Found ${upcomingMeetings.length} upcoming meetings for reminders`);
+
+      // Initialize notification service
+      const notificationService = new (require('../services/notificationService'))(this.pool);
+
+      // Send reminders for each upcoming meeting
+      for (const meeting of upcomingMeetings) {
+        // Format date and time for notifications
+        const formattedDate = new Date(meeting.meetingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const formattedTime = `${meeting.startTime} - ${meeting.endTime}`;
+
+        // Get user roles
+        const requestorRole = meeting.requestorRoleID === 2 ? 'Student' :
+                             meeting.requestorRoleID === 3 ? 'Counselor' : 'Company';
+        const recipientRole = meeting.recipientRoleID === 2 ? 'Student' :
+                             meeting.recipientRoleID === 3 ? 'Counselor' : 'Company';
+
+        // Send reminder to requestor
+        await notificationService.createFromTemplate(
+          meeting.requestorUserID,
+          'MEETING_REMINDER',
+          requestorRole,
+          {
+            user: meeting.recipientUsername,
+            date: formattedDate,
+            time: formattedTime
+          },
+          {
+            relatedUserID: meeting.recipientUserID,
+            metadata: {
+              meetingID: meeting.meetingID,
+              meetingDate: meeting.meetingDate,
+              startTime: meeting.startTime,
+              endTime: meeting.endTime
+            }
+          }
+        );
+
+        // Send reminder to recipient
+        await notificationService.createFromTemplate(
+          meeting.recipientUserID,
+          'MEETING_REMINDER',
+          recipientRole,
+          {
+            user: meeting.requestorUsername,
+            date: formattedDate,
+            time: formattedTime
+          },
+          {
+            relatedUserID: meeting.requestorUserID,
+            metadata: {
+              meetingID: meeting.meetingID,
+              meetingDate: meeting.meetingDate,
+              startTime: meeting.startTime,
+              endTime: meeting.endTime
+            }
+          }
+        );
+
+        // Mark meeting as reminded
+        await this.pool.execute(
+          'UPDATE meetings SET reminderSent = 1 WHERE meetingID = ?',
+          [meeting.meetingID]
+        );
+
+        console.log(`Sent meeting reminders for meeting ${meeting.meetingID} between ${meeting.requestorUsername} and ${meeting.recipientUsername}`);
+      }
+    } catch (error) {
+      console.error('Error in sendMeetingReminders task:', error);
+    }
+  }
+
+  /**
+   * Send feedback requests for completed meetings
+   * This should be run daily
+   */
+  async sendMeetingFeedbackRequests() {
+    try {
+      console.log('Running scheduled task: sendMeetingFeedbackRequests');
+
+      // Get meetings that have been completed but no feedback has been requested yet
+      const [completedMeetings] = await this.pool.execute(`
+        SELECT m.*,
+               u1.userID as requestorUserID, u1.username as requestorUsername, u1.email as requestorEmail,
+               u2.userID as recipientUserID, u2.username as recipientUsername, u2.email as recipientEmail,
+               r1.roleID as requestorRoleID, r2.roleID as recipientRoleID
+        FROM meetings m
+        JOIN users u1 ON m.requestorID = u1.userID
+        JOIN users u2 ON m.recipientID = u2.userID
+        JOIN users_roles r1 ON u1.userID = r1.userID
+        JOIN users_roles r2 ON u2.userID = r2.userID
+        WHERE m.status = 'completed'
+        AND m.feedbackRequestSent = 0
+        AND m.meetingDate < NOW()
+      `);
+
+      console.log(`Found ${completedMeetings.length} completed meetings for feedback requests`);
+
+      // Initialize notification service
+      const notificationService = new (require('../services/notificationService'))(this.pool);
+
+      // Send feedback requests for each completed meeting
+      for (const meeting of completedMeetings) {
+        // Get user roles
+        const requestorRole = meeting.requestorRoleID === 2 ? 'Student' :
+                             meeting.requestorRoleID === 3 ? 'Counselor' : 'Company';
+        const recipientRole = meeting.recipientRoleID === 2 ? 'Student' :
+                             meeting.recipientRoleID === 3 ? 'Counselor' : 'Company';
+
+        // Send feedback request to requestor
+        await notificationService.createFromTemplate(
+          meeting.requestorUserID,
+          'MEETING_FEEDBACK_REQUEST',
+          requestorRole,
+          {
+            user: meeting.recipientUsername
+          },
+          {
+            relatedUserID: meeting.recipientUserID,
+            metadata: {
+              meetingID: meeting.meetingID,
+              meetingDate: meeting.meetingDate,
+              startTime: meeting.startTime,
+              endTime: meeting.endTime
+            }
+          }
+        );
+
+        // Send feedback request to recipient
+        await notificationService.createFromTemplate(
+          meeting.recipientUserID,
+          'MEETING_FEEDBACK_REQUEST',
+          recipientRole,
+          {
+            user: meeting.requestorUsername
+          },
+          {
+            relatedUserID: meeting.requestorUserID,
+            metadata: {
+              meetingID: meeting.meetingID,
+              meetingDate: meeting.meetingDate,
+              startTime: meeting.startTime,
+              endTime: meeting.endTime
+            }
+          }
+        );
+
+        // Mark meeting as feedback requested
+        await this.pool.execute(
+          'UPDATE meetings SET feedbackRequestSent = 1 WHERE meetingID = ?',
+          [meeting.meetingID]
+        );
+
+        console.log(`Sent feedback requests for meeting ${meeting.meetingID} between ${meeting.requestorUsername} and ${meeting.recipientUsername}`);
+      }
+    } catch (error) {
+      console.error('Error in sendMeetingFeedbackRequests task:', error);
+    }
+  }
+
+  /**
    * Run all scheduled tasks
    * This can be called from a cron job
    */
@@ -235,6 +419,7 @@ class ScheduledTasks {
     await this.checkExpiringJobs();
     await this.sendApplicationDeadlineReminders();
     await this.checkIncompleteProfiles();
+    await this.sendMeetingFeedbackRequests();
   }
 
   /**
@@ -243,6 +428,7 @@ class ScheduledTasks {
    */
   async runAllWeeklyTasks() {
     await this.sendJobPostingStats();
+    await this.sendMeetingReminders(); // Also run meeting reminders as part of weekly tasks
   }
 }
 

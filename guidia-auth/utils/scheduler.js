@@ -53,11 +53,35 @@ class Scheduler {
       }
     });
 
+    // Schedule meeting reminders to run every 4 hours
+    this.jobs.meetingReminders = schedule.scheduleJob('0 */4 * * *', async () => {
+      console.log(`Running meeting reminders check at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.sendMeetingReminders();
+        console.log(`Completed meeting reminders check at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running meeting reminders:', error);
+      }
+    });
+
+    // Schedule meeting feedback requests to run daily at noon
+    this.jobs.meetingFeedback = schedule.scheduleJob('0 12 * * *', async () => {
+      console.log(`Running meeting feedback requests at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.sendMeetingFeedbackRequests();
+        console.log(`Completed meeting feedback requests at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running meeting feedback requests:', error);
+      }
+    });
+
     console.log('Scheduler started with the following schedule:');
     console.log('- Daily tasks: Every day at midnight (00:00)');
     console.log('- Weekly tasks: Every Sunday at midnight (00:00)');
     console.log('- Job deadline reminders: Every 6 hours');
     console.log('- Job expiration checks: Every 12 hours');
+    console.log('- Meeting reminders: Every 4 hours');
+    console.log('- Meeting feedback requests: Every day at noon (12:00)');
   }
 
   /**

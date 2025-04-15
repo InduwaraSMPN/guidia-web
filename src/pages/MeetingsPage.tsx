@@ -355,21 +355,11 @@ export function MeetingsPage() {
     <div className="container pb-32 pt-32 max-w-[1216px]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">Meetings</h1>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => navigate('/meeting-availability')}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Calendar className="h-4 w-4" />
-            Set Availability
-          </Button>
-        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="search">Search</Label>
+          <Label htmlFor="search" className="pb-2 block">Search</Label>
           <Input
             id="search"
             placeholder="Search meetings..."
@@ -378,7 +368,7 @@ export function MeetingsPage() {
           />
         </div>
         <div>
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor="status" className="pb-2 block">Status</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger id="status">
               <SelectValue placeholder="Filter by status" />
@@ -394,7 +384,7 @@ export function MeetingsPage() {
           </Select>
         </div>
         <div>
-          <Label htmlFor="type">Type</Label>
+          <Label htmlFor="type" className="pb-2 block">Type</Label>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger id="type">
               <SelectValue placeholder="Filter by type" />

@@ -193,7 +193,7 @@ export function AdminMeetingsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="search">Search</Label>
+                  <Label htmlFor="search" className="pb-2 block">Search</Label>
                   <Input
                     id="search"
                     placeholder="Search meetings..."
@@ -202,7 +202,7 @@ export function AdminMeetingsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="pb-2 block">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger id="status">
                       <SelectValue placeholder="Filter by status" />
@@ -218,7 +218,7 @@ export function AdminMeetingsPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type" className="pb-2 block">Type</Label>
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
                     <SelectTrigger id="type">
                       <SelectValue placeholder="Filter by type" />
@@ -235,7 +235,7 @@ export function AdminMeetingsPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Date Range</Label>
+                  <Label className="pb-2 block">Date Range</Label>
                   <DateRangePicker
                     date={dateRange}
                     onDateChange={setDateRange}

@@ -246,7 +246,11 @@ router.get("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
     const notificationSettings = {
       jobDeadlineNotifications: true,
       jobExpiryNotifications: true,
-      profileCompletionNotifications: true
+      profileCompletionNotifications: true,
+      meetingReminderNotifications: true,
+      meetingFeedbackNotifications: true,
+      messageNotifications: true,
+      securityAlertNotifications: true
     };
 
     // Update with values from database if they exist
@@ -257,6 +261,14 @@ router.get("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
         notificationSettings.jobExpiryNotifications = setting.settingValue === '1';
       } else if (setting.settingKey === 'notification_profile_completion') {
         notificationSettings.profileCompletionNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_meeting_reminder') {
+        notificationSettings.meetingReminderNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_meeting_feedback') {
+        notificationSettings.meetingFeedbackNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_message') {
+        notificationSettings.messageNotifications = setting.settingValue === '1';
+      } else if (setting.settingKey === 'notification_security_alert') {
+        notificationSettings.securityAlertNotifications = setting.settingValue === '1';
       }
     });
 
@@ -276,12 +288,24 @@ router.put("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
     console.log('Received notification settings update request:', req.body);
 
     const pool = req.app.locals.pool;
-    const { jobDeadlineNotifications, jobExpiryNotifications, profileCompletionNotifications } = req.body;
+    const {
+      jobDeadlineNotifications,
+      jobExpiryNotifications,
+      profileCompletionNotifications,
+      meetingReminderNotifications,
+      meetingFeedbackNotifications,
+      messageNotifications,
+      securityAlertNotifications
+    } = req.body;
 
     // Validate input
     if (typeof jobDeadlineNotifications !== 'boolean' ||
         typeof jobExpiryNotifications !== 'boolean' ||
-        typeof profileCompletionNotifications !== 'boolean') {
+        typeof profileCompletionNotifications !== 'boolean' ||
+        typeof meetingReminderNotifications !== 'boolean' ||
+        typeof meetingFeedbackNotifications !== 'boolean' ||
+        typeof messageNotifications !== 'boolean' ||
+        typeof securityAlertNotifications !== 'boolean') {
       console.error('Invalid notification settings format:', req.body);
       return res.status(400).json({ error: "Invalid notification settings format" });
     }
@@ -303,6 +327,26 @@ router.put("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
         ['notification_profile_completion', profileCompletionNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_meeting_reminder', meetingReminderNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_meeting_feedback', meetingFeedbackNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_message', messageNotifications ? '1' : '0']
+      );
+
+      await pool.execute(
+        "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
+        ['notification_security_alert', securityAlertNotifications ? '1' : '0']
       );
 
       console.log('Database update successful');
@@ -342,6 +386,22 @@ router.put("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
                    typeof scheduler.scheduledTasks.checkIncompleteProfiles === 'function') {
           scheduler.scheduleJob('checkIncompleteProfiles', '0 0 * * *',
             scheduler.scheduledTasks.checkIncompleteProfiles);
+        }
+
+        if (!meetingReminderNotifications) {
+          scheduler.cancelJob('sendMeetingReminders');
+        } else if (!scheduler.jobs['sendMeetingReminders'] &&
+                   typeof scheduler.scheduledTasks.sendMeetingReminders === 'function') {
+          scheduler.scheduleJob('sendMeetingReminders', '0 */4 * * *',
+            scheduler.scheduledTasks.sendMeetingReminders);
+        }
+
+        if (!meetingFeedbackNotifications) {
+          scheduler.cancelJob('sendMeetingFeedbackRequests');
+        } else if (!scheduler.jobs['sendMeetingFeedbackRequests'] &&
+                   typeof scheduler.scheduledTasks.sendMeetingFeedbackRequests === 'function') {
+          scheduler.scheduleJob('sendMeetingFeedbackRequests', '0 12 * * *',
+            scheduler.scheduledTasks.sendMeetingFeedbackRequests);
         }
       }
 

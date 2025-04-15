@@ -26,6 +26,10 @@ interface NotificationSettings {
   jobDeadlineNotifications: boolean;
   jobExpiryNotifications: boolean;
   profileCompletionNotifications: boolean;
+  meetingReminderNotifications: boolean;
+  meetingFeedbackNotifications: boolean;
+  messageNotifications: boolean;
+  securityAlertNotifications: boolean;
 }
 
 interface AnnouncementData {
@@ -51,7 +55,11 @@ export function AdminSettingsPage() {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
     jobDeadlineNotifications: true,
     jobExpiryNotifications: true,
-    profileCompletionNotifications: true
+    profileCompletionNotifications: true,
+    meetingReminderNotifications: true,
+    meetingFeedbackNotifications: true,
+    messageNotifications: true,
+    securityAlertNotifications: true
   });
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
 
@@ -526,41 +534,114 @@ export function AdminSettingsPage() {
               <CardDescription>Configure system-wide notification settings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="job-deadline-notifications" className="block">Job Deadline Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Send reminders for approaching job application deadlines</p>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Job Notifications</h3>
+                  <div className="space-y-4 pl-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="job-deadline-notifications" className="block">Job Deadline Notifications</Label>
+                        <p className="text-sm text-muted-foreground">Send reminders for approaching job application deadlines</p>
+                      </div>
+                      <Switch
+                        id="job-deadline-notifications"
+                        checked={notificationSettings.jobDeadlineNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobDeadlineNotifications: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="job-expiry-notifications" className="block">Job Expiry Notifications</Label>
+                        <p className="text-sm text-muted-foreground">Notify companies when their job postings are about to expire</p>
+                      </div>
+                      <Switch
+                        id="job-expiry-notifications"
+                        checked={notificationSettings.jobExpiryNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobExpiryNotifications: checked }))}
+                      />
+                    </div>
                   </div>
-                  <Switch
-                    id="job-deadline-notifications"
-                    checked={notificationSettings.jobDeadlineNotifications}
-                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobDeadlineNotifications: checked }))}
-                  />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="job-expiry-notifications" className="block">Job Expiry Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Notify companies when their job postings are about to expire</p>
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Profile Notifications</h3>
+                  <div className="space-y-4 pl-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="profile-completion-notifications" className="block">Profile Completion Reminders</Label>
+                        <p className="text-sm text-muted-foreground">Remind users to complete their profiles</p>
+                      </div>
+                      <Switch
+                        id="profile-completion-notifications"
+                        checked={notificationSettings.profileCompletionNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, profileCompletionNotifications: checked }))}
+                      />
+                    </div>
                   </div>
-                  <Switch
-                    id="job-expiry-notifications"
-                    checked={notificationSettings.jobExpiryNotifications}
-                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, jobExpiryNotifications: checked }))}
-                  />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="profile-completion-notifications" className="block">Profile Completion Reminders</Label>
-                    <p className="text-sm text-muted-foreground">Remind users to complete their profiles</p>
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Meeting Notifications</h3>
+                  <div className="space-y-4 pl-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="meeting-reminder-notifications" className="block">Meeting Reminders</Label>
+                        <p className="text-sm text-muted-foreground">Send reminders for upcoming meetings</p>
+                      </div>
+                      <Switch
+                        id="meeting-reminder-notifications"
+                        checked={notificationSettings.meetingReminderNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, meetingReminderNotifications: checked }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="meeting-feedback-notifications" className="block">Meeting Feedback Requests</Label>
+                        <p className="text-sm text-muted-foreground">Request feedback after meetings</p>
+                      </div>
+                      <Switch
+                        id="meeting-feedback-notifications"
+                        checked={notificationSettings.meetingFeedbackNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, meetingFeedbackNotifications: checked }))}
+                      />
+                    </div>
                   </div>
-                  <Switch
-                    id="profile-completion-notifications"
-                    checked={notificationSettings.profileCompletionNotifications}
-                    onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, profileCompletionNotifications: checked }))}
-                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Message Notifications</h3>
+                  <div className="space-y-4 pl-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="message-notifications" className="block">Message Notifications</Label>
+                        <p className="text-sm text-muted-foreground">Notify users about new and unread messages</p>
+                      </div>
+                      <Switch
+                        id="message-notifications"
+                        checked={notificationSettings.messageNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, messageNotifications: checked }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium mb-3">Security Notifications</h3>
+                  <div className="space-y-4 pl-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="security-alert-notifications" className="block">Security Alerts</Label>
+                        <p className="text-sm text-muted-foreground">Send security-related alerts to users</p>
+                      </div>
+                      <Switch
+                        id="security-alert-notifications"
+                        checked={notificationSettings.securityAlertNotifications}
+                        onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, securityAlertNotifications: checked }))}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
