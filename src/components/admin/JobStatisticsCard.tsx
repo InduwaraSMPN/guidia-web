@@ -160,10 +160,12 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                     type="monotone"
                     dataKey="count"
                     name="New Job Postings"
-                    stroke="var(--brand)"
+                    stroke="#800020"
                     strokeWidth={2}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    dot={{ r: 4, fill: "#800020" }}
+                    activeDot={{ r: 6, strokeWidth: 0, fill: "#800020" }}
                     animationDuration={1000}
+                    isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -194,8 +196,10 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                     name="Job Views"
                     stroke="#0ea5e9"
                     strokeWidth={2}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    dot={{ r: 4, fill: "#0ea5e9" }}
+                    activeDot={{ r: 6, strokeWidth: 0, fill: "#0ea5e9" }}
                     animationDuration={1000}
+                    isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>

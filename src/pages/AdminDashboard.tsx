@@ -424,6 +424,8 @@ export function AdminDashboard() {
         console.error("Failed to fetch activity feed");
       }
 
+
+
       setDashboardData({
         counts: {
           upcomingEvents: Number(countsData.upcomingEvents) || 0,
