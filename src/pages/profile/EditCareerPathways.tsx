@@ -287,7 +287,7 @@ export function EditCareerPathways() {
                       size="sm"
                       onClick={() => handleAddPathway(pathway)}
                       disabled={selectedPaths.length >= 10}
-                      className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                      className="text-sm text-brand hover:bg-brand-dark hover:text-white w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                     >
                       <span>{pathway}</span>
                       <Plus

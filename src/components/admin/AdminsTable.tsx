@@ -101,7 +101,7 @@ export function AdminsTable({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200 focus:ring-2 focus:ring-brand/20 focus:outline-none group"
+              className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200 focus:ring-2 focus:ring-brand focus:outline-none group"
             >
               <Download className="w-4 h-4 mr-2 text-foreground group-hover:text-brand dark:group-hover:text-foreground transition-colors duration-200" />
               Export CSV

@@ -54,7 +54,7 @@ export function Select({
         type="button"
         onClick={toggleDropdown}
         className={cn(
-          "w-full h-[42px] px-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand/20",
+          "w-full h-[42px] px-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand",
           "flex items-center justify-between text-left",
           "bg-card text-card-foreground dark:bg-card dark:text-card-foreground",
           disabled || isLoading ? "cursor-not-allowed opacity-75" : "cursor-pointer",
@@ -85,7 +85,7 @@ export function Select({
             <div className="sticky top-0 z-10 bg-card p-2 border-b border-border">
               <input
                 type="text"
-                className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand/20 bg-card text-card-foreground"
+                className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand bg-card text-card-foreground"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

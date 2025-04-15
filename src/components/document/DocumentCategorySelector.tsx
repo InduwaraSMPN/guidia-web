@@ -24,14 +24,14 @@ export function DocumentCategorySelector({
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
-        staggerChildren: 0.05 
+      transition: {
+        staggerChildren: 0.05
       }
     }
   };
-  
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 }
@@ -60,7 +60,7 @@ export function DocumentCategorySelector({
           <label className="block text-sm font-medium text-foreground mb-4">
             Document Category<span className="text-brand">*</span>
           </label>
-          
+
           {!selectedCategory ? (
             <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary">
               <p className="text-muted-foreground">No category selected</p>
@@ -81,10 +81,10 @@ export function DocumentCategorySelector({
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              
+
               {selectedCategory === 'Other' && customDocumentType && (
                 <div className="mt-2 bg-secondary border border-border rounded-md p-3 text-sm">
-                  <span className="font-medium">Custom document type: </span> 
+                  <span className="font-medium">Custom document type: </span>
                   <span className="text-brand">{customDocumentType}</span>
                 </div>
               )}
@@ -97,13 +97,13 @@ export function DocumentCategorySelector({
           <h3 className="text-sm font-medium text-foreground mb-4">
             Available Categories:
           </h3>
-          
+
           {filteredCategories.length === 0 ? (
             <p className="text-sm text-muted-foreground py-2">
               Please clear the current selection to choose a different category.
             </p>
           ) : (
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 sm:grid-cols-2 gap-3"
               variants={containerVariants}
               initial="hidden"
@@ -122,7 +122,7 @@ export function DocumentCategorySelector({
                     size="sm"
                     onClick={() => handleCategorySelect(category)}
                     disabled={disabled}
-                    className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                    className="text-sm text-brand hover:bg-brand-dark hover:text-white w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                   >
                     <span>{category}</span>
                     <Plus className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-white" />

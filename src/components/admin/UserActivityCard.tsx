@@ -47,11 +47,11 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
     ? formatTrendData(userActivity.userRegistrationTrend)
     : []
 
-  // Prepare data for profile completion
+  // Prepare data for profile completion - ensure values are numbers
   const profileCompletionData = [
-    { name: "Students", value: userActivity.profileCompletion.student },
-    { name: "Counselors", value: userActivity.profileCompletion.counselor },
-    { name: "Companies", value: userActivity.profileCompletion.company },
+    { name: "Students", value: parseFloat(userActivity.profileCompletion.student) || 0 },
+    { name: "Counselors", value: parseFloat(userActivity.profileCompletion.counselor) || 0 },
+    { name: "Companies", value: parseFloat(userActivity.profileCompletion.company) || 0 },
   ]
 
   // Define colors for profile completion
@@ -95,13 +95,22 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
               <span className="text-sm">Avg. Profile Completion</span>
             </div>
             <div className="text-2xl font-bold">
-              {(
-                (userActivity.profileCompletion.student +
-                  userActivity.profileCompletion.counselor +
-                  userActivity.profileCompletion.company) /
-                3
-              ).toFixed(1)}
-              %
+              {(() => {
+                // Get valid values and convert strings to numbers
+                const values = [
+                  userActivity.profileCompletion.student,
+                  userActivity.profileCompletion.counselor,
+                  userActivity.profileCompletion.company
+                ]
+                  .map(val => typeof val === 'string' ? parseFloat(val) : val) // Convert strings to numbers
+                  .filter(val => val !== undefined && val !== null && !isNaN(val)); // Filter out invalid values
+
+                // Calculate average only if we have valid values
+                if (values.length === 0) return "0.0%";
+
+                const sum = values.reduce((acc, val) => acc + val, 0);
+                return `${(sum / values.length).toFixed(1)}%`;
+              })()}
             </div>
           </div>
         </div>
@@ -167,33 +176,33 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Students</div>
-                      <Badge variant="outline">{userActivity.profileCompletion.student}%</Badge>
+                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.student) || 0}%</Badge>
                     </div>
                     <Progress
-                      value={userActivity.profileCompletion.student}
-                      className={getProgressColor(userActivity.profileCompletion.student)}
+                      value={parseFloat(userActivity.profileCompletion.student) || 0}
+                      className={getProgressColor(parseFloat(userActivity.profileCompletion.student) || 0)}
                     />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Counselors</div>
-                      <Badge variant="outline">{userActivity.profileCompletion.counselor}%</Badge>
+                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.counselor) || 0}%</Badge>
                     </div>
                     <Progress
-                      value={userActivity.profileCompletion.counselor}
-                      className={getProgressColor(userActivity.profileCompletion.counselor)}
+                      value={parseFloat(userActivity.profileCompletion.counselor) || 0}
+                      className={getProgressColor(parseFloat(userActivity.profileCompletion.counselor) || 0)}
                     />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Companies</div>
-                      <Badge variant="outline">{userActivity.profileCompletion.company}%</Badge>
+                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.company) || 0}%</Badge>
                     </div>
                     <Progress
-                      value={userActivity.profileCompletion.company}
-                      className={getProgressColor(userActivity.profileCompletion.company)}
+                      value={parseFloat(userActivity.profileCompletion.company) || 0}
+                      className={getProgressColor(parseFloat(userActivity.profileCompletion.company) || 0)}
                     />
                   </div>
                 </div>
