@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Files,
-  MessageSquare
+  MessageSquare,
+  Calendar
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -64,7 +65,7 @@ function ChatButton({ studentData, userID }: { studentData: Student, userID: str
   const { user } = useAuth();
 
   // Check if current user is viewing their own profile
-  const isCurrentUser = user?.userID === userID;
+  const isCurrentUser = user?.userType === "Student" && user?.userID === userID;
 
   const handleChat = () => {
     if (!isCurrentUser && user?.userType && user?.userID) {
@@ -91,9 +92,18 @@ function ChatButton({ studentData, userID }: { studentData: Student, userID: str
 export function PublicStudentProfile() {
   const navigate = useNavigate()
   const { userID } = useParams()
+  const { user } = useAuth()
   const [studentData, setStudentData] = useState<Student | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCurrentUser, setIsCurrentUser] = useState(false)
+
+  // Check if current user is viewing their own profile
+  useEffect(() => {
+    if (user && userID) {
+      setIsCurrentUser(user.userType === "Student" && user.userID === userID);
+    }
+  }, [user, userID]);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -322,14 +332,38 @@ export function PublicStudentProfile() {
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center gap-4"
         >
-          <ChatButton studentData={studentData} userID={userID} />
-          {userID && (
-            <MeetingRequestButton
-              recipientID={parseInt(userID)}
-              recipientName={studentData.studentName}
-              recipientType="Student"
+          {isCurrentUser ? (
+            <Button
               size="lg"
-            />
+              className="opacity-50 cursor-not-allowed"
+              disabled={true}
+              title="You cannot chat with yourself"
+            >
+              Chat with {studentData.studentName.split(" ")[0]}
+              <MessageSquare className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <ChatButton studentData={studentData} userID={userID} />
+          )}
+          {userID && (
+            isCurrentUser ? (
+              <Button
+                size="lg"
+                className="opacity-50 cursor-not-allowed"
+                disabled={true}
+                title="You cannot request a meeting with yourself"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Request Meeting
+              </Button>
+            ) : (
+              <MeetingRequestButton
+                recipientID={parseInt(userID)}
+                recipientName={studentData.studentName}
+                recipientType="Student"
+                size="lg"
+              />
+            )
           )}
         </motion.div>
       </div>

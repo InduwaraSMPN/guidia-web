@@ -77,6 +77,12 @@ export function CompanyProfilePage() {
         setIsLoading(true)
         const response = await axiosInstance.get(`/api/companies/profile/${userID}`)
         setCompanyData(response.data)
+
+        // Store companyID in localStorage for the current user
+        if (isCurrentUser && response.data.companyID) {
+          localStorage.setItem('companyID', response.data.companyID.toString())
+          console.log('Stored companyID in localStorage:', response.data.companyID)
+        }
       } catch (error) {
         console.error("Error fetching company profile:", error)
         toast.error("Failed to load company profile")

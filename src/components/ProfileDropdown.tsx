@@ -37,6 +37,12 @@ export function ProfileDropdown() {
   useEffect(() => {
     if (!user) return
 
+    // Skip profile fetch if user doesn't have a profile yet
+    if (user.hasProfile === false) {
+      setIsLoading(false)
+      return
+    }
+
     const fetchProfileData = async () => {
       setIsLoading(true)
       try {
@@ -80,6 +86,12 @@ export function ProfileDropdown() {
             return
         }
 
+        // Check if we're on a welcome page and skip the profile fetch
+        if (window.location.pathname.includes('/welcome/')) {
+          setIsLoading(false)
+          return
+        }
+
         const response = await fetch(apiUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -88,13 +100,26 @@ export function ProfileDropdown() {
         })
 
         if (!response.ok) {
+          // If we get a 404, it means the profile doesn't exist yet
+          if (response.status === 404) {
+            console.log(`Profile not found for ${user.userType} user ${user.userID}`)
+            setIsLoading(false)
+            return
+          }
           throw new Error(`Failed to fetch profile data: ${response.status}`)
         }
 
         const data = await response.json()
         setProfileData(data)
+
+        // If this is a company user, store the companyID in localStorage
+        if (user.userType === "Company" && data.companyID) {
+          localStorage.setItem('companyID', data.companyID.toString())
+          console.log('Stored companyID in localStorage:', data.companyID)
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error)
+        // Don't show error in UI for profile fetch failures
       } finally {
         setIsLoading(false)
       }
@@ -190,6 +215,11 @@ export function ProfileDropdown() {
       return adminUsername || user.email.split('@')[0] || "Admin"
     }
 
+    // If we're on a welcome page, just use the email username
+    if (window.location.pathname.includes('/welcome/')) {
+      return user.email.split('@')[0] || user.userType
+    }
+
     if (profileData) {
       return profileData.studentName ||
              profileData.counselorName ||
@@ -207,6 +237,11 @@ export function ProfileDropdown() {
 
     if (isLoading) {
       return <div className={`${size} bg-secondary-dark rounded-full animate-pulse`}></div>
+    }
+
+    // If we're on a welcome page, just use the default avatar
+    if (window.location.pathname.includes('/welcome/')) {
+      return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />
     }
 
     if (profileData) {

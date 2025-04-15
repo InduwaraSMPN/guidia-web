@@ -24,16 +24,70 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Ensure we're doing a strict comparison of the IDs
-  const isCurrentUser = String(user?.userID) === String(id);
+  // Check if current user is viewing their own profile
+  // For companies, we need to compare the company's companyID with the user's company profile
+  let isCurrentUser = false;
 
-  const handleChat = (e: React.MouseEvent) => {
+  if (user) {
+    if (type === "company" && user.userType === "Company") {
+      // For companies, we need to check if the current user's company matches this company
+      const userCompanyID = localStorage.getItem('companyID');
+
+      if (userCompanyID) {
+        // If we have the companyID in localStorage, use it for comparison
+        isCurrentUser = String(userCompanyID) === String(id);
+        console.log(`Comparing company IDs: user's company ID ${userCompanyID} vs directory company ID ${id}, match: ${isCurrentUser}`);
+      } else {
+        // If we don't have the companyID yet, we'll need to fetch it
+        // For now, assume it's not the current user
+        isCurrentUser = false;
+        console.log('No companyID found in localStorage, assuming not current user');
+      }
+    } else {
+      // For other types, we can directly compare userIDs
+      isCurrentUser = String(user.userID) === String(id);
+    }
+  }
+
+  const handleChat = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isCurrentUser && user?.userType && user?.userID) {
       const userTypePath = user.userType.toLowerCase();
-      // Use the new URL format directly
-      navigate(`/${userTypePath}/${user.userID}/messages/${id}?type=${type}`);
-      console.log(`Navigating to chat with ${id} using new URL format: /${userTypePath}/${user.userID}/messages/${id}?type=${type}`);
+
+      // For companies, we need to get the userID instead of companyID for chat
+      if (type === "company") {
+        try {
+          const token = localStorage.getItem("token");
+          // First, fetch all companies to find the one with matching companyID
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/companies`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch companies");
+          }
+
+          const companies = await response.json();
+          const company = companies.find((c: any) => String(c.companyID) === String(id));
+
+          if (!company) {
+            throw new Error("Company not found");
+          }
+
+          // Use the company's userID for chat instead of companyID
+          navigate(`/${userTypePath}/${user.userID}/messages/${company.userID}?type=${type}`);
+          console.log(`Navigating to chat with company ${id} using userID ${company.userID}`);
+        } catch (error) {
+          console.error("Error navigating to chat:", error);
+        }
+      } else {
+        // For other user types, use the ID directly
+        navigate(`/${userTypePath}/${user.userID}/messages/${id}?type=${type}`);
+        console.log(`Navigating to chat with ${id} using new URL format: /${userTypePath}/${user.userID}/messages/${id}?type=${type}`);
+      }
     }
   }
 

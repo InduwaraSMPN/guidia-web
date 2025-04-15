@@ -10,6 +10,7 @@ import {
   MapPin,
   ChevronLeft,
   MessageSquare,
+  Calendar,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -66,20 +67,20 @@ const fadeIn = {
 const ProfileSkeleton = () => (
   <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
     <div className="flex flex-col md:flex-row gap-6">
-      <Skeleton className="h-32 w-32 rounded-lg" />
+      <Skeleton key="profile-image" className="h-32 w-32 rounded-lg" />
       <div className="space-y-4 flex-1">
-        <Skeleton className="h-10 w-3/4" />
-        <Skeleton className="h-6 w-1/2" />
+        <Skeleton key="name" className="h-10 w-3/4" />
+        <Skeleton key="title" className="h-6 w-1/2" />
         <div className="flex gap-4">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-8 w-24" />
+          <Skeleton key="button-1" className="h-8 w-24" />
+          <Skeleton key="button-2" className="h-8 w-24" />
         </div>
       </div>
     </div>
-    <Skeleton className="h-40 w-full" />
+    <Skeleton key="description" className="h-40 w-full" />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
+      <Skeleton key="info-1" className="h-32 w-full" />
+      <Skeleton key="info-2" className="h-32 w-full" />
     </div>
   </div>
 );
@@ -88,15 +89,16 @@ const ProfileSkeleton = () => (
 function ChatButton({ companyData }: { companyData: CompanyData }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { userID } = useParams();
 
   // Check if current user is viewing their own profile
-  const isCurrentUser = user?.userType === "Company" && user?.userID === companyData.userID;
+  const isCurrentUser = user?.userType === "Company" && String(companyData.companyID) === String(userID);
 
   const handleChat = () => {
     if (!isCurrentUser && user?.userType && user?.userID) {
       const userTypePath = user.userType.toLowerCase();
-      // Navigate to chat using the new URL format
-      navigate(`/${userTypePath}/${user.userID}/messages/${companyData.companyID}?type=company`);
+      // Navigate to chat using the new URL format with userID instead of companyID
+      navigate(`/${userTypePath}/${user.userID}/messages/${companyData.userID}?type=company`);
     }
   };
 
@@ -117,10 +119,21 @@ function ChatButton({ companyData }: { companyData: CompanyData }) {
 export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
   const navigate = useNavigate();
   const { userID } = useParams();
+  const { user } = useAuth();
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
+
+  // Check if current user is viewing their own profile
+  useEffect(() => {
+    if (user && companyData) {
+      // We need to compare the companyID with the userID from the URL
+      const isOwn = user.userType === "Company" && String(companyData.companyID) === String(userID);
+      setIsCurrentUser(isOwn);
+    }
+  }, [user, companyData, userID]);
 
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -399,28 +412,32 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           >
             <h2 className="text-xl font-semibold mb-4">Posted Jobs</h2>
             <div className="space-y-4">
-              {companyData.postedJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer"
-                  onClick={() => navigate(`/jobs/${job.id}`)}
-                  onMouseEnter={() => setHoveredJobId(job.id)}
-                  onMouseLeave={() => setHoveredJobId(null)}
-                >
-                  <h3 className="font-semibold">{job.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {job.type} · {job.location}
-                  </p>
-                  <motion.div
-                    className="mt-4 text-brand text-sm font-medium"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: hoveredJobId === job.id ? 1 : 0 }}
-                    transition={{ duration: 0.2 }}
+              {companyData.postedJobs.map((job, index) => {
+                // Use job.id if available, otherwise use index as fallback
+                const jobId = job.id || `job-${index}`;
+                return (
+                  <div
+                    key={jobId}
+                    className="border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer"
+                    onClick={() => navigate(`/jobs/${jobId}`)}
+                    onMouseEnter={() => setHoveredJobId(jobId)}
+                    onMouseLeave={() => setHoveredJobId(null)}
                   >
-                    View details →
-                  </motion.div>
-                </div>
-              ))}
+                    <h3 className="font-semibold">{job.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {job.type} · {job.location}
+                    </p>
+                    <motion.div
+                      className="mt-4 text-brand text-sm font-medium"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: hoveredJobId === jobId ? 1 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      View details →
+                    </motion.div>
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         )}
@@ -432,14 +449,43 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center gap-4"
         >
-          <ChatButton companyData={companyData} />
+          <div key="chat-button">
+            {isCurrentUser ? (
+              <Button
+                size="lg"
+                className="opacity-50 cursor-not-allowed"
+                disabled={true}
+                title="You cannot chat with yourself"
+              >
+                Chat with {companyData.companyName.split(" ")[0]}
+                <MessageSquare className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <ChatButton companyData={companyData} />
+            )}
+          </div>
           {userID && (
-            <MeetingRequestButton
-              recipientID={companyData.companyID}
-              recipientName={companyData.companyName}
-              recipientType="Company"
-              size="lg"
-            />
+            <div key="meeting-button">
+              {/* Check if current user is viewing their own profile */}
+              {isCurrentUser ? (
+                <Button
+                  size="lg"
+                  className="opacity-50 cursor-not-allowed"
+                  disabled={true}
+                  title="You cannot request a meeting with yourself"
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Request Meeting
+                </Button>
+              ) : (
+                <MeetingRequestButton
+                  recipientID={companyData.companyID}
+                  recipientName={companyData.companyName}
+                  recipientType="Company"
+                  size="lg"
+                />
+              )}
+            </div>
           )}
         </motion.div>
       </div>

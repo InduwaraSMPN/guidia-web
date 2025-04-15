@@ -2,7 +2,7 @@ const getOTPEmailTemplate = (email, otp) => {
   return {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Your Registration OTP',
+    subject: 'Your Guidia Registration OTP',
     text: `Your OTP for registration is: ${otp}. This code will expire in 10 minutes.`,
     html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>

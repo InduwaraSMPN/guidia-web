@@ -83,7 +83,7 @@ function ChatButton({ profile, userID }: { profile: CounselorProfile, userID: st
   const { user } = useAuth();
 
   // Check if current user is viewing their own profile
-  const isCurrentUser = user?.userID === userID;
+  const isCurrentUser = user?.userType === "Counselor" && user?.userID === userID;
 
   const handleChat = () => {
     if (!isCurrentUser && user?.userType && user?.userID) {
@@ -110,9 +110,18 @@ function ChatButton({ profile, userID }: { profile: CounselorProfile, userID: st
 export function PublicCounselorProfile() {
   const navigate = useNavigate()
   const { userID } = useParams<{ userID: string }>()
+  const { user } = useAuth()
   const [profile, setProfile] = useState<CounselorProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCurrentUser, setIsCurrentUser] = useState(false)
+
+  // Check if current user is viewing their own profile
+  useEffect(() => {
+    if (user && userID) {
+      setIsCurrentUser(user.userType === "Counselor" && user.userID === userID);
+    }
+  }, [user, userID]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -374,14 +383,38 @@ export function PublicCounselorProfile() {
           transition={{ delay: 0.6, duration: 0.4 }}
           className="mt-8 flex justify-center gap-4"
         >
-          <ChatButton profile={profile} userID={userID} />
-          {userID && (
-            <MeetingRequestButton
-              recipientID={parseInt(userID)}
-              recipientName={profile.counselorName}
-              recipientType="Counselor"
+          {isCurrentUser ? (
+            <Button
               size="lg"
-            />
+              className="opacity-50 cursor-not-allowed"
+              disabled={true}
+              title="You cannot chat with yourself"
+            >
+              Chat with {profile.counselorName.split(" ")[0]}
+              <MessageSquare className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <ChatButton profile={profile} userID={userID} />
+          )}
+          {userID && (
+            isCurrentUser ? (
+              <Button
+                size="lg"
+                className="opacity-50 cursor-not-allowed"
+                disabled={true}
+                title="You cannot request a meeting with yourself"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Request Meeting
+              </Button>
+            ) : (
+              <MeetingRequestButton
+                recipientID={parseInt(userID)}
+                recipientName={profile.counselorName}
+                recipientType="Counselor"
+                size="lg"
+              />
+            )
           )}
         </motion.div>
       </div>

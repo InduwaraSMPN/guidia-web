@@ -97,6 +97,7 @@ export function MeetingAvailabilitySettings() {
     const fetchAvailability = async () => {
       if (!user?.id || !token) return
 
+      console.log('Fetching availability settings for user ID:', user.id);
       setIsLoading(true)
       setError(null)
 
@@ -107,6 +108,7 @@ export function MeetingAvailabilitySettings() {
           },
         })
 
+        console.log('Availability settings response:', response.data);
         const availabilityData = response.data.data || []
 
         if (availabilityData.length > 0) {
@@ -217,8 +219,11 @@ export function MeetingAvailabilitySettings() {
     setIsSaving(true)
     setError(null)
 
+    console.log('Saving availability settings for user ID:', user.id);
+    console.log('Availability slots to save:', JSON.stringify(values.availabilitySlots));
+
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/api/meeting/availability`,
         {
           userID: user.id,
@@ -230,6 +235,8 @@ export function MeetingAvailabilitySettings() {
           },
         },
       )
+
+      console.log('Availability settings saved successfully:', response.data);
 
       toast({
         title: "Success",

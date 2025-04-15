@@ -15,13 +15,17 @@ interface NavDropdownProps {
 }
 
 export function NavDropdown({ label, items, className = "" }: NavDropdownProps) {
+  // Add test availability page to meetings dropdown during development
+  if (label === 'Meetings') {
+    items = [...items, { path: "/test-availability", label: "Test Availability" }];
+  }
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-  
+
   // Check if any dropdown item is active
   const isActive = items.some(item => location.pathname === item.path);
-  
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,18 +33,18 @@ export function NavDropdown({ label, items, className = "" }: NavDropdownProps) 
         setIsOpen(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
   // Close dropdown when route changes
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
-  
+
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
       <button
@@ -51,11 +55,11 @@ export function NavDropdown({ label, items, className = "" }: NavDropdownProps) 
         aria-expanded={isOpen}
       >
         {label}
-        <ChevronDown 
-          className={`ml-1 h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} 
+        <ChevronDown
+          className={`ml-1 h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      
+
       {isOpen && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -87,12 +91,16 @@ export function NavDropdown({ label, items, className = "" }: NavDropdownProps) 
 
 // Mobile version of the dropdown for the mobile menu
 export function MobileNavDropdown({ label, items }: NavDropdownProps) {
+  // Add test availability page to meetings dropdown during development
+  if (label === 'Meetings') {
+    items = [...items, { path: "/test-availability", label: "Test Availability" }];
+  }
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  
+
   // Check if any dropdown item is active
   const isActive = items.some(item => location.pathname === item.path);
-  
+
   return (
     <div className="space-y-1">
       <button
@@ -102,11 +110,11 @@ export function MobileNavDropdown({ label, items }: NavDropdownProps) {
         }`}
       >
         <span>{label}</span>
-        <ChevronDown 
-          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} 
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      
+
       {isOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}

@@ -81,6 +81,7 @@ import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
 import { MeetingAvailability } from './pages/MeetingAvailability';
 import { CalendarPage } from './pages/CalendarPage';
+import TestAvailabilityPage from './pages/TestAvailability';
 
 function RedirectToProfile() {
   const { id } = useParams();
@@ -458,6 +459,7 @@ function AppContent() {
           {/* Meeting Pages */}
           <Route path="/meeting-availability" element={<MeetingAvailability />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/test-availability" element={<TestAvailabilityPage />} />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />

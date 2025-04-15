@@ -18,6 +18,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
 import axios from 'axios';
+import { getCompanyUserID } from '@/utils/companyUserMapping';
 
 // Use the TimeSlot interface from AppointmentPicker
 type TimeSlot = AppointmentTimeSlot;
@@ -95,24 +96,76 @@ export function MeetingRequestForm({
     const fetchAvailableSlots = async () => {
       setIsLoadingSlots(true);
       try {
+        // Format date as YYYY-MM-DD
         const formattedDate = selectedDate.toISOString().split('T')[0];
+
+        // For companies, we need to get the user ID associated with the company ID
+        let actualRecipientID = recipientID;
+        if (recipientType === 'Company') {
+          try {
+            actualRecipientID = await getCompanyUserID(recipientID);
+            console.log(`Mapped company ID ${recipientID} to user ID ${actualRecipientID}`);
+          } catch (error) {
+            console.error('Error mapping company ID to user ID:', error);
+            // Continue with the original ID if mapping fails
+          }
+        }
+
+        console.log(`Fetching available slots for recipient ID: ${actualRecipientID} (original: ${recipientID}) on date: ${formattedDate}`);
+        console.log(`Recipient type: ${recipientType}, User ID: ${user?.id}, User role: ${user?.roleId}`);
+
+        // Calculate day of week (0 = Sunday, 1 = Monday, etc.)
+        const dayOfWeek = selectedDate.getDay();
+        console.log(`Selected date day of week: ${dayOfWeek}`);
+
+        // Add a timestamp to avoid caching issues
+        const timestamp = new Date().getTime();
         const response = await axios.get(
-          `${API_URL}/api/meeting/meetings/available-slots/${recipientID}/${formattedDate}`,
+          `${API_URL}/api/meeting/meetings/available-slots/${actualRecipientID}/${formattedDate}?t=${timestamp}&dayOfWeek=${dayOfWeek}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
+        // Log the full response for debugging
+        console.log('Available slots API response:', response.data);
+
         // Add available property to each slot
-        const responseData = response.data as { availableSlots?: { startTime: string; endTime: string }[] };
+        const responseData = response.data as {
+          availableSlots?: { startTime: string; endTime: string }[],
+          message?: string
+        };
+
         const slots = (responseData.availableSlots || []).map((slot) => ({
           ...slot,
           available: true
         }));
+        console.log(`Processed ${slots.length} available time slots for display`);
+
+        // If server returned a message, show it to the user
+        if (responseData.message && slots.length === 0) {
+          toast({
+            title: 'No Available Slots',
+            description: responseData.message,
+            // @ts-ignore - variant is supported by the toast implementation
+            variant: 'default',
+          });
+        } else if (slots.length === 0) {
+          // If no slots are available but no message was provided, show a generic message
+          toast({
+            title: 'No Available Slots',
+            description: 'No available time slots found for the selected date. Please try another date.',
+            // @ts-ignore - variant is supported by the toast implementation
+            variant: 'default',
+          });
+        }
+
         setAvailableSlots(slots);
       } catch (error: any) {
         console.error('Error fetching available slots:', error);
+        console.error('Error details:', error.response?.data || 'No response data');
+        console.error('Error status:', error.response?.status || 'No status code');
 
         // Handle specific error cases
         if (error.response) {

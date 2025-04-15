@@ -235,6 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userId');
       localStorage.removeItem('userID');
+      localStorage.removeItem('companyID'); // Also clear companyID
       clearCsrfToken(); // Clear CSRF token
       setUser(null);
       console.log('Logged out successfully, all tokens cleared');
@@ -245,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userId');
       localStorage.removeItem('userID');
+      localStorage.removeItem('companyID'); // Also clear companyID
       clearCsrfToken(); // Clear CSRF token
       setUser(null);
     }
