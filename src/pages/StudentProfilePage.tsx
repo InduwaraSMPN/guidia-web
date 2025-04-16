@@ -10,7 +10,6 @@ import {
   Files,
   Briefcase,
   Bookmark,
-  ExternalLink,
   Calendar,
   MapPin,
   FileText
@@ -190,8 +189,8 @@ export function StudentProfilePage() {
           {/* Profile Header Skeleton */}
           <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
             <div className="h-40 bg-gradient-to-r from-gray-200 to-gray-300 relative"></div>
-            <div className="p-8 pt-24 md:pt-20">
-              <div className="flex flex-col md:flex-row gap-8">
+            <div className="p-8">
+              <div className="flex flex-col md:flex-row gap-12">
                 <div className="flex-shrink-0 relative">
                   <Skeleton className="w-32 h-32 md:w-40 md:h-40 rounded-xl absolute -top-20 md:-top-24" />
                   <Skeleton className="h-10 w-full mt-16 md:mt-20" />
@@ -278,8 +277,8 @@ export function StudentProfilePage() {
           {/* Header Banner */}
           <div className="relative h-24 bg-brand" role="presentation"></div>
 
-          <div className="p-8 pt-24 md:pt-20">
-            <div className="flex flex-col md:flex-row gap-8">
+          <div className="p-8">
+            <div className="flex flex-col md:flex-row gap-12">
               {/* Profile Photo and Student Number - Square image with proper positioning */}
               <div className="flex-shrink-0 relative">
                 <div
@@ -294,7 +293,7 @@ export function StudentProfilePage() {
                     userType="student"
                   />
                 </div>
-                <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-16 md:mt-20 text-center w-full rounded-lg shadow-sm">
+                <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-16 md:mt-20 text-center w-32 md:w-40 rounded-lg shadow-sm">
                   <span className="sr-only">Student ID:</span>
                   {studentData.studentNumber}
                 </div>

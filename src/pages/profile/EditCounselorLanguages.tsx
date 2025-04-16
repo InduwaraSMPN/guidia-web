@@ -283,7 +283,7 @@ export function EditCounselorLanguages() {
                       size="sm"
                       onClick={() => handleAddLanguage(language)}
                       disabled={languages.length >= 10}
-                      className="text-sm text-brand hover:bg-brand-dark w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
+                      className="text-sm text-brand hover:bg-brand-dark hover:text-white w-full text-left h-auto py-3 px-4 justify-between group transition-all duration-200"
                     >
                       <span>{language}</span>
                       <Plus
