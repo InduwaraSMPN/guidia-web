@@ -76,6 +76,7 @@ export function MeetingAvailabilitySettings() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isFirstTimeSetup, setIsFirstTimeSetup] = useState(false)
 
   // Initialize form
   const form = useForm<FormValues>({
@@ -112,6 +113,7 @@ export function MeetingAvailabilitySettings() {
         const availabilityData = response.data.data || []
 
         if (availabilityData.length > 0) {
+          setIsFirstTimeSetup(false)
           form.reset({
             availabilitySlots: availabilityData.map((slot: any) => ({
               availabilityID: slot.availabilityID,
@@ -123,6 +125,8 @@ export function MeetingAvailabilitySettings() {
             })),
           })
         } else {
+          // This is a first-time setup
+          setIsFirstTimeSetup(true)
           // Add default availability (weekdays 9 AM - 5 PM)
           const defaultSlots = [1, 2, 3, 4, 5].map((day) => ({
             dayOfWeek: day,
@@ -145,6 +149,7 @@ export function MeetingAvailabilitySettings() {
           if (error.response.status === 403) {
             // Permission error - use default slots
             console.log("Permission error, using default availability slots")
+            setIsFirstTimeSetup(true)
             const defaultSlots = [1, 2, 3, 4, 5].map((day) => ({
               dayOfWeek: day,
               startTime: "09:00",
@@ -174,6 +179,7 @@ export function MeetingAvailabilitySettings() {
         })
 
         // Set default slots for any error
+        setIsFirstTimeSetup(true)
         const defaultSlots = [1, 2, 3, 4, 5].map((day) => ({
           dayOfWeek: day,
           startTime: "09:00",
@@ -237,6 +243,11 @@ export function MeetingAvailabilitySettings() {
       )
 
       console.log('Availability settings saved successfully:', response.data);
+
+      // After successful save, it's no longer a first-time setup
+      setIsFirstTimeSetup(false)
+      // Mark form as pristine after successful save
+      form.reset(values)
 
       toast({
         title: "Success",
@@ -320,9 +331,19 @@ export function MeetingAvailabilitySettings() {
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           <span>Availability Settings</span>
+          {isFirstTimeSetup && (
+            <span className="ml-2 text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded-full">
+              New Setup
+            </span>
+          )}
         </CardTitle>
         <CardDescription>
           Set your availability for meetings. Others will only be able to request meetings during these times.
+          {isFirstTimeSetup && (
+            <p className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium">
+              Please save your default availability settings to activate your meeting schedule.
+            </p>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -522,7 +543,7 @@ export function MeetingAvailabilitySettings() {
             <CardFooter className="px-0 pt-6 pb-0 flex flex-col sm:flex-row gap-4 justify-end">
               <Button
                 type="submit"
-                disabled={isSaving || !form.formState.isDirty}
+                disabled={isSaving || (!form.formState.isDirty && !isFirstTimeSetup)}
                 className="w-full sm:w-auto min-w-[120px]"
               >
                 {isSaving ? (
