@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
 import axios from 'axios';
 import { getCompanyUserID } from '@/utils/companyUserMapping';
+import { formatLocalDate } from '@/utils/dateUtils';
 
 // Use the TimeSlot interface from AppointmentPicker
 type TimeSlot = AppointmentTimeSlot;
@@ -60,21 +61,28 @@ export function MeetingRequestForm({
 
   // Determine meeting type based on user role and recipient type
   const getMeetingType = () => {
-    const userType = user?.roleId === 2 ? 'Student' : user?.roleId === 3 ? 'Counselor' : 'Company';
+    if (!user || !user.roleId) {
+      console.error('User or user role ID is missing');
+      return 'student_student'; // Default fallback
+    }
 
-    if (userType === 'Student' && recipientType === 'Company') return 'student_company';
-    if (userType === 'Student' && recipientType === 'Counselor') return 'student_counselor';
-    if (userType === 'Company' && recipientType === 'Counselor') return 'company_counselor';
-    if (userType === 'Student' && recipientType === 'Student') return 'student_student';
-    if (userType === 'Company' && recipientType === 'Company') return 'company_company';
-    if (userType === 'Counselor' && recipientType === 'Counselor') return 'counselor_counselor';
+    // Map role IDs to user types
+    // 2 = Student, 3 = Counselor, 4 = Company
+    let userType;
+    switch (user.roleId) {
+      case 2: userType = 'Student'; break;
+      case 3: userType = 'Counselor'; break;
+      case 4: userType = 'Company'; break;
+      default:
+        console.error(`Unknown user role ID: ${user.roleId}`);
+        userType = 'Student'; // Default fallback
+    }
 
-    // Reverse the order if needed
-    if (userType === 'Company' && recipientType === 'Student') return 'student_company';
-    if (userType === 'Counselor' && recipientType === 'Student') return 'student_counselor';
-    if (userType === 'Counselor' && recipientType === 'Company') return 'company_counselor';
-
-    return 'student_student'; // Default fallback
+    // Create a standardized meeting type string
+    // Always put types in alphabetical order for consistency
+    const types = [userType, recipientType].sort();
+    const meetingType = types.join('_').toLowerCase();
+    return meetingType;
   };
 
   // Initialize form
@@ -104,19 +112,14 @@ export function MeetingRequestForm({
         if (recipientType === 'Company') {
           try {
             actualRecipientID = await getCompanyUserID(recipientID);
-            console.log(`Mapped company ID ${recipientID} to user ID ${actualRecipientID}`);
           } catch (error) {
             console.error('Error mapping company ID to user ID:', error);
             // Continue with the original ID if mapping fails
           }
         }
 
-        console.log(`Fetching available slots for recipient ID: ${actualRecipientID} (original: ${recipientID}) on date: ${formattedDate}`);
-        console.log(`Recipient type: ${recipientType}, User ID: ${user?.id}, User role: ${user?.roleId}`);
-
         // Calculate day of week (0 = Sunday, 1 = Monday, etc.)
         const dayOfWeek = selectedDate.getDay();
-        console.log(`Selected date day of week: ${dayOfWeek}`);
 
         // Add a timestamp to avoid caching issues
         const timestamp = new Date().getTime();
@@ -128,8 +131,7 @@ export function MeetingRequestForm({
             },
           }
         );
-        // Log the full response for debugging
-        console.log('Available slots API response:', response.data);
+        // Process the response
 
         // Add available property to each slot
         const responseData = response.data as {
@@ -141,7 +143,7 @@ export function MeetingRequestForm({
           ...slot,
           available: true
         }));
-        console.log(`Processed ${slots.length} available time slots for display`);
+
 
         // If server returned a message, show it to the user
         if (responseData.message && slots.length === 0) {
@@ -227,11 +229,25 @@ export function MeetingRequestForm({
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
+      // For companies, we need to use the user ID instead of the company ID
+      let actualRecipientID = recipientID;
+      if (recipientType === 'Company') {
+        try {
+          actualRecipientID = await getCompanyUserID(recipientID);
+        } catch (error) {
+          console.error('Error mapping company ID to user ID:', error);
+          // Continue with the original ID if mapping fails
+        }
+      }
+
+      // Use the utility function to format the date
+      const localDate = formatLocalDate(values.meetingDate);
+
       const meetingData = {
-        recipientID,
+        recipientID: actualRecipientID,
         meetingTitle: values.meetingTitle,
         meetingDescription: values.meetingDescription || '',
-        meetingDate: values.meetingDate.toISOString().split('T')[0],
+        meetingDate: localDate, // Use local date format instead of ISO
         startTime: values.startTime,
         endTime: values.endTime,
         meetingType: getMeetingType(),
@@ -251,11 +267,17 @@ export function MeetingRequestForm({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error requesting meeting:', error);
+      console.error('Error details:', error.response?.data || 'No response data');
+      console.error('Error status:', error.response?.status || 'No status code');
+
+      // Show a more specific error message if available
+      const errorMessage = error.response?.data?.message || 'Failed to send meeting request';
+
       toast({
         title: 'Error',
-        description: 'Failed to send meeting request',
+        description: errorMessage,
         // @ts-ignore - variant is supported by the toast implementation
         variant: 'destructive',
       });

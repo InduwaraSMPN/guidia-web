@@ -15,10 +15,6 @@ interface NavDropdownProps {
 }
 
 export function NavDropdown({ label, items, className = "" }: NavDropdownProps) {
-  // Add test availability page to meetings dropdown during development
-  if (label === 'Meetings') {
-    items = [...items, { path: "/test-availability", label: "Test Availability" }];
-  }
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -91,10 +87,6 @@ export function NavDropdown({ label, items, className = "" }: NavDropdownProps) 
 
 // Mobile version of the dropdown for the mobile menu
 export function MobileNavDropdown({ label, items }: NavDropdownProps) {
-  // Add test availability page to meetings dropdown during development
-  if (label === 'Meetings') {
-    items = [...items, { path: "/test-availability", label: "Test Availability" }];
-  }
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 

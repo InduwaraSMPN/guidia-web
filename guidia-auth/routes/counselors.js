@@ -6,7 +6,12 @@ const { verifyToken, verifyCounselor, verifyOwnership } = require('../middleware
 
 // Create/Update counselor profile
 router.post('/profile', verifyToken, async (req, res) => {
+  // Log the user's role ID for debugging
+  console.log('User role ID:', req.user.roleId);
   try {
+    console.log('Received counselor profile request:', req.body);
+    console.log('User from token:', req.user);
+
     const { userID, ...profileData } = req.body;
 
     // Verify that the userID matches the token
@@ -17,10 +22,12 @@ router.post('/profile', verifyToken, async (req, res) => {
     }
 
     // Check if counselor profile already exists
+    console.log('Checking for existing profile with userID:', userID);
     const [existing] = await req.app.locals.pool.execute(
       'SELECT * FROM counselors WHERE userID = ?',
       [userID]
     );
+    console.log('Existing profile check result:', existing);
 
     // Convert languages to JSON if it's a string
     const languagesJson = typeof profileData.languages === 'string'
@@ -93,13 +100,20 @@ router.post('/profile', verifyToken, async (req, res) => {
         userID
       ];
 
-      const [result] = await req.app.locals.pool.execute(insertQuery, insertParams);
+      console.log('Creating new profile with params:', insertParams);
+      try {
+        const [result] = await req.app.locals.pool.execute(insertQuery, insertParams);
+        console.log('Insert result:', result);
 
-      res.json({
-        success: true,
-        counselorID: result.insertId,
-        message: 'Profile created successfully'
-      });
+        res.json({
+          success: true,
+          counselorID: result.insertId,
+          message: 'Profile created successfully'
+        });
+      } catch (dbError) {
+        console.error('Database error during insert:', dbError);
+        throw dbError;
+      }
     }
   } catch (error) {
     console.error('Error in counselor profile:', error);

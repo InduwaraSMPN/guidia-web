@@ -1115,9 +1115,9 @@ router.get(
 
       // Get recent security events
       const [recentEvents] = await pool.execute(`
-      SELECT eventType, details, userID, timestamp
+      SELECT eventType, details, userID, timeStamp
       FROM security_audit_log
-      ORDER BY timestamp DESC
+      ORDER BY timeStamp DESC
       LIMIT 10
     `);
 
@@ -1129,7 +1129,7 @@ router.get(
         COUNT(*) as count
       FROM security_audit_log
       WHERE (eventType = 'LOGIN_SUCCESS' OR eventType = 'LOGIN_FAILED')
-        AND timestamp >= ?
+        AND timeStamp >= ?
       GROUP BY eventType
     `,
         [sevenDaysAgoFormatted]
@@ -1142,7 +1142,7 @@ router.get(
         COUNT(*) as count
       FROM security_audit_log
       WHERE (eventType = 'ACCOUNT_STATUS_CHANGE' OR eventType = 'USER_STATUS_CHANGED')
-        AND timestamp >= ?
+        AND timeStamp >= ?
     `,
         [sevenDaysAgoFormatted]
       );
@@ -1438,7 +1438,7 @@ router.get("/activity-feed", verifyToken, verifyAdmin, async (req, res) => {
       FROM security_audit_log sal
       LEFT JOIN users u ON sal.userID = u.userID
       WHERE sal.eventType = 'LOGIN_SUCCESS'
-      ORDER BY sal.timestamp DESC
+      ORDER BY sal.timeStamp DESC
       LIMIT 5
     `);
 

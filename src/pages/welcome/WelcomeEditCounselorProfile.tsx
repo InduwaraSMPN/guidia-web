@@ -31,7 +31,7 @@ const validatePhoneNumber = (phone: string) => {
 };
 
 export function WelcomeEditCounselorProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +55,7 @@ export function WelcomeEditCounselorProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.userID || !token) {
       toast.error('Please login to continue');
       return;
@@ -68,7 +68,7 @@ export function WelcomeEditCounselorProfile() {
 
     const loadingToast = toast.loading('Creating your profile...');
     setIsLoading(true);
-    
+
     try {
       // First upload the image if it exists
       let profileImagePath = '';
@@ -77,7 +77,7 @@ export function WelcomeEditCounselorProfile() {
         imageFormData.append('image', formData.image);
         // Add type parameter for counselor profile images
         imageFormData.append('type', 'counselor-profile');
-        
+
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           method: 'POST',
           headers: {
@@ -109,6 +109,10 @@ export function WelcomeEditCounselorProfile() {
         userID: user.userID
       };
 
+      // Log the profile data being sent
+      console.log('Sending profile data:', profileData);
+      console.log('API URL:', `${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`);
+
       // Send profile data to the server
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`, {
         method: 'POST',
@@ -119,15 +123,25 @@ export function WelcomeEditCounselorProfile() {
         body: JSON.stringify(profileData),
       });
 
+      // Log the response status
+      console.log('Response status:', response.status);
+
+      // Get the response data regardless of status
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create profile');
+        throw new Error(responseData.error || responseData.message || 'Failed to create profile');
       }
 
       // Clean up preview URL
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
+
+      // Update the user context to set hasProfile to true
+      updateUser({ hasProfile: true });
+      console.log('Updated user context with hasProfile: true');
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
@@ -143,7 +157,7 @@ export function WelcomeEditCounselorProfile() {
 
     } catch (error) {
       console.error('Error creating profile:', error);
-      
+
       // Dismiss loading toast and show error
       toast.dismiss(loadingToast);
       toast.error('Failed to create profile', {
@@ -156,18 +170,18 @@ export function WelcomeEditCounselorProfile() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'contactNumber') {
       // Remove any characters that aren't digits, spaces, dashes, parentheses, or plus
       const sanitizedValue = value.replace(/[^\d\s\-()+"]/g, '');
-      
+
       // Validate phone number
       if (sanitizedValue && !validatePhoneNumber(sanitizedValue)) {
         setPhoneError('Please enter a valid phone number');
       } else {
         setPhoneError(null);
       }
-      
+
       setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));

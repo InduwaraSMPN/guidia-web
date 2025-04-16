@@ -141,11 +141,8 @@ function TimeSlotGroup({ title, slots, selectedSlot, onTimeSelect }: TimeSlotGro
 
   // Ensure we have valid slots to render
   if (!slots || slots.length === 0) {
-    console.log(`No ${title} slots to render`);
     return null;
   }
-
-  console.log(`Rendering ${title} slots:`, slots);
 
   return (
     <div className="mb-6">
@@ -248,32 +245,24 @@ export function AppointmentPicker({
   isLoadingSlots = false,
   minDate = new Date(),
 }: AppointmentPickerProps) {
-  // Log all time slots for debugging
-  console.log('All time slots:', timeSlots);
-
   // Group time slots by morning, afternoon, and evening
   // Morning: 12 AM to 11:59 AM
   const morningSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
     return hour >= 0 && hour < 12
   })
-  console.log('Morning slots:', morningSlots);
 
   // Afternoon: 12 PM to 2:59 PM
   const afternoonSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
     return hour >= 12 && hour < 15
   })
-  console.log('Afternoon slots:', afternoonSlots);
 
   // Evening: 3 PM to 11:59 PM
   const eveningSlots = timeSlots.filter((slot) => {
     const hour = Number.parseInt(slot.startTime.split(":")[0])
-    const isEvening = hour >= 15 && hour < 24;
-    console.log(`Slot ${slot.startTime} - hour: ${hour}, isEvening: ${isEvening}`);
-    return isEvening;
+    return hour >= 15 && hour < 24;
   })
-  console.log('Evening slots:', eveningSlots);
 
   // Format time for display (e.g., "09:30" to "9:30 AM")
   const formatTime = (time: string) => {
@@ -289,7 +278,7 @@ export function AppointmentPicker({
       <CardHeader className="p-4 pt-5 border-b border-border/70 bg-background">
         <h2 className="text-xl font-semibold flex items-center">
           <CalendarIcon className="mr-2.5 h-5 w-5 text-primary" aria-hidden="true" />
-          Schedule Appointment
+          Schedule Meeting
         </h2>
       </CardHeader>
       <CardContent className="p-0">
@@ -307,7 +296,7 @@ export function AppointmentPicker({
               }}
               className="bg-background"
               disabled={[{ before: minDate }]} // Disable past dates
-              aria-label="Select appointment date"
+              aria-label="Select Meeting date"
             />
           </div>
           <div className="relative w-full max-sm:h-[350px] sm:w-[280px] bg-background/30">
@@ -389,7 +378,7 @@ export function AppointmentPicker({
             <div className="w-full">
               <h3 className="text-sm font-semibold mb-2 flex items-center">
                 <Clock className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
-                Your Appointment
+                Your Meeting
               </h3>
               <p className="text-sm bg-background/50 p-3 rounded-md border border-border/50">
                 <span className="font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>

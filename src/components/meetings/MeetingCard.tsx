@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X, MessageSquare, User, Calendar, Clock, Star } from 'lucide-react';
-import { format } from 'date-fns';
 import { formatMeetingType } from '@/lib/utils';
+import { formatSafeDate, formatTime } from '@/utils/dateUtils';
+import { format } from 'date-fns';
 import { Meeting } from './MeetingList';
 
 interface MeetingCardProps {
@@ -22,14 +23,7 @@ export function MeetingCard({
   onCancel,
   onViewDetails,
 }: MeetingCardProps) {
-  // Format time for display (e.g., "09:30" to "9:30 AM")
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${period}`;
-  };
+
 
   // Check if the current user is the recipient of the meeting
   // Convert both to strings for comparison to avoid type mismatch
@@ -43,15 +37,7 @@ export function MeetingCard({
   const canCancel = (String(meeting.requestorID) === String(currentUserID) || String(meeting.recipientID) === String(currentUserID)) &&
                     (meeting.status === 'requested' || meeting.status === 'accepted');
 
-  // Log for debugging
-  console.log(`MeetingCard ${meeting.meetingID}:`, {
-    meetingID: meeting.meetingID,
-    status: meeting.status,
-    recipientID: meeting.recipientID,
-    currentUserID,
-    isRecipient,
-    canRespond
-  });
+
 
   return (
     <div className="border rounded-md p-4 mb-4 bg-card">
@@ -101,7 +87,20 @@ export function MeetingCard({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div className="flex items-center text-muted-foreground">
           <Calendar className="h-4 w-4 mr-2" />
-          <span>{format(new Date(meeting.meetingDate), 'MMMM d, yyyy')}</span>
+          <span>
+            {meeting.meetingDate && meeting.meetingDate.includes('T')
+              ? (() => {
+                  // Extract just the date part from the ISO string
+                  const datePart = meeting.meetingDate.split('T')[0];
+                  const [year, month, day] = datePart.split('-').map(Number);
+
+                  // Create date with local timezone (months are 0-indexed in JS Date)
+                  const date = new Date(year, month - 1, day);
+                  return format(date, 'MMMM d, yyyy');
+                })()
+              : formatSafeDate(meeting.meetingDate)
+            }
+          </span>
         </div>
         <div className="flex items-center text-muted-foreground">
           <Clock className="h-4 w-4 mr-2" />

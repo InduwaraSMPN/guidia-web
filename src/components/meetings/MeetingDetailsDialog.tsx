@@ -12,6 +12,7 @@ import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
 import { Calendar, Clock, User, Check, X, MessageSquare, Loader2 } from 'lucide-react';
 import { cn, formatMeetingType } from '@/lib/utils';
+import { formatSafeDate, formatTime } from '@/utils/dateUtils';
 import { format } from 'date-fns';
 import { Meeting } from './MeetingList';
 import { MeetingFeedbackForm } from './MeetingFeedbackForm';
@@ -154,14 +155,7 @@ export function MeetingDetailsDialog({
 
   if (!meeting) return null;
 
-  // Format time for display (e.g., "09:30" to "9:30 AM")
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${period}`;
-  };
+
 
   // Get status badge color
   const getStatusColor = (status: Meeting['status']) => {
@@ -300,7 +294,18 @@ export function MeetingDetailsDialog({
                 </div>
                 <div className="col-span-3 flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
-                  {format(new Date(meeting.meetingDate), 'MMMM d, yyyy')}
+                  {meeting.meetingDate && meeting.meetingDate.includes('T')
+                    ? (() => {
+                        // Extract just the date part from the ISO string
+                        const datePart = meeting.meetingDate.split('T')[0];
+                        const [year, month, day] = datePart.split('-').map(Number);
+
+                        // Create date with local timezone (months are 0-indexed in JS Date)
+                        const date = new Date(year, month - 1, day);
+                        return format(date, 'MMMM d, yyyy');
+                      })()
+                    : formatSafeDate(meeting.meetingDate)
+                  }
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">

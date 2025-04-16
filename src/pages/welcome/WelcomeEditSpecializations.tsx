@@ -7,7 +7,7 @@ import { SpecializationSelector } from '@/components/SpecializationSelector';
 
 export function WelcomeEditSpecializations() {
   const navigate = useNavigate();
-  const { user, isVerifyingToken } = useAuth();
+  const { user, isVerifyingToken, updateUser } = useAuth();
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
@@ -52,7 +52,11 @@ export function WelcomeEditSpecializations() {
 
       // Save to localStorage for immediate UI updates
       localStorage.setItem('userSpecializations', JSON.stringify(selectedSpecializations));
-      
+
+      // Ensure hasProfile flag is set to true in user context
+      updateUser({ hasProfile: true });
+      console.log('Updated user context with hasProfile: true');
+
       toast.success('Specializations saved successfully!');
       // Update navigation to go to counselor profile page
       navigate(`/counselor/profile/${user.userID}`);

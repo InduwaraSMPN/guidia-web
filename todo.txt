@@ -18,3 +18,14 @@ check emails
 
 
 welcome to guida emails
+
+
+
+user is deleted student table data need to be also deleted
+
+student
+counsellor
+company
+
+
+Title* in student table

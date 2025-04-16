@@ -248,7 +248,7 @@ export function WelcomeEditCompanyProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast.error('Please fix the errors in the form');
       return;
@@ -263,8 +263,8 @@ export function WelcomeEditCompanyProfile() {
     }
 
     // Validate required fields
-    if (!formData.companyName || !formData.country || !formData.city || 
-        !formData.website || !formData.contactNumber || !formData.companyEmail || 
+    if (!formData.companyName || !formData.country || !formData.city ||
+        !formData.website || !formData.contactNumber || !formData.companyEmail ||
         !formData.description || (!formData.image && !previewUrl)) {
       toast.error('Please fill in all required fields and upload a company logo');
       setIsLoading(false);
@@ -273,12 +273,12 @@ export function WelcomeEditCompanyProfile() {
 
     try {
       let profileImagePath = previewUrl || '';
-      
+
       // Handle file upload first if there's a new image
       if (formData.image instanceof File && formData.image.size > 0) {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
-        imageFormData.append('type', 'company-logo');
+        imageFormData.append('type', 'company-profile');
 
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           headers: {
@@ -354,8 +354,8 @@ export function WelcomeEditCompanyProfile() {
       navigate(`/company/profile/${user?.userID}`);
     } catch (error) {
       console.error("Error creating profile:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
+      const errorMessage = error instanceof Error
+        ? error.message
         : "Failed to create profile. Please try again.";
       toast.error(errorMessage);
 

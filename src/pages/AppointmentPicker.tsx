@@ -71,8 +71,8 @@ export function AppointmentPicker() {
   const handleSubmit = () => {
     if (selectedDate && selectedSlot) {
       toast({
-        title: 'Appointment Scheduled',
-        description: `Your appointment has been scheduled for ${selectedDate.toLocaleDateString()} at ${selectedSlot.startTime}`,
+        title: 'Meeting Scheduled',
+        description: `Your meeting has been scheduled for ${selectedDate.toLocaleDateString()} at ${selectedSlot.startTime}`,
       });
     }
   };
@@ -127,9 +127,9 @@ export function AppointmentPicker() {
     <div className="container mx-auto py-10">
       <Card>
         <CardHeader>
-          <CardTitle>Appointment Picker</CardTitle>
+          <CardTitle>Meeting Picker</CardTitle>
           <CardDescription>
-            Select a date and time for your appointment
+            Select a date and time for your meeting
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -147,7 +147,7 @@ export function AppointmentPicker() {
               onClick={handleSubmit}
               disabled={!selectedDate || !selectedSlot}
             >
-              Schedule Appointment
+              Schedule Meeting
             </Button>
           </div>
         </CardContent>

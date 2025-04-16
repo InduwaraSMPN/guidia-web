@@ -5,7 +5,7 @@ const path = require('path');
 
 async function main() {
   console.log('Creating security_audit_log table...');
-  
+
   // Create database connection
   const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -19,18 +19,18 @@ async function main() {
 
   try {
     console.log('Connected to database');
-    
-    // Read and execute the SQL file for creating security_audit_log table
+
+    // Read and execute the SQL file for creating security_audit_log table with securityAuditLogID and timeStamp columns
     const securityAuditLogSQL = fs.readFileSync(
-      path.join(__dirname, '..', '..', 'security_audit_log.sql'), 
+      path.join(__dirname, '..', '..', 'security_audit_log.sql'),
       'utf8'
     );
-    
+
     // Split the SQL file into individual statements
     const statements = securityAuditLogSQL
       .split(';')
       .filter(statement => statement.trim() !== '');
-    
+
     // Execute each statement
     for (const statement of statements) {
       try {
@@ -42,7 +42,7 @@ async function main() {
         // Continue with next statement even if this one fails
       }
     }
-    
+
     console.log('Security audit log table creation completed');
   } catch (error) {
     console.error('Error creating security audit log table:', error);

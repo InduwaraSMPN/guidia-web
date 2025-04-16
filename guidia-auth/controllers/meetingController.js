@@ -181,29 +181,17 @@ const meetingController = {
       const { userId, date } = req.params;
       const pool = req.app.locals.pool;
 
-      console.log(`Getting available slots for user ID: ${userId} on date: ${date}`);
-      console.log(`Requesting user ID: ${req.user.id}, role: ${req.user.roleID}`);
-
       // Check if day of week is provided in the query parameters
       let dayOfWeek;
       if (req.query.dayOfWeek !== undefined) {
         dayOfWeek = parseInt(req.query.dayOfWeek, 10);
-        console.log(`Using provided day of week from query parameter: ${dayOfWeek}`);
       } else {
         // Get the day of week for the requested date (0 = Sunday, 1 = Monday, etc.)
         // Parse the date carefully to ensure correct day of week calculation
         const [year, month, day] = date.split('-').map(Number);
         const requestedDate = new Date(year, month - 1, day);
-
-        // Ensure the date is parsed correctly by logging the full date object
-        console.log(`Parsed date: ${requestedDate.toString()}, ISO: ${requestedDate.toISOString()}`);
         dayOfWeek = requestedDate.getDay();
-        console.log(`Calculated day of week for ${date}: ${dayOfWeek} (0=Sunday, 1=Monday, etc.)`);
       }
-
-      // Log the current date for comparison
-      const currentDate = new Date();
-      console.log(`Current date: ${currentDate.toString()}, Day of week: ${currentDate.getDay()}`);
 
       // Get the user's availability for the specified day or specific date
       const [availabilityResults] = await pool.query(
@@ -214,15 +202,7 @@ const meetingController = {
          ORDER BY startTime`,
         [userId, dayOfWeek, date]
       );
-      console.log(`Found ${availabilityResults.length} availability records:`, JSON.stringify(availabilityResults));
 
-      // Check if any of the availability records match the day of week
-      const matchingDayRecords = availabilityResults.filter(record => record.isRecurring && record.dayOfWeek === dayOfWeek);
-      console.log(`Found ${matchingDayRecords.length} records matching day of week ${dayOfWeek}:`, JSON.stringify(matchingDayRecords));
-
-      // Check if any of the availability records match the specific date
-      const matchingDateRecords = availabilityResults.filter(record => !record.isRecurring && record.specificDate === date);
-      console.log(`Found ${matchingDateRecords.length} records matching specific date ${date}:`, JSON.stringify(matchingDateRecords));
 
       // Get existing meetings for the user on the requested date to exclude those time slots
       const [existingMeetings] = await pool.query(
@@ -248,10 +228,7 @@ const meetingController = {
       const availableSlots = [];
       const slotDuration = 30; // 30 minutes per slot
 
-      console.log('Processing availability records to generate time slots...');
       availabilityResults.forEach(availability => {
-        console.log(`Processing availability: dayOfWeek=${availability.dayOfWeek}, startTime=${availability.startTime}, endTime=${availability.endTime}, isRecurring=${availability.isRecurring}`);
-
         // Parse time strings carefully to avoid timezone issues
         const [startHours, startMinutes] = availability.startTime.substring(0, 5).split(':').map(Number);
         const [endHours, endMinutes] = availability.endTime.substring(0, 5).split(':').map(Number);
@@ -263,16 +240,10 @@ const meetingController = {
         const startTime = new Date(year, month - 1, day, startHours, startMinutes);
         const endTime = new Date(year, month - 1, day, endHours, endMinutes);
 
-        console.log(`Converted times: startTime=${startTime.toISOString()}, endTime=${endTime.toISOString()}`);
-        console.log(`Local times: startTime=${startTime.toString()}, endTime=${endTime.toString()}`);
-
         // Generate slots in 30-minute increments
         let currentSlotStart = new Date(startTime);
-        let slotCount = 0;
-
         while (currentSlotStart < endTime) {
           const currentSlotEnd = new Date(currentSlotStart.getTime() + slotDuration * 60000);
-          slotCount++;
 
           // Check if this slot overlaps with any existing meetings
           const isOverlappingWithMeeting = existingMeetings.some(meeting => {
@@ -287,19 +258,11 @@ const meetingController = {
             const meetingStart = new Date(year, month - 1, day, meetingStartHours, meetingStartMinutes);
             const meetingEnd = new Date(year, month - 1, day, meetingEndHours, meetingEndMinutes);
 
-            const overlaps = (
+            return (
               (currentSlotStart >= meetingStart && currentSlotStart < meetingEnd) ||
               (currentSlotEnd > meetingStart && currentSlotEnd <= meetingEnd) ||
               (currentSlotStart <= meetingStart && currentSlotEnd >= meetingEnd)
             );
-
-            if (overlaps) {
-              const slotStartStr = `${currentSlotStart.getHours().toString().padStart(2, '0')}:${currentSlotStart.getMinutes().toString().padStart(2, '0')}`;
-              const slotEndStr = `${currentSlotEnd.getHours().toString().padStart(2, '0')}:${currentSlotEnd.getMinutes().toString().padStart(2, '0')}`;
-              console.log(`Slot ${slotStartStr}-${slotEndStr} overlaps with meeting ${meeting.startTime}-${meeting.endTime}`);
-            }
-
-            return overlaps;
           });
 
           // Check if this slot overlaps with any unavailability periods
@@ -309,19 +272,11 @@ const meetingController = {
             const unavailableEnd = new Date(unavailable.endDateTime);
 
             // Check if the current slot overlaps with the unavailability period
-            const overlaps = (
+            return (
               (currentSlotStart >= unavailableStart && currentSlotStart < unavailableEnd) ||
               (currentSlotEnd > unavailableStart && currentSlotEnd <= unavailableEnd) ||
               (currentSlotStart <= unavailableStart && currentSlotEnd >= unavailableEnd)
             );
-
-            if (overlaps) {
-              const slotStartStr = `${currentSlotStart.getHours().toString().padStart(2, '0')}:${currentSlotStart.getMinutes().toString().padStart(2, '0')}`;
-              const slotEndStr = `${currentSlotEnd.getHours().toString().padStart(2, '0')}:${currentSlotEnd.getMinutes().toString().padStart(2, '0')}`;
-              console.log(`Slot ${slotStartStr}-${slotEndStr} overlaps with unavailability ${unavailable.startDateTime}-${unavailable.endDateTime}`);
-            }
-
-            return overlaps;
           });
 
           // If the slot doesn't overlap with meetings or unavailability, add it to available slots
@@ -330,7 +285,6 @@ const meetingController = {
             const slotStartTime = `${currentSlotStart.getHours().toString().padStart(2, '0')}:${currentSlotStart.getMinutes().toString().padStart(2, '0')}`;
             const slotEndTime = `${currentSlotEnd.getHours().toString().padStart(2, '0')}:${currentSlotEnd.getMinutes().toString().padStart(2, '0')}`;
 
-            console.log(`Adding available slot: ${slotStartTime}-${slotEndTime}`);
             availableSlots.push({
               startTime: slotStartTime,
               endTime: slotEndTime
@@ -340,25 +294,21 @@ const meetingController = {
           // Move to the next slot
           currentSlotStart = currentSlotEnd;
         }
-        console.log(`Generated ${slotCount} potential slots from this availability record`);
-      });
 
-      console.log(`Returning ${availableSlots.length} available slots for user ${userId} on date ${date}`);
+      });
 
       // If no availability records were found, provide a more specific message
       if (availabilityResults.length === 0) {
-        console.log(`No availability settings found for user ${userId} on day ${dayOfWeek} or date ${date}`);
         return res.status(200).json({
           success: true,
           date: date,
           availableSlots: [],
-          message: 'No available slots found for this date.'
+          message: 'No availability settings found for this date. Please set your availability first.'
         });
       }
 
       // If availability records exist but no slots are available, provide a helpful message
       if (availabilityResults.length > 0 && availableSlots.length === 0) {
-        console.log(`User ${userId} has availability settings for day ${dayOfWeek} but no available slots`);
         return res.status(200).json({
           success: true,
           date: date,
@@ -391,6 +341,15 @@ const meetingController = {
     try {
       const { recipientID, meetingTitle, meetingDescription, meetingDate, startTime, endTime, meetingType } = req.body;
       const requestorID = req.user.id;
+
+      // Validate required fields
+      if (!recipientID || !meetingTitle || !meetingDate || !startTime || !endTime || !meetingType) {
+        console.error('Missing required fields:', { recipientID, meetingTitle, meetingDate, startTime, endTime, meetingType });
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields for meeting request'
+        });
+      }
       const pool = req.app.locals.pool;
 
       // Validate that the meeting time is available for the recipient
