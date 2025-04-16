@@ -235,7 +235,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userId');
       localStorage.removeItem('userID');
-      localStorage.removeItem('companyID'); // Also clear companyID
+      localStorage.removeItem('companyID'); // Clear company ID
+      localStorage.removeItem('studentID'); // Clear student ID
+      localStorage.removeItem('counselorID'); // Clear counselor ID
       clearCsrfToken(); // Clear CSRF token
       setUser(null);
       console.log('Logged out successfully, all tokens cleared');
@@ -246,7 +248,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userId');
       localStorage.removeItem('userID');
-      localStorage.removeItem('companyID'); // Also clear companyID
+      localStorage.removeItem('companyID'); // Clear company ID
+      localStorage.removeItem('studentID'); // Clear student ID
+      localStorage.removeItem('counselorID'); // Clear counselor ID
       clearCsrfToken(); // Clear CSRF token
       setUser(null);
     }
@@ -280,19 +284,3 @@ export function useAuth() {
   }
   return context;
 }
-
-// This function is not currently used but kept for future reference
-// function getProfilePath(userData: User): string {
-//   switch (userData.userType) {
-//     case 'Admin':
-//       return '/admin';
-//     case 'Student':
-//       return `/students/profile/${userData.userID}`;
-//     case 'Counselor':
-//       return `/counselor/profile/${userData.userID}`;
-//     case 'Company':
-//       return `/company/profile/${userData.userID}`;
-//     default:
-//       return '/';
-//   }
-// }

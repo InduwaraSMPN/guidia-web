@@ -110,27 +110,17 @@ export const AzureImage: React.FC<AzureImageProps> = ({
     ? `${window.location.origin}${rawFallbackSrc}`
     : rawFallbackSrc;
 
-  // Log the input parameters for debugging
-  console.log('AzureImage component - Input parameters:', {
-    src,
-    userType,
-    hasProfileData: !!profileData,
-    rawFallbackSrc,
-    actualFallbackSrc
-  });
+  // Prepare the image parameters
 
   // If profileData is provided, use it to get the image URL
   let fullSrc;
   if (profileData && userType) {
     fullSrc = getProfileImageUrl(profileData, userType);
-    console.log('AzureImage - Using profile data to get URL:', { userType, fullSrc });
   } else if (src && src.startsWith('blob:')) {
     // If it's a blob URL, use it directly
     fullSrc = src;
-    console.log('AzureImage - Using blob URL directly:', { src });
   } else {
     fullSrc = src ? getFullAzureUrl(src) : actualFallbackSrc;
-    console.log('AzureImage - Using direct src with Azure URL conversion:', { src, fullSrc });
   }
 
   // Add rounded class if needed
@@ -142,16 +132,8 @@ export const AzureImage: React.FC<AzureImageProps> = ({
       alt={alt}
       className={imageClassName}
       onError={(e) => {
-        // Log the error for debugging
-        console.error('AzureImage - Image load error:', {
-          failedSrc: e.currentTarget.src,
-          fallbackSrc: actualFallbackSrc,
-          originalSrc: src
-        });
-
         // Fallback to default image if the image fails to load
         if (e.currentTarget.src !== actualFallbackSrc) {
-          console.log('AzureImage - Setting fallback image:', actualFallbackSrc);
           e.currentTarget.src = actualFallbackSrc;
         }
       }}
@@ -169,7 +151,6 @@ export const StudentImage: React.FC<Omit<AzureImageProps, 'userType'>> = (props)
 };
 
 export const CounselorImage: React.FC<Omit<AzureImageProps, 'userType'>> = (props) => {
-  console.log('CounselorImage component - Props:', props);
   return <AzureImage userType="counselor" rounded {...props} />;
 };
 

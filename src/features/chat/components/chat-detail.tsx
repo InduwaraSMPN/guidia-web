@@ -241,14 +241,14 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
                 <StudentImage
                   src={receiver.image}
                   alt={receiver.name}
-                  className="w-10 h-10 object-cover"
+                  className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                   fallbackSrc="/student-avatar.png"
                 />
               ) : (
                 <AzureImage
                   src={receiver.image}
                   alt={receiver.name}
-                  className="w-10 h-10 object-cover"
+                  className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                   rounded={true}
                   userType={receiver.type}
                 />

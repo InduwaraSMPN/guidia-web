@@ -1,10 +1,15 @@
-import { useState, useRef, useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
-import { User, LogOut, Settings, Edit, Clock } from "lucide-react"
-import { format } from "date-fns"
-import ThemeToggle from "./ThemeToggle"
-import { AzureImage, StudentImage, CounselorImage, CompanyImage } from "@/lib/imageUtils"
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { User, LogOut, Settings, Edit, Clock } from "lucide-react";
+import { format } from "date-fns";
+import ThemeToggle from "./ThemeToggle";
+import {
+  AzureImage,
+  StudentImage,
+  CounselorImage,
+  CompanyImage,
+} from "@/lib/imageUtils";
 
 interface ProfileData {
   studentProfileImagePath?: string;
@@ -16,81 +21,96 @@ interface ProfileData {
 }
 
 export function ProfileDropdown() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [isOpen, setIsOpen] = useState(false)
-  const [currentDateTime, setCurrentDateTime] = useState(new Date())
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [adminUsername, setAdminUsername] = useState<string>("")  // New state for admin username
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [adminUsername, setAdminUsername] = useState<string>(""); // New state for admin username
 
   // Update the date and time every minute
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentDateTime(new Date())
-    }, 60000) // Update every minute
+      setCurrentDateTime(new Date());
+    }, 60000); // Update every minute
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   // Fetch user profile data
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
     // Skip profile fetch if user doesn't have a profile yet
-    if (user.hasProfile === false) {
-      setIsLoading(false)
-      return
+    // For student users, always try to fetch the profile regardless of hasProfile flag
+    if (user.userType !== 'Student' && user.hasProfile === false) {
+      setIsLoading(false);
+      return;
     }
 
     const fetchProfileData = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const token = localStorage.getItem("token")
-        let apiUrl = ""
+        const token = localStorage.getItem("token");
+        let apiUrl = "";
 
         switch (user.userType) {
           case "Student":
-            apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/students/${user.userID}`
-            break
+            apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/students/${
+              user.userID
+            }`;
+            break;
           case "Counselor":
-            apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/counselors/${user.userID}`
-            break
+            apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/counselors/${
+              user.userID
+            }`;
+            break;
           case "Company":
-            apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile/${user.userID}`
-            break
+            apiUrl = `${
+              import.meta.env.VITE_API_BASE_URL
+            }/api/companies/profile/${user.userID}`;
+            break;
           case "Admin":
             // For Admin, fetch the username from the users endpoint
             try {
-              const adminResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/profile`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              })
+              const adminResponse = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/api/users/profile`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
 
+              // Process admin response separately
               if (adminResponse.ok) {
-                const adminData = await adminResponse.json()
-                setAdminUsername(adminData.username || "")
+                const adminData = await adminResponse.json();
+                console.log(`${user.userType} profile data:`, adminData);
+                setProfileData(adminData);
+                setAdminUsername(adminData.username || "");
               } else {
-                console.error(`Failed to fetch admin data: ${adminResponse.status}`)
+                console.error(
+                  `Failed to fetch admin data: ${adminResponse.status}`
+                );
               }
             } catch (adminError) {
-              console.error("Error fetching admin data:", adminError)
+              console.error("Error fetching admin data:", adminError);
             }
-            setIsLoading(false)
-            return
+            setIsLoading(false);
+            return;
           default:
             // Other user types without profile data
-            setIsLoading(false)
-            return
+            setIsLoading(false);
+            return;
         }
 
         // Check if we're on a welcome page and skip the profile fetch
-        if (window.location.pathname.includes('/welcome/')) {
-          setIsLoading(false)
-          return
+        if (window.location.pathname.includes("/welcome/")) {
+          setIsLoading(false);
+          return;
         }
 
         const response = await fetch(apiUrl, {
@@ -98,157 +118,175 @@ export function ProfileDropdown() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        })
+        });
 
         if (!response.ok) {
           // If we get a 404, it means the profile doesn't exist yet
           if (response.status === 404) {
-            console.log(`Profile not found for ${user.userType} user ${user.userID}`)
-            setIsLoading(false)
-            return
+            console.log(
+              `Profile not found for ${user.userType} user ${user.userID}`
+            );
+            setIsLoading(false);
+            return;
           }
-          throw new Error(`Failed to fetch profile data: ${response.status}`)
+          throw new Error(`Failed to fetch profile data: ${response.status}`);
         }
 
-        const data = await response.json()
-        setProfileData(data)
+        const data = await response.json();
 
-        // If this is a company user, store the companyID in localStorage
+        setProfileData(data);
+
+        // Store IDs in localStorage based on user type
         if (user.userType === "Company" && data.companyID) {
-          localStorage.setItem('companyID', data.companyID.toString())
-          console.log('Stored companyID in localStorage:', data.companyID)
+          localStorage.setItem("companyID", data.companyID.toString());
+          console.log("Stored companyID in localStorage:", data.companyID);
+        } else if (user.userType === "Student" && data.studentID) {
+          localStorage.setItem("studentID", data.studentID.toString());
+          console.log("Stored studentID in localStorage:", data.studentID);
+        } else if (user.userType === "Counselor" && data.counselorID) {
+          localStorage.setItem("counselorID", data.counselorID.toString());
+          console.log("Stored counselorID in localStorage:", data.counselorID);
         }
       } catch (error) {
-        console.error("Error fetching profile data:", error)
+        console.error("Error fetching profile data:", error);
         // Don't show error in UI for profile fetch failures
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProfileData()
-  }, [user])
+    fetchProfileData();
+  }, [user]);
 
   // Handle clicking outside to close the dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
     }
 
     // Add event listener when dropdown is open
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     // Cleanup event listener
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     try {
-      await logout()
-      navigate("/")
+      await logout();
+      navigate("/");
     } catch (error) {
-      console.error("Logout failed:", error)
+      console.error("Logout failed:", error);
       // Continue with navigation even if backend logout fails
-      navigate("/auth/login")
+      navigate("/auth/login");
     }
-  }
+  };
 
   const getProfilePath = () => {
-    if (!user) return ""
+    if (!user) return "";
     switch (user.userType) {
       case "Student":
-        return `/students/profile/${user.userID}`
+        return `/students/profile/${user.userID}`;
       case "Company":
-        return `/company/profile/${user.userID}`
+        return `/company/profile/${user.userID}`;
       case "Counselor":
-        return `/counselor/profile/${user.userID}`
+        return `/counselor/profile/${user.userID}`;
       case "Admin":
-        return `/admin`
+        return `/admin`;
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
   const getEditProfilePath = () => {
-    if (!user) return ""
+    if (!user) return "";
     switch (user.userType) {
       case "Student":
-        return `/students/profile/edit/${user.userID}`
+        return `/students/profile/edit/${user.userID}`;
       case "Company":
-        return `/company/profile/edit/${user.userID}`
+        return `/company/profile/edit/${user.userID}`;
       case "Counselor":
-        return `/counselor/profile/edit/${user.userID}`
+        return `/counselor/profile/edit/${user.userID}`;
       case "Admin":
-        return `/admin` // Admins might not have an edit profile page
+        return `/admin`; // Admins might not have an edit profile page
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
   const getSettingsPath = () => {
-    if (!user) return ""
+    if (!user) return "";
     switch (user.userType) {
       case "Student":
-        return `/students/profile/settings/${user.userID}`
+        return `/students/profile/settings/${user.userID}`;
       case "Company":
-        return `/company/profile/settings/${user.userID}`
+        return `/company/profile/settings/${user.userID}`;
       case "Counselor":
-        return `/counselor/profile/settings/${user.userID}`
+        return `/counselor/profile/settings/${user.userID}`;
       case "Admin":
-        return `/admin/settings` // Assuming admin settings path
+        return `/admin/settings`; // Assuming admin settings path
       default:
-        return ""
+        return "";
     }
-  }
+  };
 
   // Helper function to get the user's name
   const getUserName = () => {
-    if (!user) return "User"
+    if (!user) return "User";
 
     // For Admin users, use the fetched username
     if (user.userType === "Admin") {
-      return adminUsername || user.email.split('@')[0] || "Admin"
+      return adminUsername || user.email.split("@")[0] || "Admin";
     }
 
     // If we're on a welcome page, just use the email username
-    if (window.location.pathname.includes('/welcome/')) {
-      return user.email.split('@')[0] || user.userType
+    if (window.location.pathname.includes("/welcome/")) {
+      return user.email.split("@")[0] || user.userType;
     }
 
     if (profileData) {
-      return profileData.studentName ||
-             profileData.counselorName ||
-             profileData.companyName ||
-             user.email.split('@')[0] ||
-             "User"
+      return (
+        profileData.studentName ||
+        profileData.counselorName ||
+        profileData.companyName ||
+        user.email.split("@")[0] ||
+        "User"
+      );
     }
 
-    return user.email.split('@')[0] || "User"
-  }
+    return user.email.split("@")[0] || "User";
+  };
 
   // Helper function to get the profile image
   const getProfileImage = (type: "button" | "dropdown" = "button") => {
-    const size = type === "button" ? "h-full w-full" : "h-10 w-10"
+    const size = type === "button" ? "h-full w-full" : "h-10 w-10";
 
     if (isLoading) {
-      return <div className={`${size} bg-secondary-dark rounded-full animate-pulse`}></div>
+      return (
+        <div
+          className={`${size} bg-secondary-dark rounded-full animate-pulse`}
+        ></div>
+      );
     }
 
     // If we're on a welcome page, just use the default avatar
-    if (window.location.pathname.includes('/welcome/')) {
-      return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />
+    if (window.location.pathname.includes("/welcome/")) {
+      return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />;
     }
 
     if (profileData) {
       // For admin users, just show the default avatar or user icon
-      if (user?.userType === 'Admin') {
-        return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />
+      if (user?.userType === "Admin") {
+        return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />;
       }
 
       // Use specialized image components based on user type
@@ -261,7 +299,7 @@ export function ProfileDropdown() {
               className={`${size} object-cover`}
               fallbackSrc="/student-avatar.png"
             />
-          )
+          );
         case "Counselor":
           return (
             <CounselorImage
@@ -270,7 +308,7 @@ export function ProfileDropdown() {
               className={`${size} object-cover`}
               fallbackSrc="/counselor-avatar.png"
             />
-          )
+          );
         case "Company":
           return (
             <CompanyImage
@@ -279,10 +317,10 @@ export function ProfileDropdown() {
               className={`${size} object-cover`}
               fallbackSrc="/company-logo.png"
             />
-          )
+          );
         default:
-          // Fallback to generic AzureImage
-          const userType = user?.userType?.toLowerCase() as 'student' | 'counselor' | 'company';
+          // Fallback to generic AzureImage with student as default
+          const userType: "student" | "counselor" | "company" = "student";
           return (
             <AzureImage
               profileData={profileData}
@@ -292,13 +330,13 @@ export function ProfileDropdown() {
               rounded={true}
               fallbackSrc="/default-avatar.png"
             />
-          )
+          );
       }
     }
 
     // Fallback to user icon
-    return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />
-  }
+    return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />;
+  };
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -324,9 +362,15 @@ export function ProfileDropdown() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
-                  {user?.userType === "Admin" ? adminUsername || user?.email.split('@')[0] : getUserName()}
+                  {user?.userType === "Admin"
+                    ? adminUsername || user?.email.split("@")[0]
+                    : getUserName()}
                 </h3>
-                <p className="text-xs text-muted-foreground dark:text-neutral-400">{user?.userType === "Admin" ? "Admin" : user?.userType || "User"}</p>
+                <p className="text-xs text-muted-foreground dark:text-neutral-400">
+                  {user?.userType === "Admin"
+                    ? "Admin"
+                    : user?.userType || "User"}
+                </p>
               </div>
             </div>
           </div>
@@ -377,8 +421,8 @@ export function ProfileDropdown() {
 
             <button
               onClick={() => {
-                setIsOpen(false)
-                handleLogout()
+                setIsOpen(false);
+                handleLogout();
               }}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
             >
@@ -398,10 +442,10 @@ export function ProfileDropdown() {
               <Clock className="h-4 w-4" />
               <div>
                 <div className="text-xs font-medium">
-                  {format(currentDateTime, 'd MMMM yyyy')}
+                  {format(currentDateTime, "d MMMM yyyy")}
                 </div>
                 <div className="text-xs">
-                  {format(currentDateTime, 'h:mm a')}
+                  {format(currentDateTime, "h:mm a")}
                 </div>
               </div>
             </div>
@@ -409,6 +453,5 @@ export function ProfileDropdown() {
         </div>
       )}
     </div>
-  )
+  );
 }
-

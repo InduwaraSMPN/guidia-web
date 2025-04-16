@@ -341,21 +341,21 @@ export function ChatPage(): JSX.Element {
                       <CompanyImage
                         src={receiver.image}
                         alt={receiver.name}
-                        className="w-10 h-10 object-cover"
+                        className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                         fallbackSrc="/company-avatar.png"
                       />
                     ) : receiver.type === "counselor" ? (
                       <CounselorImage
                         src={receiver.image}
                         alt={receiver.name}
-                        className="w-10 h-10 object-cover"
+                        className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                         fallbackSrc="/counselor-avatar.png"
                       />
                     ) : (
                       <StudentImage
                         src={receiver.image}
                         alt={receiver.name}
-                        className="w-10 h-10 object-cover"
+                        className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
                         fallbackSrc="/student-avatar.png"
                       />
                     )

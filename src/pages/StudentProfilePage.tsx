@@ -116,6 +116,12 @@ export function StudentProfilePage() {
         const data = await response.json()
         setStudentData(data)
         setError(null)
+
+        // If this is the current user, store the studentID in localStorage
+        if (isCurrentUser && data.studentID) {
+          localStorage.setItem("studentID", data.studentID.toString())
+          console.log("Stored studentID in localStorage:", data.studentID)
+        }
       } catch (error) {
         console.error("Error fetching student data:", error)
         setError(error instanceof Error ? error.message : "Failed to fetch student data")
@@ -277,6 +283,7 @@ export function StudentProfilePage() {
                     alt={studentData.studentName || "Student profile image"}
                     className="w-full h-full object-cover"
                     fallbackSrc="/student-avatar.png"
+                    userType="student"
                   />
                 </div>
                 <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-16 md:mt-20 text-center w-full rounded-lg shadow-sm">
