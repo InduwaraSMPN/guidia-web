@@ -10,7 +10,6 @@ remove test and dummy data
 
 job emails updates send -NEW
 
-View Resume to use document viewer 
 
 Your application for d at Innovatech Solutions has been reviewed but the description not going to the student 
 

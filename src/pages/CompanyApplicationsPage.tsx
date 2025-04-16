@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ViewDocumentModal } from "@/components/ViewDocumentModal";
+import { getFileExtension } from "@/lib/utils";
 
 interface Application {
   applicationID: number;
@@ -43,6 +45,11 @@ export function CompanyApplicationsPage() {
   const [notes, setNotes] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    name: string;
+    type: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -219,7 +226,13 @@ export function CompanyApplicationsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(application.resumePath, '_blank')}
+                  onClick={() => {
+                    setSelectedDocument({
+                      url: application.resumePath,
+                      name: `Resume - ${application.firstName} ${application.lastName}`,
+                      type: getFileExtension(application.resumePath)
+                    });
+                  }}
                   className="flex items-center gap-1"
                 >
                   <FileText className="h-4 w-4" />
@@ -288,6 +301,16 @@ export function CompanyApplicationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedDocument && (
+        <ViewDocumentModal
+          isOpen={true}
+          onClose={() => setSelectedDocument(null)}
+          documentUrl={selectedDocument.url}
+          documentName={selectedDocument.name}
+          documentType={selectedDocument.type}
+        />
       )}
     </div>
   );

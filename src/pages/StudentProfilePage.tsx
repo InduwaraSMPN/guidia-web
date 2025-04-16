@@ -13,7 +13,10 @@ import {
   ExternalLink,
   Calendar,
   MapPin,
+  FileText
 } from "lucide-react"
+import { ViewDocumentModal } from "@/components/ViewDocumentModal"
+import { getFileExtension } from "@/lib/utils"
 import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState, useRef } from "react"
 import { useAuth } from "../contexts/AuthContext"
@@ -75,6 +78,11 @@ export function StudentProfilePage() {
   const [loadingSavedJobs, setLoadingSavedJobs] = useState(false)
   const [currentDateTime, setCurrentDateTime] = useState(new Date())
   const isCurrentUser = user?.userType === "Student" && user?.userID === userID
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    name: string;
+    type: string;
+  } | null>(null)
 
   // Ref for the main content area for focus management
   const mainContentRef = useRef<HTMLDivElement>(null)
@@ -560,16 +568,20 @@ export function StudentProfilePage() {
                         <span>Applied on: {formatDate(application.submittedAt || application.createdAt)}</span>
                       </p>
                       <div className="mt-3 flex items-center">
-                        <a
-                          href={application.resumePath}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
+                        <button
+                          className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline bg-transparent border-none p-0 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDocument({
+                              url: application.resumePath,
+                              name: `Resume - ${application.jobTitle}`,
+                              type: getFileExtension(application.resumePath)
+                            });
+                          }}
                           aria-label={`View resume for ${application.jobTitle} application`}
                         >
-                          <ExternalLink className="w-3 h-3" aria-hidden="true" /> View Resume
-                        </a>
+                          <FileText className="w-3 h-3" aria-hidden="true" /> View Resume
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -707,6 +719,16 @@ export function StudentProfilePage() {
           </motion.section>
         )}
       </div>
+
+      {selectedDocument && (
+        <ViewDocumentModal
+          isOpen={true}
+          onClose={() => setSelectedDocument(null)}
+          documentUrl={selectedDocument.url}
+          documentName={selectedDocument.name}
+          documentType={selectedDocument.type}
+        />
+      )}
     </main>
   )
 }
