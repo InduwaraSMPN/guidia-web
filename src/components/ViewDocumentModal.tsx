@@ -2,9 +2,12 @@
 
 import type React from "react"
 
-import { Download, FileText, X, ZoomIn, ZoomOut, Maximize, Minimize } from "lucide-react"
+import { Download, FileText, X, ZoomIn, ZoomOut, Maximize, Minimize, Info } from "lucide-react"
 import { Button } from "./ui/button"
 import { useState, useEffect, useRef } from "react"
+import { getAzureFileInfo, parseAzureBlobUrl, getFullAzureUrl, AzureFileInfo } from "../lib/azureUtils"
+import { UPLOAD_SETTINGS } from "../config"
+// @ts-ignore - Importing from framer-motion
 import { motion, AnimatePresence } from "framer-motion"
 
 interface ViewDocumentModalProps {
@@ -28,6 +31,7 @@ export function ViewDocumentModal({
   const [isDragging, setIsDragging] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [fileInfo, setFileInfo] = useState<AzureFileInfo | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const imageContainerRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -133,8 +137,10 @@ export function ViewDocumentModal({
     }
   }, [onClose])
 
-  // Add validation for documentUrl
-  const isValidUrl = (url: string | undefined): boolean => {
+  // We'll use this function in the future for URL validation
+  // Currently not used but kept for future reference
+  /*
+  const checkValidUrl = (url: string | undefined): boolean => {
     if (!url) return false;
     try {
       if (url.startsWith('data:')) return true;
@@ -146,13 +152,14 @@ export function ViewDocumentModal({
       return false;
     }
   };
+  */
 
   // Load document data when modal opens
   useEffect(() => {
     if (!isOpen || !documentUrl) return;
 
     setLoading(true);
-    
+
     const loadDocument = async () => {
       try {
         // Handle data URLs directly
@@ -187,13 +194,48 @@ export function ViewDocumentModal({
           }
         }
 
+        // Try to get Azure file info
+        try {
+          console.log('Attempting to get file info for URL:', documentUrl);
+
+          // Only attempt to get file info if it looks like an Azure URL
+          if (documentUrl.includes('blob.core.windows.net')) {
+            console.log('Detected Azure URL, fetching file info');
+            const info = await getAzureFileInfo(documentUrl);
+            console.log('Azure file info received:', info);
+            setFileInfo(info);
+          } else {
+            // For non-Azure URLs, create a basic info object using client-side parsing
+            console.log('Non-Azure URL, parsing client-side');
+            const parsedInfo = parseAzureBlobUrl(documentUrl);
+            console.log('Client-side parsed info:', parsedInfo);
+            setFileInfo({
+              url: documentUrl,
+              ...parsedInfo
+            });
+          }
+        } catch (infoError) {
+          console.error('Error getting file info:', infoError);
+          // Set a basic file info object to prevent errors
+          setFileInfo({
+            isLegacyFormat: true,
+            url: documentUrl,
+            originalPath: documentUrl
+          });
+          // Continue with document loading even if metadata retrieval fails
+        }
+
         // If not in localStorage, try to fetch the document
-        const response = await fetch(documentUrl);
+        // Get the full Azure URL if it's a relative path
+        const fullUrl = getFullAzureUrl(documentUrl);
+        console.log('Fetching document from URL:', fullUrl);
+
+        const response = await fetch(fullUrl);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const blob = await response.blob();
         const dataUrl = URL.createObjectURL(blob);
         setPdfData(dataUrl);
-        
+
       } catch (error) {
         console.error("Error loading document:", error);
         setPdfData(null);
@@ -217,7 +259,7 @@ export function ViewDocumentModal({
     return (
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -257,14 +299,18 @@ export function ViewDocumentModal({
 
   const handleDownload = () => {
     const a = document.createElement("a")
-    a.href = pdfData || documentUrl
+    // Use pdfData if available, otherwise use the full Azure URL
+    a.href = pdfData || getFullAzureUrl(documentUrl)
     a.download = documentName
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
   }
 
-  const isImage = documentUrl.match(/\.(jpg|jpeg|png|gif|webp|svg|avif)$/i)
+  // Use standardized image extensions from config
+  const imageExtensions = UPLOAD_SETTINGS.FILE_TYPES.IMAGES.map(ext => ext.substring(1)).join('|')
+  const imageRegex = new RegExp(`\\.(${imageExtensions})$`, 'i')
+  const isImage = documentUrl.match(imageRegex)
 
   return (
     <AnimatePresence>
@@ -274,7 +320,7 @@ export function ViewDocumentModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent) => {
             if (e.target === e.currentTarget) onClose()
           }}
         >
@@ -427,7 +473,23 @@ export function ViewDocumentModal({
                 </Button>
               </div>
 
-              <div className="text-xs text-muted-foreground">{isImage ? "Image" : documentType.toUpperCase()} Document</div>
+              <div className="flex items-center gap-2">
+                {fileInfo && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-1" title="File information">
+                    <Info className="h-3 w-3" />
+                    {fileInfo.isLegacyFormat ? (
+                      <span>Legacy Format</span>
+                    ) : (
+                      <>
+                        <span>{fileInfo.userType || 'User'}</span>
+                        <span>•</span>
+                        <span>{fileInfo.fileType || 'File'}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground">{isImage ? "Image" : documentType?.toUpperCase() || 'Document'}</div>
+              </div>
             </div>
           </motion.div>
         </motion.div>

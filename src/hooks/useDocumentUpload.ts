@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DocumentData } from '../interfaces/Document';
 import { uploadToAzureBlob } from '../lib/azure';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface UseDocumentUploadResult {
   file: File | null;
@@ -19,9 +20,15 @@ export interface UseDocumentUploadResult {
   setIsSuccess: (value: boolean) => void;
 }
 
+export interface DocumentUploadOptions {
+  userType?: string;
+}
+
 export const useDocumentUpload = (
-  onSubmit: (document: DocumentData) => Promise<void>
+  onSubmit: (document: DocumentData) => Promise<void>,
+  options?: DocumentUploadOptions
 ): UseDocumentUploadResult => {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [category, setCategory] = useState<string>('');
   const [customDocumentType, setCustomDocumentType] = useState<string>('');
@@ -66,9 +73,18 @@ export const useDocumentUpload = (
     try {
       const documentCategory = category === 'Other' ? customDocumentType : category;
       const documentId = crypto.randomUUID();
-      
-      const blobUrl = await uploadToAzureBlob(file);
-      
+
+      // Get user information from context
+      const userID = user?.id || user?.userID;
+      const userType = options?.userType || user?.userType || 'Student';
+
+      // Upload with user context
+      const blobUrl = await uploadToAzureBlob(file, {
+        userID: userID?.toString(),
+        userType,
+        fileType: 'documents'
+      });
+
       const document: DocumentData = {
         id: documentId,
         type: documentCategory,

@@ -10,6 +10,7 @@ import { ViewDocumentModal } from "@/components/ViewDocumentModal";
 import { FileUploader } from "@/components/FileUploader";
 import { Select, Option } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StudentImage } from "@/lib/imageUtils";
 
 interface FormData {
   studentNumber: string;
@@ -191,6 +192,7 @@ export function EditStudentProfile() {
         const imageFormData = new FormData();
         imageFormData.append("image", formData.image);
         imageFormData.append("type", "student-profile");
+        imageFormData.append("userID", user.userID.toString());
 
         const uploadResponse = await fetch(
           `${import.meta.env.VITE_API_BASE_URL}/api/upload`,
@@ -543,11 +545,14 @@ export function EditStudentProfile() {
               {previewUrl && (
                 <div>
                   <div className="relative group mt-4">
-                    <img
-                      src={previewUrl}
-                      alt="Profile Preview"
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
+                    <div className="w-full h-48 overflow-hidden rounded-lg">
+                      <StudentImage
+                        src={previewUrl}
+                        alt="Profile Preview"
+                        className="w-full h-full object-cover"
+                        fallbackSrc="/student-avatar.png"
+                      />
+                    </div>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-lg">
                       <div className="flex gap-2">
                         <Button

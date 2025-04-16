@@ -2,12 +2,32 @@ import axiosInstance from './axios';
 
 interface UploadResponse {
   url: string;
+  blobPath?: string;
 }
 
-export const uploadToAzureBlob = async (file: File): Promise<string> => {
+interface UploadOptions {
+  userID?: string;
+  userType?: string;
+  fileType?: 'images' | 'documents' | 'other';
+}
+
+export const uploadToAzureBlob = async (file: File, options?: UploadOptions): Promise<string> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
+
+    // Add user information if available
+    if (options?.userID) {
+      formData.append('userID', options.userID);
+    }
+
+    if (options?.userType) {
+      formData.append('type', `${options.userType.toLowerCase()}-profile`);
+    }
+
+    if (options?.fileType) {
+      formData.append('fileType', options.fileType);
+    }
 
     // Add file size validation
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -15,9 +35,9 @@ export const uploadToAzureBlob = async (file: File): Promise<string> => {
     }
 
     // Check if we're in development mode and should use fallback immediately
-    const useFallbackImmediately = import.meta.env.DEV && 
+    const useFallbackImmediately = import.meta.env.DEV &&
                                   (import.meta.env.VITE_USE_AZURE_FALLBACK === 'true');
-    
+
     if (useFallbackImmediately) {
       console.warn('Using immediate fallback local URL for development (VITE_USE_AZURE_FALLBACK=true)');
       return generateFallbackUrl(file);
@@ -37,14 +57,14 @@ export const uploadToAzureBlob = async (file: File): Promise<string> => {
       return response.data.url;
     } catch (error: any) {
       console.error('Error uploading to Azure:', error);
-      
+
       // TEMPORARY FALLBACK: Generate a fake URL for testing purposes
       // Remove this in production!
       if (import.meta.env.DEV) {
         console.warn('Using fallback local URL for development');
         return generateFallbackUrl(file);
       }
-      
+
       if (error.response) {
         // Handle specific error responses
         const errorMessage = error.response.data?.error || error.response.data?.message || 'Server error occurred';

@@ -39,7 +39,29 @@ export const UPLOAD_SETTINGS = {
   // Maximum file size in bytes (5MB)
   MAX_FILE_SIZE: 5 * 1024 * 1024,
   // Allowed file types
-  ALLOWED_FILE_TYPES: ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'],
+  ALLOWED_FILE_TYPES: ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif', '.webp'],
+
+  // File type categories
+  FILE_TYPES: {
+    // Document file types
+    DOCUMENTS: ['.pdf', '.doc', '.docx'],
+    // Image file types
+    IMAGES: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    // All supported file types
+    ALL: ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif', '.webp']
+  },
+
+  // MIME type mapping
+  MIME_TYPES: {
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp'
+  },
 };
 
 // Environment detection

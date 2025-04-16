@@ -17,6 +17,22 @@ const firebaseMessageUtils = require("./utils/firebaseMessageUtils");
 const { database } = require("./firebase-admin");
 const getRegistrationDeclinedTemplate = require("./email-templates/registration-declined-template");
 const getPasswordResetTemplate = require("./email-templates/password-reset-template");
+const azureStorageUtils = require("./utils/azureStorageUtils");
+
+// Import the authentication middleware
+const { verifyToken, verifyAdmin } = require("./middleware/auth");
+
+// Import rate limiters
+const {
+  authLimiter,
+  registrationLimiter,
+} = require("./middleware/rateLimiter");
+
+// Import CSRF protection
+const {
+  csrfProtection,
+  csrfTokenGenerator,
+} = require("./middleware/csrfProtection");
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -52,6 +68,7 @@ const meetingRoutes = require("./routes/meetingRoutes");
 const notificationsRouter = require("./routes/notifications");
 const adminRouter = require("./routes/admin");
 const usersRouter = require("./routes/users");
+const azureRouter = require("./routes/azure");
 const NotificationSocketService = require("./services/notificationSocketService");
 const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
@@ -115,7 +132,7 @@ pool
 app.locals.pool = pool;
 
 // Then use your routes
-app.use("/api/counselors", counselorsRouter);
+// Note: We already registered counselors, companies, and students routes above
 app.use("/api/jobs", jobsRouter);
 app.use("/api/messages", messagesRouter);
 console.log("Registering meeting routes...");
@@ -125,6 +142,7 @@ console.log("Meeting routes registered.");
 
 app.use("/api/admin", adminRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/azure", azureRouter);
 
 // Initialize notification service with socket service
 app.use(
@@ -142,7 +160,7 @@ app.use(
 // **Endpoints**
 
 // Upload image to Azure Blob Storage
-app.post("/api/upload", upload.single("image"), async (req, res) => {
+app.post("/api/upload", verifyToken, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -152,21 +170,58 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       BlobServiceClient.fromConnectionString(connectionString);
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const type = req.body.type || "events";
+    // First try to get userID from the token, then from the request body
+    const userID = (req.user && req.user.id) ? req.user.id : (req.body.userID || null);
 
-    // Define the blob path based on type
+    console.log('Upload request from user:', {
+      userFromToken: req.user ? req.user.id : 'No token user',
+      userFromBody: req.body.userID || 'No body userID',
+      finalUserID: userID || 'unknown'
+    });
+
+    // Define the blob path based on type and user information
     let blobPath;
-    if (type === "student-profile") {
-      blobPath = `student-profile/images/${Date.now()}-${
-        req.file.originalname
-      }`;
+
+    // Handle profile image uploads with the new hierarchical structure
+    if (type === "student-profile" || type === "counselor-profile" || type === "company-profile") {
+      try {
+        // Extract user type from the type parameter
+        const userType = type.split('-')[0];
+        const capitalizedUserType = userType.charAt(0).toUpperCase() + userType.slice(1);
+
+        // Use the simple path generator when we don't have database access in the request
+        blobPath = azureStorageUtils.generateSimpleBlobPath({
+          userID: userID,
+          userType: capitalizedUserType,
+          fileType: 'images',
+          originalFilename: req.file.originalname
+        });
+      } catch (pathError) {
+        console.error('Error generating Azure path:', pathError);
+        // Fallback to legacy path format but maintain the hierarchical structure
+        blobPath = `${type}/${userID || 'unknown'}/images/${Date.now()}-${req.file.originalname}`;
+      }
     } else {
+      // For non-profile uploads, use the original path format
       blobPath = `${type}/${Date.now()}-${req.file.originalname}`;
     }
 
+    console.log(`Uploading file to Azure path: ${blobPath}`, {
+      type,
+      userID: userID || 'unknown',
+      filename: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
     const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
 
     await blockBlobClient.uploadData(req.file.buffer, {
       blobHTTPHeaders: { blobContentType: req.file.mimetype },
+      metadata: {
+        originalName: req.file.originalname,
+        size: req.file.size.toString(),
+        uploadedBy: userID ? userID.toString() : 'unknown'
+      }
     });
 
     // Return both imagePath and imageURL for consistency
@@ -174,6 +229,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     res.json({
       imagePath: imageURL,
       imageURL: imageURL, // For backward compatibility
+      blobPath: blobPath, // Include the blob path for reference
       success: true,
     });
   } catch (error) {
@@ -426,23 +482,10 @@ app.get("/api/counts", async (req, res) => {
   }
 });
 
-// Import the authentication middleware
-const { verifyToken, verifyAdmin } = require("./middleware/auth");
-
-// Import rate limiters
-const {
-  authLimiter,
-  registrationLimiter,
-} = require("./middleware/rateLimiter");
-
-// Import CSRF protection
-const {
-  csrfProtection,
-  csrfTokenGenerator,
-} = require("./middleware/csrfProtection");
-
 // Admin middleware (for backward compatibility)
 const requireAdmin = [verifyToken, verifyAdmin];
+
+
 
 // Admin endpoints
 app.get("/api/admin/user-counts", requireAdmin, async (req, res) => {

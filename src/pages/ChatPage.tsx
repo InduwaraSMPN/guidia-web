@@ -5,15 +5,18 @@ import { stripHtmlTags } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { ChatMessage } from "../components/ChatMessage";
+import { DateSeparator } from "../components/DateSeparator";
 import { useAuth } from "../contexts/AuthContext";
 import { useFirebase } from "../contexts/FirebaseContext";
 import { getConversationId } from "../utils/conversationUtils";
 import { getNewMessageUrl, isLegacyMessageUrl } from "../utils/messageUrlUtils";
+import { groupMessagesByDate, formatMessageTime } from "../utils/messageUtils";
 import { ref, onValue } from "firebase/database";
 import { database } from "../firebase/config";
 import axios from "axios";
 import { toast } from "../components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AzureImage, CompanyImage, CounselorImage, StudentImage } from "@/lib/imageUtils";
 
 interface Message {
   messageID: string;
@@ -304,14 +307,6 @@ export function ChatPage(): JSX.Element {
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
   if (!user) return <div>Loading...</div>;
 
   return (
@@ -342,15 +337,28 @@ export function ChatPage(): JSX.Element {
               ) : receiver ? (
                 <div className="flex items-center gap-3 flex-1 transition-opacity duration-200">
                   {receiver.image ? (
-                    <img
-                      src={receiver.image || "/placeholder.svg"}
-                      alt={receiver.name}
-                      className={`${
-                        receiver.type === "company"
-                          ? "w-10 h-8 object-contain"
-                          : "w-10 h-10 object-cover rounded-full border border-border shadow-sm"
-                      }`}
-                    />
+                    receiver.type === "company" ? (
+                      <CompanyImage
+                        src={receiver.image}
+                        alt={receiver.name}
+                        className="w-10 h-10 object-cover"
+                        fallbackSrc="/company-avatar.png"
+                      />
+                    ) : receiver.type === "counselor" ? (
+                      <CounselorImage
+                        src={receiver.image}
+                        alt={receiver.name}
+                        className="w-10 h-10 object-cover"
+                        fallbackSrc="/counselor-avatar.png"
+                      />
+                    ) : (
+                      <StudentImage
+                        src={receiver.image}
+                        alt={receiver.name}
+                        className="w-10 h-10 object-cover"
+                        fallbackSrc="/student-avatar.png"
+                      />
+                    )
                   ) : (
                     <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center shadow-sm">
                       <User className="w-5 h-5 text-muted-foreground" />
@@ -434,16 +442,25 @@ export function ChatPage(): JSX.Element {
                   </p>
                 </div>
               ) : (
-                messages.map((msg) => (
-                  <ChatMessage
-                    key={msg.messageID}
-                    message={msg.message}
-                    timestamp={formatTime(msg.timestamp)}
-                    isSender={msg.isSender}
-                    senderName={
-                      msg.isSender ? undefined : msg.senderName || receiver?.name
-                    }
-                  />
+                // Group messages by date and render with date separators
+                groupMessagesByDate(messages).map((group) => (
+                  <div key={group.date} className="space-y-3 mb-6">
+                    {/* Date separator */}
+                    <DateSeparator date={group.date} />
+
+                    {/* Messages for this date */}
+                    {group.messages.map((msg) => (
+                      <ChatMessage
+                        key={msg.messageID}
+                        message={msg.message}
+                        timestamp={formatMessageTime(msg.timestamp)}
+                        isSender={msg.isSender}
+                        senderName={msg.isSender ? undefined : msg.senderName || receiver?.name}
+                        senderImage={!msg.isSender ? msg.senderImage || receiver?.image : undefined}
+                        senderType={receiver?.type}
+                      />
+                    ))}
+                  </div>
                 ))
               )}
               <div ref={messagesEndRef} />
@@ -457,7 +474,7 @@ export function ChatPage(): JSX.Element {
               <div className="flex gap-3 items-center">
                 <div className="flex-1 relative">
                   {isTyping && (
-                    <div className="absolute -top-6 left-4 text-xs text-muted-foreground">
+                    <div className="absolute -top-6 left-4 text-xs text-muted-foreground animate-pulse">
                       {receiver?.name} is typing...
                     </div>
                   )}
@@ -469,8 +486,16 @@ export function ChatPage(): JSX.Element {
                       handleTyping();
                     }}
                     placeholder="Type a message..."
-                    className="w-full py-6 px-4 focus-visible:ring-[#800020]/30 transition-all duration-200 border-border"
+                    className="w-full py-6 px-4 focus-visible:ring-[#800020]/30 transition-all duration-200 border-border rounded-full"
                     disabled={isLoading || !receiver || !isFirebaseReady}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (message.trim() && !isSending) {
+                          handleSend(e);
+                        }
+                      }
+                    }}
                   />
                 </div>
                 <Button

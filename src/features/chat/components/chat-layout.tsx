@@ -6,6 +6,7 @@ import { ref, get } from 'firebase/database';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
 import { stripHtmlTags } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLocation } from 'react-router-dom';
 
 interface ChatLayoutProps {
   userID?: string;
@@ -17,10 +18,15 @@ export function ChatLayout({ userID }: ChatLayoutProps) {
     id: string;
     name: string;
     image?: string;
-    type: 'user' | 'company';
+    type: 'student' | 'counselor' | 'company' | 'admin';
     subtitle?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Get the user type from the URL query parameters
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const userTypeFromUrl = queryParams.get('type');
 
   // Simulate loading delay
   useEffect(() => {
@@ -59,15 +65,16 @@ export function ChatLayout({ userID }: ChatLayoutProps) {
 
         // Fetch user info using our utility function
         try {
-          const userInfo = await fetchUserInfo(otherUserId);
-          console.log(`ChatLayout: Fetched user info for ${otherUserId}:`, userInfo);
+          // If we have a user type from the URL, pass it to fetchUserInfo
+          const userInfo = await fetchUserInfo(otherUserId, userTypeFromUrl || undefined);
+          console.log(`ChatLayout: Fetched user info for ${otherUserId} with type ${userTypeFromUrl || 'auto-detected'}:`, userInfo);
 
           setReceiver({
             id: userInfo.id,
             name: userInfo.name,
             image: userInfo.image,
-            type: userInfo.type === 'company' ? 'company' : 'user',
-            subtitle: userInfo.type === 'company' && userInfo.subtitle ? stripHtmlTags(userInfo.subtitle) : userInfo.subtitle
+            type: userInfo.type, // Use the exact type from userInfo
+            subtitle: userInfo.subtitle ? stripHtmlTags(userInfo.subtitle) : undefined
           });
         } catch (fetchError) {
           console.error(`Error fetching user info for ${otherUserId}:`, fetchError);

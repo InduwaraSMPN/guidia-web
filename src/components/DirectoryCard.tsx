@@ -8,6 +8,7 @@ import { User, Mail, Phone, Calendar } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from '../contexts/AuthContext';
 import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton";
+import { AzureImage, StudentImage, CounselorImage, CompanyImage } from "@/lib/imageUtils";
 
 export interface DirectoryCardProps {
   type: "company" | "counselor" | "student"
@@ -111,13 +112,40 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
       <div className="flex items-center gap-3">
         {image ? (
           <div className="overflow-hidden flex-shrink-0 rounded-lg">
-            <motion.img
+            <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
-              src={image}
-              alt={name}
-              className="w-14 h-14 object-cover rounded-lg"
-            />
+            >
+              {type === "student" ? (
+                <StudentImage
+                  src={image}
+                  alt={name}
+                  className="w-14 h-14 object-cover"
+                  fallbackSrc="/student-avatar.png"
+                />
+              ) : type === "counselor" ? (
+                <CounselorImage
+                  src={image}
+                  alt={name}
+                  className="w-14 h-14 object-cover"
+                  fallbackSrc="/counselor-avatar.png"
+                />
+              ) : type === "company" ? (
+                <CompanyImage
+                  src={image}
+                  alt={name}
+                  className="w-14 h-14 object-cover"
+                  fallbackSrc="/company-logo.png"
+                />
+              ) : (
+                <AzureImage
+                  src={image}
+                  alt={name}
+                  className="w-14 h-14 object-cover"
+                  userType={type}
+                />
+              )}
+            </motion.div>
           </div>
         ) : (
           <div

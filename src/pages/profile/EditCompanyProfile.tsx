@@ -190,8 +190,9 @@ export function EditCompanyProfile() {
 
       if (formData.image) {
         const imageFormData = new FormData();
-        imageFormData.append('file', formData.image);
-        imageFormData.append('type', 'company-logo');
+        imageFormData.append('image', formData.image); // Changed from 'file' to 'image' to match other components
+        imageFormData.append('type', 'company-profile'); // Changed from 'company-logo' to 'company-profile' to match the expected format
+        imageFormData.append('userID', user.userID.toString());
 
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           method: 'POST',

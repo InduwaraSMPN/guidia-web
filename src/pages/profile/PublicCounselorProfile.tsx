@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton"
+import { AzureImage } from "@/lib/imageUtils"
 import {
   Mail,
   Phone,
@@ -230,10 +231,11 @@ export function PublicCounselorProfile() {
             transition={{ duration: 0.3 }}
           >
             <div className="w-32 h-32 border-4 border-background overflow-hidden rounded-lg shadow-lg">
-              <img
+              <AzureImage
                 src={profile.counselorProfileImagePath}
                 alt={profile.counselorName}
                 className="w-full h-full object-cover"
+                userType="counselor"
               />
             </div>
           </motion.div>

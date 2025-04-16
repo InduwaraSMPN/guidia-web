@@ -39,6 +39,7 @@ const handleMulterError = (err, req, res, next) => {
 const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const { BlobServiceClient } = require('@azure/storage-blob');
+const azureStorageUtils = require('../utils/azureStorageUtils');
 
 // Azure Blob Storage configuration
 // Load environment variables
@@ -161,8 +162,26 @@ router.post('/upload-document', [verifyToken, upload.single('file'), handleMulte
         });
       }
 
-      // Generate unique blob name with the new directory structure
-      const blobName = `student-profile/documents/${Date.now()}-${userID}-${file.originalname}`;
+      // Generate unique blob name with the new hierarchical structure
+      let blobName;
+      try {
+        // Use the database-connected path generator
+        blobName = await azureStorageUtils.generateAzureBlobPath({
+          userID: userID,
+          fileType: 'documents',
+          originalFilename: file.originalname,
+          pool: req.app.locals.pool || pool
+        });
+      } catch (pathError) {
+        console.error('Error generating Azure path:', pathError);
+        // Fallback to simple path generator
+        blobName = azureStorageUtils.generateSimpleBlobPath({
+          userID: userID,
+          userType: 'Student',
+          fileType: 'documents',
+          originalFilename: file.originalname
+        });
+      }
 
       // Get block blob client
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);

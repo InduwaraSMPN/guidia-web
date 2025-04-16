@@ -279,6 +279,7 @@ export function WelcomeEditCompanyProfile() {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
         imageFormData.append('type', 'company-profile');
+        imageFormData.append('userID', user?.userID?.toString() || '');
 
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           headers: {

@@ -40,8 +40,16 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       companyLogoPath
     } = req.body;
 
+    console.log('Company profile creation request:', {
+      userID,
+      companyName,
+      companyEmail,
+      requestUser: req.user ? req.user.id : 'No user in token'
+    });
+
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
+      console.error('User ID mismatch:', { tokenUserId: req.user.id, requestUserId: userID });
       return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
@@ -53,7 +61,10 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       [userID]
     );
 
+    console.log('Existing company check result:', { count: existing.length, userID });
+
     if (existing.length > 0) {
+      console.log('Company profile already exists for user:', userID);
       return res.status(400).json({
         error: 'Company profile already exists'
       });
@@ -86,17 +97,41 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       companyLogoPath
     ];
 
-    await pool.execute(insertQuery, values);
+    console.log('Executing company profile insert with values:', {
+      userID,
+      companyName,
+      companyEmail
+    });
+
+    const [result] = await pool.execute(insertQuery, values);
+
+    console.log('Company profile insert result:', {
+      insertId: result.insertId,
+      affectedRows: result.affectedRows
+    });
+
+    // Verify the profile was created by querying it back
+    const [newProfile] = await pool.execute(
+      'SELECT companyID FROM companies WHERE userID = ?',
+      [userID]
+    );
+
+    console.log('Verification query result:', {
+      found: newProfile.length > 0,
+      companyID: newProfile.length > 0 ? newProfile[0].companyID : null
+    });
 
     res.status(201).json({
       success: true,
-      message: 'Profile created successfully'
+      message: 'Profile created successfully',
+      companyID: newProfile.length > 0 ? newProfile[0].companyID : null
     });
 
   } catch (error) {
     console.error('Error creating company profile:', error);
     res.status(500).json({
-      error: 'Failed to create profile'
+      error: 'Failed to create profile',
+      details: error.message
     });
   }
 });

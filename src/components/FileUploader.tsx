@@ -1,33 +1,43 @@
 import { useState, useRef } from 'react';
 import { Upload } from 'lucide-react';
+import { getFileTypeFromMimeType } from '../lib/azureUtils';
+import { UPLOAD_SETTINGS } from '../config';
 
 interface FileUploaderProps {
-  acceptType: 'pdf' | 'image';
+  acceptType: 'pdf' | 'image' | 'document' | 'any';
   label: string;
-  onUpload: (files: File[]) => void;
+  onUpload: (files: File[], fileTypes?: string[]) => void;
   selectedFile?: File | null;
   multiple?: boolean;
   onRemove?: (index: number) => void;
+  userID?: string;
+  userType?: string;
 }
 
-export function FileUploader({ 
-  acceptType, 
-  label, 
-  onUpload, 
-  selectedFile,
-  multiple = false 
+export function FileUploader({
+  acceptType,
+  label,
+  onUpload,
+  selectedFile, // Kept for backward compatibility
+  multiple = false,
+  userID, // Will be used in future implementations
+  userType // Will be used in future implementations
 }: FileUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const validImageExtensions = [
-    '.apng', '.png', '.avif', '.gif', '.jpg', '.jpeg',
-    '.jfif', '.pjpeg', '.pjp', '.png', '.svg', '.webp'
-  ];
+  // Use standardized file types from config
+  const validImageExtensions = UPLOAD_SETTINGS.FILE_TYPES.IMAGES;
+  const validDocumentExtensions = UPLOAD_SETTINGS.FILE_TYPES.DOCUMENTS;
+  const allValidExtensions = UPLOAD_SETTINGS.FILE_TYPES.ALL;
 
-  const hasValidExtension = (filename: string) => {
+  const hasValidExtension = (filename: string, type: 'pdf' | 'image' | 'document' | 'any' = 'image') => {
     const ext = '.' + filename.split('.').pop()?.toLowerCase();
+
+    if (type === 'any') return true;
+    if (type === 'pdf') return ext === '.pdf';
+    if (type === 'document') return validDocumentExtensions.includes(ext);
     return validImageExtensions.includes(ext);
   };
 
@@ -35,15 +45,28 @@ export function FileUploader({
     if (acceptType === 'pdf') {
       return file.type === "application/pdf";
     } else if (acceptType === 'image') {
-      return hasValidExtension(file.name);
+      return hasValidExtension(file.name, 'image');
+    } else if (acceptType === 'document') {
+      return hasValidExtension(file.name, 'document');
+    } else if (acceptType === 'any') {
+      return true;
     }
     return false;
+  };
+
+  // Get Azure file type category based on file MIME type
+  const getAzureFileType = (file: File): string => {
+    return getFileTypeFromMimeType(file.type);
   };
 
   const handleFiles = (files: FileList) => {
     const validFiles = Array.from(files).filter(isValidFile);
     if (validFiles.length > 0) {
-      onUpload(multiple ? validFiles : [validFiles[0]]);
+      // Get Azure file types for each file
+      const fileTypes = validFiles.map(file => getAzureFileType(file));
+
+      // Pass both files and their Azure file types to the onUpload handler
+      onUpload(multiple ? validFiles : [validFiles[0]], fileTypes);
       setErrorMessage(false);
     } else {
       setErrorMessage(true);
@@ -77,7 +100,24 @@ export function FileUploader({
     fileInputRef.current?.click();
   };
 
-  const acceptValue = acceptType === 'pdf' ? '.pdf' : '.apng,.png,.avif,.gif,.jpg,.jpeg,.jfif,.pjpeg,.pjp,.png,.svg,.webp';
+  // Determine the accept attribute value based on acceptType
+  let acceptValue = '';
+  switch (acceptType) {
+    case 'pdf':
+      acceptValue = '.pdf';
+      break;
+    case 'image':
+      acceptValue = validImageExtensions.join(',');
+      break;
+    case 'document':
+      acceptValue = validDocumentExtensions.join(',');
+      break;
+    case 'any':
+      acceptValue = allValidExtensions.join(',');
+      break;
+    default:
+      acceptValue = validImageExtensions.join(',');
+  }
 
   return (
     <div
@@ -104,7 +144,12 @@ export function FileUploader({
           Click or drag {multiple ? 'files' : 'file'} to this area to upload your {label}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Please make sure to upload {acceptType === 'pdf' ? 'a PDF' : 'a supported image format (JPG, PNG, GIF, etc)'}
+          Please make sure to upload {
+            acceptType === 'pdf' ? 'a PDF' :
+            acceptType === 'image' ? 'a supported image format (JPG, PNG, GIF, etc)' :
+            acceptType === 'document' ? 'a document file (PDF, DOC, DOCX, etc)' :
+            'a valid file'
+          }
         </p>
         {errorMessage && (
           <p className="text-red-500 text-sm mt-1">

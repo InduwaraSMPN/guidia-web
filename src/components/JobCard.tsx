@@ -10,6 +10,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../contexts/AuthContext"
 import axiosInstance from "@/lib/axios"
 import { toast } from "sonner"
+import { CompanyImage } from "@/lib/imageUtils"
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
@@ -154,10 +155,11 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
               className="relative"
             >
               {job.logo ? (
-                <img
-                  src={job.logo || "/placeholder.svg"}
+                <CompanyImage
+                  src={job.logo}
                   alt={job.company}
                   className="w-16 h-16 object-contain rounded-lg border border-border p-1 bg-card"
+                  fallbackSrc="/placeholder.svg"
                 />
               ) : (
                 <div className="w-16 h-16 bg-secondary rounded-lg flex items-center justify-center border border-border">

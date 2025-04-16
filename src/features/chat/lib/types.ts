@@ -15,4 +15,5 @@ export interface Chat {
   timestamp: string;
   unread: number;
   avatar?: string;
+  type?: 'student' | 'counselor' | 'company' | 'admin';
 }

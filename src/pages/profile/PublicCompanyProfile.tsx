@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton";
+import { AzureImage, CompanyImage } from "@/lib/imageUtils";
 import {
   Building2,
   Mail,
@@ -311,13 +312,11 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           >
             <div className="w-32 h-32 border-4 border-background overflow-hidden rounded-lg shadow-lg">
               {companyData.companyLogoPath ? (
-                <img
+                <CompanyImage
                   src={companyData.companyLogoPath}
                   alt={companyData.companyName}
                   className="w-full h-full object-cover rounded-lg"
-                  onError={(e) => {
-                    e.currentTarget.src = "/default-company-logo.png";
-                  }}
+                  fallbackSrc="/default-company-logo.png"
                 />
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">

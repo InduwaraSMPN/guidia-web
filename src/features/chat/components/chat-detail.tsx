@@ -11,6 +11,7 @@ import { useParams } from 'react-router-dom';
 import { getOrCreateConversation } from '@/utils/getOrCreateConversation';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AzureImage, CompanyImage, StudentImage, CounselorImage } from '@/lib/imageUtils';
 
 interface ChatDetailProps {
   chatId: string;
@@ -19,7 +20,7 @@ interface ChatDetailProps {
     id: string;
     name: string;
     image?: string;
-    type: 'user' | 'company';
+    type: 'student' | 'counselor' | 'company' | 'admin';
     subtitle?: string;
   };
 }
@@ -219,15 +220,39 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
         ) : (
           <div className="flex items-center gap-3 flex-1">
             {receiver?.image ? (
-              <img
-                src={receiver.image}
-                alt={receiver.name}
-                className={`${
-                  receiver.type === 'company'
-                    ? 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
-                    : 'w-10 h-10 object-cover rounded-full border border-border shadow-sm'
-                }`}
-              />
+              receiver.type === 'company' ? (
+                <CompanyImage
+                  src={receiver.image}
+                  alt={receiver.name}
+                  className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
+                  fallbackSrc="/company-avatar.png"
+                />
+              ) : receiver.type === 'counselor' ? (
+                <img
+                  src={receiver.image.startsWith('blob:') ? receiver.image : `https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/${receiver.image}`}
+                  alt={receiver.name}
+                  className="w-10 h-10 object-cover rounded-full border border-border shadow-sm"
+                  onError={(e) => {
+                    console.log('Counselor header image error, setting fallback:', receiver.image);
+                    e.currentTarget.src = `${window.location.origin}/counselor-avatar.png`;
+                  }}
+                />
+              ) : receiver.type === 'student' ? (
+                <StudentImage
+                  src={receiver.image}
+                  alt={receiver.name}
+                  className="w-10 h-10 object-cover"
+                  fallbackSrc="/student-avatar.png"
+                />
+              ) : (
+                <AzureImage
+                  src={receiver.image}
+                  alt={receiver.name}
+                  className="w-10 h-10 object-cover"
+                  rounded={true}
+                  userType={receiver.type}
+                />
+              )
             ) : (
               <div className="w-10 h-10 bg-secondary-light rounded-full flex items-center justify-center">
                 <User className="w-5 h-5 text-muted-foreground" />
@@ -315,6 +340,7 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
                     message={message}
                     receiverImage={receiverInfo?.image}
                     receiverName={receiverInfo?.name}
+                    receiverType={receiverInfo?.type}
                   />
                 ))}
               </div>
@@ -365,9 +391,10 @@ interface MessageBubbleProps {
   message: Message;
   receiverImage?: string;
   receiverName?: string;
+  receiverType?: 'student' | 'counselor' | 'company' | 'admin';
 }
 
-function MessageBubble({ message, receiverImage, receiverName }: MessageBubbleProps) {
+function MessageBubble({ message, receiverImage, receiverName, receiverType = 'student' }: MessageBubbleProps) {
   // Debug message content
   console.log('Rendering message bubble:', message);
 
@@ -382,7 +409,39 @@ function MessageBubble({ message, receiverImage, receiverName }: MessageBubblePr
       {!message.isCurrentUser && (
         <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-secondary-dark">
           {receiverImage ? (
-            <img src={receiverImage} alt="Sender" className="h-full w-full object-cover" />
+            receiverType === 'company' ? (
+              <CompanyImage
+                src={receiverImage}
+                alt="Sender"
+                className="h-full w-full object-cover"
+                fallbackSrc="/company-avatar.png"
+              />
+            ) : receiverType === 'counselor' ? (
+              <img
+                src={receiverImage.startsWith('blob:') ? receiverImage : `https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/${receiverImage}`}
+                alt="Sender"
+                className="h-full w-full object-cover rounded-full"
+                onError={(e) => {
+                  console.log('Counselor image error, setting fallback:', receiverImage);
+                  e.currentTarget.src = `${window.location.origin}/counselor-avatar.png`;
+                }}
+              />
+            ) : receiverType === 'student' ? (
+              <StudentImage
+                src={receiverImage}
+                alt="Sender"
+                className="h-full w-full object-cover"
+                fallbackSrc="/student-avatar.png"
+              />
+            ) : (
+              <AzureImage
+                src={receiverImage}
+                alt="Sender"
+                className="h-full w-full object-cover"
+                rounded={true}
+                userType={receiverType}
+              />
+            )
           ) : (
             <span className="text-sm font-medium">{(receiverName || 'U').charAt(0)}</span>
           )}

@@ -10,6 +10,7 @@ import { ViewDocumentModal } from '@/components/ViewDocumentModal';
 import { FileText, Trash2, LoaderCircle, X, Plus } from 'lucide-react';
 import { MultipleInput } from '@/components/ui/MultipleInput';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AzureImage } from '@/lib/imageUtils';
 
 interface FormData {
   counselorName: string;
@@ -165,6 +166,7 @@ export function EditCounselorProfile() {
         const imageFormData = new FormData();
         imageFormData.append('image', formData.image);
         imageFormData.append('type', 'counselor-profile');
+        imageFormData.append('userID', user.userID.toString());
 
         const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
           method: 'POST',
@@ -516,10 +518,11 @@ export function EditCounselorProfile() {
             {previewUrl && (
               <div>
                 <div className="relative group mt-4">
-                  <img
+                  <AzureImage
                     src={previewUrl}
                     alt="Profile Preview"
                     className="w-full h-48 object-cover rounded-lg"
+                    userType="counselor"
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-lg">
                     <div className="flex gap-2">

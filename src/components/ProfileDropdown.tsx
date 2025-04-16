@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext"
 import { User, LogOut, Settings, Edit, Clock } from "lucide-react"
 import { format } from "date-fns"
 import ThemeToggle from "./ThemeToggle"
+import { AzureImage, StudentImage, CounselorImage, CompanyImage } from "@/lib/imageUtils"
 
 interface ProfileData {
   studentProfileImagePath?: string;
@@ -245,22 +246,53 @@ export function ProfileDropdown() {
     }
 
     if (profileData) {
-      const imagePath =
-        profileData.studentProfileImagePath ||
-        profileData.counselorProfileImagePath ||
-        profileData.companyLogoPath
+      // For admin users, just show the default avatar or user icon
+      if (user?.userType === 'Admin') {
+        return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />
+      }
 
-      if (imagePath) {
-        return (
-          <img
-            src={imagePath}
-            alt={getUserName()}
-            className={`${size} object-cover rounded-full`}
-            onError={(e) => {
-              e.currentTarget.src = "/default-avatar.png"
-            }}
-          />
-        )
+      // Use specialized image components based on user type
+      switch (user?.userType) {
+        case "Student":
+          return (
+            <StudentImage
+              profileData={profileData}
+              alt={getUserName()}
+              className={`${size} object-cover`}
+              fallbackSrc="/student-avatar.png"
+            />
+          )
+        case "Counselor":
+          return (
+            <CounselorImage
+              profileData={profileData}
+              alt={getUserName()}
+              className={`${size} object-cover`}
+              fallbackSrc="/counselor-avatar.png"
+            />
+          )
+        case "Company":
+          return (
+            <CompanyImage
+              profileData={profileData}
+              alt={getUserName()}
+              className={`${size} object-cover`}
+              fallbackSrc="/company-logo.png"
+            />
+          )
+        default:
+          // Fallback to generic AzureImage
+          const userType = user?.userType?.toLowerCase() as 'student' | 'counselor' | 'company';
+          return (
+            <AzureImage
+              profileData={profileData}
+              userType={userType}
+              alt={getUserName()}
+              className={`${size} object-cover`}
+              rounded={true}
+              fallbackSrc="/default-avatar.png"
+            />
+          )
       }
     }
 

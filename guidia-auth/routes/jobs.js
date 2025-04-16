@@ -4,6 +4,7 @@ const multer = require('multer');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const upload = multer({ storage: multer.memoryStorage() });
 const { verifyToken } = require('../middleware/auth');
+const azureStorageUtils = require('../utils/azureStorageUtils');
 
 // Azure Blob Storage configuration
 const connectionString = "DefaultEndpointsProtocol=https;AccountName=guidiacloudstorage;AccountKey=O1AMjCDj5kqvF7CdRPo+UUED/DgYeKAUdZRdjnQPMLIgcipbOqLl1e0vB660vG8F3B2KDEtHbH2s+AStRlTpQA==;EndpointSuffix=core.windows.net";
@@ -349,7 +350,41 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
     // Upload resume to Azure Blob Storage
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
     const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blobName = `resumes/${Date.now()}-${req.file.originalname}`;
+
+    // Generate blob path using the new hierarchical structure
+    let blobName;
+    try {
+      // First try to get the user's role from the database
+      const [userRole] = await pool.execute(
+        'SELECT u.roleID, r.roleName FROM users u JOIN roles r ON u.roleID = r.roleID WHERE u.userID = ?',
+        [studentID]
+      );
+
+      if (userRole.length > 0) {
+        // Use the database-connected path generator
+        blobName = await azureStorageUtils.generateAzureBlobPath({
+          userID: studentID,
+          roleID: userRole[0].roleID,
+          fileType: 'documents',
+          originalFilename: req.file.originalname,
+          pool: pool
+        });
+      } else {
+        // Fallback to simple path generator
+        blobName = azureStorageUtils.generateSimpleBlobPath({
+          userID: studentID,
+          userType: 'Student',
+          fileType: 'documents',
+          originalFilename: req.file.originalname
+        });
+      }
+    } catch (pathError) {
+      console.error('Error generating Azure path:', pathError);
+      // Fallback to legacy path format
+      blobName = `resumes/${Date.now()}-${req.file.originalname}`;
+    }
+
+    console.log(`Uploading resume to Azure path: ${blobName}`);
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
     await blockBlobClient.uploadData(req.file.buffer, {

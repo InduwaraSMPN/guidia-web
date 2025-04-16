@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { StudentImage } from "@/lib/imageUtils"
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -195,11 +196,11 @@ export function PublicStudentProfile() {
             transition={{ duration: 0.3 }}
           >
             <div className="w-32 h-32 border-4 border-background overflow-hidden rounded-lg shadow-lg">
-              <img
-                src={studentData.studentProfileImagePath || "/default-avatar.png"}
+              <StudentImage
+                src={studentData.studentProfileImagePath}
                 alt={studentData.studentName}
                 className="w-full h-full object-cover"
-                onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
+                fallbackSrc="/student-avatar.png"
               />
             </div>
           </motion.div>

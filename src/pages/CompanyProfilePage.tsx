@@ -9,6 +9,7 @@ import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
 import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AzureImage, CompanyImage } from "@/lib/imageUtils"
 
 interface Job {
   jobID: number
@@ -204,10 +205,11 @@ export function CompanyProfilePage() {
               {/* Company Logo */}
               <div className="w-48 h-48 flex-shrink-0 -mt-16 relative z-10 bg-white p-2 rounded-lg shadow-md border border-border">
                 {companyData.companyLogoPath ? (
-                  <img
-                    src={companyData.companyLogoPath || "/placeholder.svg"}
+                  <CompanyImage
+                    src={companyData.companyLogoPath}
                     alt={companyData.companyName}
                     className="w-full h-full object-contain rounded-lg"
+                    fallbackSrc="/placeholder.svg"
                   />
                 ) : (
                   <div className="w-full h-full bg-secondary-light rounded-lg flex items-center justify-center">

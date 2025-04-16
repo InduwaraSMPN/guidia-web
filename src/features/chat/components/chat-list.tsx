@@ -8,6 +8,7 @@ import { ref, onValue } from 'firebase/database';
 import { Loader2, User } from 'lucide-react';
 import { fetchUserInfo } from '@/utils/fetchUserInfo';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AzureImage, CompanyImage, StudentImage, CounselorImage } from '@/lib/imageUtils';
 
 interface ChatListProps {
   onSelectChat: (chatId: string) => void;
@@ -140,6 +141,7 @@ export function ChatList({ onSelectChat, selectedChat, userID }: ChatListProps) 
               timestamp: lastMessageObj.timestamp ? new Date(lastMessageObj.timestamp).toISOString() : new Date().toISOString(),
               unread: unreadCount,
               avatar: userInfo.image,
+              type: userInfo.type,
             };
           } catch (error) {
             console.error(`Error fetching user info for ${otherUserId}:`, error);
@@ -269,7 +271,13 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
       <div className="relative">
         <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
           {chat.avatar ? (
-            <img src={chat.avatar} alt={chat.name} className="h-full w-full object-cover" />
+            <AzureImage
+              src={chat.avatar}
+              alt={chat.name}
+              className="h-full w-full object-cover"
+              rounded={true}
+              userType={chat.type || 'student'}
+            />
           ) : (
             <span className="text-lg font-medium">{chat.name.charAt(0)}</span>
           )}

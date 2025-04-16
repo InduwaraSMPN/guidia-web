@@ -22,6 +22,7 @@ import axiosInstance from "@/lib/axios"
 import { format } from "date-fns"
 import { motion } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
+import { StudentImage } from "@/lib/imageUtils"
 
 interface JobApplication {
   applicationID: number
@@ -271,10 +272,11 @@ export function StudentProfilePage() {
                   className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-md transition-transform hover:scale-105 duration-300 absolute -top-20 md:-top-24"
                   aria-hidden="true"
                 >
-                  <img
-                    src={studentData.studentProfileImagePath || "/placeholder.svg?height=160&width=160"}
-                    alt=""
+                  <StudentImage
+                    src={studentData.studentProfileImagePath}
+                    alt={studentData.studentName || "Student profile image"}
                     className="w-full h-full object-cover"
+                    fallbackSrc="/student-avatar.png"
                   />
                 </div>
                 <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-16 md:mt-20 text-center w-full rounded-lg shadow-sm">

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getFullAzureUrl } from '@/lib/azureUtils';
 
 /**
  * User information interface
@@ -30,13 +31,24 @@ export async function fetchUserInfo(userId: string, userType?: string): Promise<
     // Determine the endpoint based on user type or try to infer it
     let endpoint = '';
 
+    // Log the user type for debugging
+    console.log('fetchUserInfo - Processing user type:', {
+      userType,
+      userId,
+      typeIsString: typeof userType === 'string',
+      typeAfterLowerCase: userType ? userType.toLowerCase() : null
+    });
+
     if (userType) {
       // If user type is provided, use it directly
       const type = userType.toLowerCase();
+      console.log('fetchUserInfo - User type provided:', { type });
+
       if (type === 'student' || type === 'students') {
         endpoint = `/api/students/profile/${userId}`;
       } else if (type === 'counselor' || type === 'counselors') {
         endpoint = `/api/counselors/profile/${userId}`;
+        console.log('fetchUserInfo - Using counselor endpoint:', { endpoint, userId });
       } else if (type === 'company' || type === 'companies') {
         endpoint = `/api/companies/profile/${userId}`;
       } else if (type === 'admin') {
@@ -87,10 +99,12 @@ export async function fetchUserInfo(userId: string, userType?: string): Promise<
     const data = response.data as any;
 
     // Map the API response to our UserInfo interface
+    const imagePath = data.studentProfileImagePath || data.counselorProfileImagePath || data.companyLogoPath;
+
     return {
       id: userId,
       name: data.studentName || data.counselorName || data.companyName || `User ${userId}`,
-      image: data.studentProfileImagePath || data.counselorProfileImagePath || data.companyLogoPath,
+      image: imagePath, // We'll handle the full URL conversion in the components
       type: data.studentName ? 'student' : data.counselorName ? 'counselor' : 'company',
       subtitle: data.studentLevel || data.counselorPosition || data.companyDescription || ''
     };
@@ -148,10 +162,12 @@ async function tryAllEndpoints(userId: string, token: string): Promise<UserInfo>
         else if (data.companyName) type = 'company';
         else continue; // Skip if no name field is found
 
+        const imagePath = data.studentProfileImagePath || data.counselorProfileImagePath || data.companyLogoPath;
+
         return {
           id: userId,
           name: data.studentName || data.counselorName || data.companyName,
-          image: data.studentProfileImagePath || data.counselorProfileImagePath || data.companyLogoPath,
+          image: imagePath, // We'll handle the full URL conversion in the components
           type,
           subtitle: data.studentLevel || data.counselorPosition || data.companyDescription || ''
         };
