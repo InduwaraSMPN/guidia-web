@@ -52,7 +52,6 @@ const meetingRoutes = require("./routes/meetingRoutes");
 const notificationsRouter = require("./routes/notifications");
 const adminRouter = require("./routes/admin");
 const usersRouter = require("./routes/users");
-const testRoutes = require("./routes/testRoutes");
 const NotificationSocketService = require("./services/notificationSocketService");
 const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
@@ -123,10 +122,6 @@ console.log("Registering meeting routes...");
 app.use("/api/meeting", meetingRoutes);
 console.log("Meeting routes registered.");
 
-// Register test routes
-console.log("Registering test routes...");
-app.use("/api/test", testRoutes);
-console.log("Test routes registered.");
 
 app.use("/api/admin", adminRouter);
 app.use("/api/users", usersRouter);
