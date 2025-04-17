@@ -196,7 +196,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Meetings by Status</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -235,7 +235,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Meetings by Type</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -282,7 +282,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <BarChart3 className="h-4 w-4 text-brand" />
                   <span>Busiest Days of the Week</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={meetingStats.busiestDays}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -314,7 +314,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <Clock className="h-4 w-4 text-brand" />
                   <span>Busiest Hours of the Day</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={formattedBusiestHours}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

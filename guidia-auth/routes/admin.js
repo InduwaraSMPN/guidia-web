@@ -850,12 +850,14 @@ router.get(
       const [totalViews] = await pool.execute(
         "SELECT COUNT(*) as count FROM job_views"
       );
-      const conversionRate =
-        totalViews[0].count > 0
-          ? ((totalApplications[0].count / totalViews[0].count) * 100).toFixed(
-              2
-            )
-          : 0;
+
+      // Calculate conversion rate and ensure it's a reasonable value (cap at 100%)
+      let conversionRate = 0;
+      if (totalViews[0].count > 0) {
+        // Calculate as applications / views, capped at 1.0 (100%)
+        const rawRate = Math.min(totalApplications[0].count / totalViews[0].count, 1.0);
+        conversionRate = (rawRate * 100).toFixed(2);
+      }
 
       const appStats = {
         totalApplications: totalApplications[0].count,
@@ -1014,70 +1016,83 @@ router.get("/user-activity", verifyToken, verifyAdmin, async (req, res) => {
       [thirtyDaysAgoFormatted]
     );
 
-    // Get profile completion rates
-    // This is a simplified example - you might need to adjust based on your actual schema
+    // Get profile completion rates with improved checks for meaningful content
+    // Get individual student profile completion rates
     const [studentProfiles] = await pool.execute(`
       SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN studentProfileImagePath IS NOT NULL THEN 1 ELSE 0 END) as withProfileImage,
-        SUM(CASE WHEN studentDescription IS NOT NULL THEN 1 ELSE 0 END) as withDescription,
-        SUM(CASE WHEN studentCareerPathways IS NOT NULL THEN 1 ELSE 0 END) as withCareerPathways,
-        SUM(CASE WHEN studentDocuments IS NOT NULL THEN 1 ELSE 0 END) as withDocuments
+        studentID,
+        CASE WHEN studentProfileImagePath IS NOT NULL AND studentProfileImagePath != '' THEN 1 ELSE 0 END as hasProfileImage,
+        CASE WHEN studentDescription IS NOT NULL AND studentDescription != '' THEN 1 ELSE 0 END as hasDescription,
+        CASE WHEN studentCareerPathways IS NOT NULL AND studentCareerPathways != '' AND studentCareerPathways != '[]' THEN 1 ELSE 0 END as hasCareerPathways,
+        CASE WHEN studentDocuments IS NOT NULL AND studentDocuments != '' AND studentDocuments != '[]' THEN 1 ELSE 0 END as hasDocuments
       FROM students
     `);
 
+    // Get individual counselor profile completion rates
     const [counselorProfiles] = await pool.execute(`
       SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN counselorProfileImagePath IS NOT NULL THEN 1 ELSE 0 END) as withProfileImage,
-        SUM(CASE WHEN counselorDescription IS NOT NULL THEN 1 ELSE 0 END) as withDescription,
-        SUM(CASE WHEN counselorSpecializations IS NOT NULL THEN 1 ELSE 0 END) as withSpecializations
+        counselorID,
+        CASE WHEN counselorProfileImagePath IS NOT NULL AND counselorProfileImagePath != '' THEN 1 ELSE 0 END as hasProfileImage,
+        CASE WHEN counselorDescription IS NOT NULL AND counselorDescription != '' THEN 1 ELSE 0 END as hasDescription,
+        CASE WHEN counselorSpecializations IS NOT NULL AND counselorSpecializations != '' AND counselorSpecializations != '[]' THEN 1 ELSE 0 END as hasSpecializations
       FROM counselors
     `);
 
+    // Get individual company profile completion rates
     const [companyProfiles] = await pool.execute(`
       SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN companyLogoPath IS NOT NULL THEN 1 ELSE 0 END) as withLogo,
-        SUM(CASE WHEN companyDescription IS NOT NULL THEN 1 ELSE 0 END) as withDescription,
-        SUM(CASE WHEN companyWebsite IS NOT NULL THEN 1 ELSE 0 END) as withWebsite
+        companyID,
+        CASE WHEN companyLogoPath IS NOT NULL AND companyLogoPath != '' THEN 1 ELSE 0 END as hasLogo,
+        CASE WHEN companyDescription IS NOT NULL AND companyDescription != '' THEN 1 ELSE 0 END as hasDescription,
+        CASE WHEN companyWebsite IS NOT NULL AND companyWebsite != '' THEN 1 ELSE 0 END as hasWebsite
       FROM companies
     `);
 
-    // Calculate completion percentages
-    const studentCompletionRate =
-      studentProfiles[0].total > 0
-        ? (
-            ((studentProfiles[0].withProfileImage +
-              studentProfiles[0].withDescription +
-              studentProfiles[0].withCareerPathways +
-              studentProfiles[0].withDocuments) /
-              (studentProfiles[0].total * 4)) *
-            100
-          ).toFixed(1)
-        : 0;
+    // Calculate individual completion percentages and then average them
+    // Calculate student completion rate
+    let studentCompletionRate = 0;
+    if (studentProfiles.length > 0) {
+      // Calculate completion percentage for each student
+      const studentCompletions = studentProfiles.map(student => {
+        const completedFields = student.hasProfileImage + student.hasDescription +
+                               student.hasCareerPathways + student.hasDocuments;
+        return (completedFields / 4) * 100; // 4 is the total number of fields we check
+      });
 
-    const counselorCompletionRate =
-      counselorProfiles[0].total > 0
-        ? (
-            ((counselorProfiles[0].withProfileImage +
-              counselorProfiles[0].withDescription +
-              counselorProfiles[0].withSpecializations) /
-              (counselorProfiles[0].total * 3)) *
-            100
-          ).toFixed(1)
-        : 0;
+      // Calculate the average completion percentage
+      const totalCompletion = studentCompletions.reduce((sum, percentage) => sum + percentage, 0);
+      studentCompletionRate = (totalCompletion / studentProfiles.length).toFixed(1);
+    }
 
-    const companyCompletionRate =
-      companyProfiles[0].total > 0
-        ? (
-            ((companyProfiles[0].withLogo +
-              companyProfiles[0].withDescription +
-              companyProfiles[0].withWebsite) /
-              (companyProfiles[0].total * 3)) *
-            100
-          ).toFixed(1)
-        : 0;
+    // Calculate counselor completion rate
+    let counselorCompletionRate = 0;
+    if (counselorProfiles.length > 0) {
+      // Calculate completion percentage for each counselor
+      const counselorCompletions = counselorProfiles.map(counselor => {
+        const completedFields = counselor.hasProfileImage + counselor.hasDescription +
+                                counselor.hasSpecializations;
+        return (completedFields / 3) * 100; // 3 is the total number of fields we check
+      });
+
+      // Calculate the average completion percentage
+      const totalCompletion = counselorCompletions.reduce((sum, percentage) => sum + percentage, 0);
+      counselorCompletionRate = (totalCompletion / counselorProfiles.length).toFixed(1);
+    }
+
+    // Calculate company completion rate
+    let companyCompletionRate = 0;
+    if (companyProfiles.length > 0) {
+      // Calculate completion percentage for each company
+      const companyCompletions = companyProfiles.map(company => {
+        const completedFields = company.hasLogo + company.hasDescription +
+                               company.hasWebsite;
+        return (completedFields / 3) * 100; // 3 is the total number of fields we check
+      });
+
+      // Calculate the average completion percentage
+      const totalCompletion = companyCompletions.reduce((sum, percentage) => sum + percentage, 0);
+      companyCompletionRate = (totalCompletion / companyProfiles.length).toFixed(1);
+    }
 
     res.json({
       newUsers7Days: newUsers7Days[0].count,

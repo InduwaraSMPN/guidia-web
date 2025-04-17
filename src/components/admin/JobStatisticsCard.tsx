@@ -137,7 +137,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
             value="trends"
             className="space-y-6 animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
           >
-            <div className="h-80">
+            <div className="h-96 mb-8 pb-8">
               <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-brand" />
                 <span>Job Posting Trend (Last 30 Days)</span>
@@ -171,7 +171,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
               </ResponsiveContainer>
             </div>
 
-            <div className="h-80">
+            <div className="h-96 mb-8 pb-8">
               <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                 <Eye className="h-4 w-4 text-brand" />
                 <span>Job Views Trend (Last 30 Days)</span>
@@ -214,7 +214,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
               <Eye className="h-4 w-4 text-brand" />
               <span>Most Viewed Jobs</span>
             </h3>
-            <div className="h-80 mb-6">
+            <div className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.mostViewedJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -283,7 +283,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
               <Eye className="h-4 w-4 text-brand" />
               <span>Least Viewed Jobs</span>
             </h3>
-            <div className="h-80 mb-6">
+            <div className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.leastViewedJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -346,7 +346,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
               <FileText className="h-4 w-4 text-brand" />
               <span>Jobs with Most Applications</span>
             </h3>
-            <div className="h-80 mb-6">
+            <div className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.mostApplicationJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -415,7 +415,7 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
               <FileText className="h-4 w-4 text-brand" />
               <span>Jobs with Least Applications</span>
             </h3>
-            <div className="h-80 mb-6">
+            <div className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.leastApplicationJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

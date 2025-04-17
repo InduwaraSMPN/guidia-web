@@ -354,7 +354,7 @@ export function MeetingAvailabilitySettings() {
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form className="space-y-6">
             <div className="space-y-4">
               {fields.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
@@ -533,7 +533,7 @@ export function MeetingAvailabilitySettings() {
                 type="button"
                 variant="outline"
                 onClick={addAvailabilitySlot}
-                className="w-full h-12 border-dashed hover:border-primary hover:bg-primary/5 transition-colors"
+                className="w-full h-12 border-dashed hover:border-primary"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Availability Slot
@@ -542,8 +542,22 @@ export function MeetingAvailabilitySettings() {
 
             <CardFooter className="px-0 pt-6 pb-0 flex flex-col sm:flex-row gap-4 justify-end">
               <Button
-                type="submit"
-                disabled={isSaving || (!form.formState.isDirty && !isFirstTimeSetup)}
+                type="button"
+                onClick={(e) => {
+                  if (!form.formState.isDirty && !isFirstTimeSetup) {
+                    // Show toast message when trying to save without changes
+                    e.preventDefault();
+                    toast({
+                      title: "No Changes Detected",
+                      description: "Please make changes first to update availability settings",
+                      variant: "default"
+                    });
+                  } else {
+                    // Submit the form if there are changes
+                    form.handleSubmit(onSubmit)(e);
+                  }
+                }}
+                disabled={isSaving}
                 className="w-full sm:w-auto min-w-[120px]"
               >
                 {isSaving ? (

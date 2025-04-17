@@ -160,7 +160,7 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
               <TrendingUp className="h-4 w-4 text-brand" />
               <span>Message Trend (Last 30 Days)</span>
             </h3>
-            <div className="h-80">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedTrendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -199,7 +199,7 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
               <Clock className="h-4 w-4 text-brand" />
               <span>Weekly Message Activity</span>
             </h3>
-            <div className="h-80">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weekStats}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

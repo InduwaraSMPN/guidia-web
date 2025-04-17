@@ -161,7 +161,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
               <BarChart3 className="h-4 w-4 text-brand" />
               <span>Security Activity</span>
             </h3>
-            <div className="h-64">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

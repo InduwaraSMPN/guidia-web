@@ -47,20 +47,26 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
     ? formatTrendData(userActivity.userRegistrationTrend)
     : []
 
-  // Prepare data for profile completion - ensure values are numbers
+  // Prepare data for profile completion - ensure values are numbers and cap at 100%
+  const capPercentage = (value: number | string): number => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return !isNaN(num) ? Math.min(num, 100) : 0; // Cap at 100%
+  };
+
   const profileCompletionData = [
-    { name: "Students", value: parseFloat(userActivity.profileCompletion.student) || 0 },
-    { name: "Counselors", value: parseFloat(userActivity.profileCompletion.counselor) || 0 },
-    { name: "Companies", value: parseFloat(userActivity.profileCompletion.company) || 0 },
+    { name: "Students", value: capPercentage(userActivity.profileCompletion.student) },
+    { name: "Counselors", value: capPercentage(userActivity.profileCompletion.counselor) },
+    { name: "Companies", value: capPercentage(userActivity.profileCompletion.company) },
   ]
 
   // Define colors for profile completion
   const PROFILE_COLORS = ["#3b82f6", "#8b5cf6", "#10b981"]
 
   // Get color for profile completion bar
-  const getProgressColor = (value: number) => {
-    if (value < 40) return "bg-red-400 dark:bg-red-500"
-    if (value < 70) return "bg-yellow-400 dark:bg-yellow-500"
+  const getProgressColor = (value: number | string) => {
+    const percentage = capPercentage(value);
+    if (percentage < 40) return "bg-red-400 dark:bg-red-500"
+    if (percentage < 70) return "bg-yellow-400 dark:bg-yellow-500"
     return "bg-green-400 dark:bg-green-500"
   }
 
@@ -96,14 +102,14 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
             </div>
             <div className="text-2xl font-bold">
               {(() => {
-                // Get valid values and convert strings to numbers
+                // Get valid values, convert strings to numbers, and cap at 100%
                 const values = [
                   userActivity.profileCompletion.student,
                   userActivity.profileCompletion.counselor,
                   userActivity.profileCompletion.company
                 ]
-                  .map(val => typeof val === 'string' ? parseFloat(val) : val) // Convert strings to numbers
-                  .filter(val => val !== undefined && val !== null && !isNaN(val)); // Filter out invalid values
+                  .map(val => capPercentage(val)) // Convert and cap at 100%
+                  .filter(val => !isNaN(val)); // Filter out invalid values
 
                 // Calculate average only if we have valid values
                 if (values.length === 0) return "0.0%";
@@ -133,7 +139,7 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
               <TrendingUp className="h-4 w-4 text-brand" />
               <span>User Registration Trend (Last 30 Days)</span>
             </h3>
-            <div className="h-80">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedTrendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -178,33 +184,33 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Students</div>
-                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.student) || 0}%</Badge>
+                      <Badge variant="outline">{capPercentage(userActivity.profileCompletion.student)}%</Badge>
                     </div>
                     <Progress
-                      value={parseFloat(userActivity.profileCompletion.student) || 0}
-                      className={getProgressColor(parseFloat(userActivity.profileCompletion.student) || 0)}
+                      value={capPercentage(userActivity.profileCompletion.student)}
+                      className={getProgressColor(userActivity.profileCompletion.student)}
                     />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Counselors</div>
-                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.counselor) || 0}%</Badge>
+                      <Badge variant="outline">{capPercentage(userActivity.profileCompletion.counselor)}%</Badge>
                     </div>
                     <Progress
-                      value={parseFloat(userActivity.profileCompletion.counselor) || 0}
-                      className={getProgressColor(parseFloat(userActivity.profileCompletion.counselor) || 0)}
+                      value={capPercentage(userActivity.profileCompletion.counselor)}
+                      className={getProgressColor(userActivity.profileCompletion.counselor)}
                     />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-medium">Companies</div>
-                      <Badge variant="outline">{parseFloat(userActivity.profileCompletion.company) || 0}%</Badge>
+                      <Badge variant="outline">{capPercentage(userActivity.profileCompletion.company)}%</Badge>
                     </div>
                     <Progress
-                      value={parseFloat(userActivity.profileCompletion.company) || 0}
-                      className={getProgressColor(parseFloat(userActivity.profileCompletion.company) || 0)}
+                      value={capPercentage(userActivity.profileCompletion.company)}
+                      className={getProgressColor(userActivity.profileCompletion.company)}
                     />
                   </div>
                 </div>
@@ -215,7 +221,7 @@ export function UserActivityCard({ userActivity }: UserActivityProps) {
                   <BarChart3 className="h-4 w-4 text-brand" />
                   <span>Completion Comparison</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={profileCompletionData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

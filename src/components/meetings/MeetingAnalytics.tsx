@@ -166,7 +166,7 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
             <CardTitle>Meetings by Status</CardTitle>
             <CardDescription>Distribution of meetings by status</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -196,7 +196,7 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
             <CardTitle>Meetings by Type</CardTitle>
             <CardDescription>Distribution of meetings by type</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -228,7 +228,7 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
             <CardTitle>Busiest Days</CardTitle>
             <CardDescription>Number of meetings by day of week</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analyticsData.busiestDays}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -247,7 +247,7 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
             <CardTitle>Busiest Hours</CardTitle>
             <CardDescription>Number of meetings by hour of day</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={analyticsData.busiestHours}>
                 <CartesianGrid strokeDasharray="3 3" />

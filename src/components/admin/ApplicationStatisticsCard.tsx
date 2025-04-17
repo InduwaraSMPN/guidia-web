@@ -62,8 +62,8 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
     return STATUS_COLORS[normalizedStatus as keyof typeof STATUS_COLORS] || "#9ca3af"
   }
 
-  // Format conversion rate as percentage
-  const formattedConversionRate = `${(applicationStats.conversionRate * 100).toFixed(1)}%`
+  // Format conversion rate as percentage (already in percentage form from backend)
+  const formattedConversionRate = `${parseFloat(applicationStats.conversionRate).toFixed(1)}%`
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
@@ -124,7 +124,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
               <TrendingUp className="h-4 w-4 text-brand" />
               <span>Job Application Trend (Last 30 Days)</span>
             </h3>
-            <div className="h-80">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedTrendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -165,7 +165,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Job Applications by Status</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -204,7 +204,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                   <BarChart3 className="h-4 w-4 text-brand" />
                   <span>Job Applications Status Distribution</span>
                 </h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={applicationStats.applicationsByStatus}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
