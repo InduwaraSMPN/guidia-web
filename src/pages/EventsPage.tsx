@@ -1,6 +1,6 @@
 
 
-import { Plus } from "lucide-react"
+import { Plus, Calendar } from "lucide-react"
 import { SearchBar } from "../components/SearchBar"
 import { Button } from "../components/ui/button"
 import { useState, useMemo, useEffect } from "react"
@@ -9,6 +9,9 @@ import { useAuth } from "../contexts/AuthContext"
 import { EventCard, type Event } from "../components/EventCard"
 import { motion, AnimatePresence } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PageLayout } from "@/components/PageLayout"
+import { PageHeader } from "@/components/PageHeader"
+import { EmptyState } from "@/components/EmptyState"
 
 type EventType = "Upcoming" | "Past"
 
@@ -112,25 +115,11 @@ export function EventsPage() {
 
     if (filteredEvents.length === 0) {
       return (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-secondary border border-border rounded-lg p-8 text-center my-8"
-        >
-          <p className="text-muted-foreground text-lg mb-4">
-            No {selectedType.toLowerCase()} events found
-            {searchQuery && " matching your search"}
-          </p>
-          {searchQuery && (
-            <Button
-              onClick={() => setSearchQuery("")}
-              variant="outline"
-              className="border-brand text-brand  hover:bg-brand-dark"
-            >
-              Clear Search
-            </Button>
-          )}
-        </motion.div>
+        <EmptyState
+          icon={Calendar}
+          title={`No ${selectedType.toLowerCase()} events found${searchQuery ? " matching your search" : ""}`}
+          action={searchQuery ? { label: "Clear Search", onClick: () => setSearchQuery("") } : undefined}
+        />
       )
     }
 
@@ -163,18 +152,12 @@ export function EventsPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-white ${location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"}`}>
-      <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-12">
-          <motion.h1
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-brand"
-          >
-            Events
-          </motion.h1>
-
-          {user?.userType === "Admin" && (
+    <PageLayout>
+      <PageHeader
+        title="Events"
+        icon={Calendar}
+        actions={
+          user?.userType === "Admin" && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
               <Button
                 onClick={() => navigate("/events/post")}
@@ -184,8 +167,9 @@ export function EventsPage() {
                 Post Event
               </Button>
             </motion.div>
-          )}
-        </div>
+          )
+        }
+      />
 
         <div className="flex flex-col sm:flex-row gap-6 mb-12">
           <div className="flex gap-4">
@@ -212,8 +196,7 @@ export function EventsPage() {
         </div>
 
         {renderContent()}
-      </div>
-    </div>
+    </PageLayout>
   )
 }
 

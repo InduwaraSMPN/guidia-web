@@ -10,7 +10,7 @@ import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, User, Clock } from 'lucide-react';
+import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import { API_URL } from '@/config';
 import axios from 'axios';
 import {
@@ -353,6 +353,16 @@ export function MeetingsPage() {
 
   return (
     <div className="container pb-32 pt-32 max-w-[1216px]">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-2 text-muted-foreground hover:text-foreground transition-colors"
+        onClick={() => navigate(-1)}
+        aria-label="Go back"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">Meetings</h1>
       </div>

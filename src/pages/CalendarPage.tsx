@@ -7,6 +7,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 // Helper function to format time (e.g., "09:30" to "9:30 AM")
 const formatTime = (time: string) => {
@@ -58,6 +61,7 @@ interface MeetingData {
 export function CalendarPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [calendarData, setCalendarData] = useState<CalendarData[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -262,9 +266,21 @@ export function CalendarPage() {
   return (
     <div className="max-w-[1216px] min-h-screen pt-32 pb-32 flex flex-col mx-auto">
       <div className="container mx-auto px-4 flex-1 flex flex-col">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-4xl text-brand pb-2">Meetings Calendar</h1>
-          <p className="text-muted-foreground">View and manage all your scheduled meetings.</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-2 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold text-brand pb-2">Meetings Calendar</h1>
+            <p className="text-muted-foreground">View and manage all your scheduled meetings.</p>
+          </div>
         </div>
 
         <div className="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden min-h-[600px] flex">

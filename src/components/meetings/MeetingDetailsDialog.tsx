@@ -228,12 +228,12 @@ export function MeetingDetailsDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>{meeting.meetingTitle}</span>
-            <Badge className={cn("ml-2", getStatusColor(meeting.status))}>
+          <div className="flex items-center justify-between mb-1">
+            <DialogTitle>{meeting.meetingTitle}</DialogTitle>
+            <Badge className={cn(getStatusColor(meeting.status))}>
               {getStatusText(meeting.status)}
             </Badge>
-          </DialogTitle>
+          </div>
           <DialogDescription>
             Meeting details
           </DialogDescription>

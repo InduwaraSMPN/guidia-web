@@ -84,7 +84,7 @@ export function MeetingAvailability() {
           <Button
             variant="ghost"
             size="sm"
-            className="mb-2 ml-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="mb-2 text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => navigate(-1)}
             aria-label="Go back"
           >

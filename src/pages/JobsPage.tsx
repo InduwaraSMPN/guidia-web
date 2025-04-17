@@ -8,12 +8,11 @@ import { useNavigate, useLocation } from "react-router-dom"
 import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
 import { Briefcase, Filter, SlidersHorizontal, X } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import { toast } from 'sonner'
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PageLayout } from "@/components/PageLayout"
+import { EmptyState } from "@/components/EmptyState"
 
 export function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -210,21 +209,15 @@ export function JobsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16">
-      <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-12 text-center"
-        >
-          <div className="inline-flex items-center justify-center mb-4 bg-brand/10 p-3 rounded-full">
-            <Briefcase className="h-6 w-6 text-brand" />
-          </div>
-          <h1 className="text-4xl font-bold text-adaptive-dark mb-3">
-            Find Your Next <span className="text-brand">Career</span>
-          </h1>
-        </motion.div>
+    <PageLayout>
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center mb-4 bg-brand/10 p-3 rounded-full">
+          <Briefcase className="h-6 w-6 text-brand" />
+        </div>
+        <h1 className="text-4xl font-bold text-adaptive-dark mb-3">
+          Find Your Next <span className="text-brand">Career</span>
+        </h1>
+      </div>
 
         <JobSearchForm
           onSearch={handleSearch}
@@ -303,31 +296,20 @@ export function JobsPage() {
             ))}
           </motion.div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16 bg-secondary rounded-lg border border-border"
-          >
-            <div className="bg-white p-4 rounded-full inline-flex items-center justify-center mb-4 shadow-sm">
-              <Filter className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-medium text-adaptive-dark mb-2">No matching jobs found</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Try adjusting your search criteria or explore other opportunities.
-            </p>
-            <button
-              onClick={() => {
+          <EmptyState
+            icon={Filter}
+            title="No matching jobs found"
+            description="Try adjusting your search criteria or explore other opportunities."
+            action={{
+              label: "View all jobs",
+              onClick: () => {
                 clearFilters()
                 handleSearch("", "")
-              }}
-              className="mt-6 text-brand hover:underline font-medium"
-            >
-              View all jobs
-            </button>
-          </motion.div>
+              }
+            }}
+          />
         )}
-      </div>
-    </div>
+    </PageLayout>
   )
 }
 

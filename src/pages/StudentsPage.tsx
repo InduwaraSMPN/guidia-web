@@ -1,16 +1,17 @@
 import type React from "react";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { Search, SlidersHorizontal, X, Users } from "lucide-react";
+
 import { DirectoryCard } from "@/components/DirectoryCard";
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel";
 import { useEffect, useState, useTransition, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { EmptyState } from "@/components/EmptyState";
+import { SearchBar } from "@/components/SearchBar";
 
 const AVAILABLE_PATHS = [
   'DevOps Engineer',
@@ -164,8 +165,8 @@ export function StudentsPage() {
     });
   }, [searchQuery, students, filters]);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
   };
 
   const containerVariants = {
@@ -193,74 +194,67 @@ export function StudentsPage() {
 
   if (loading) {
     return (
-      <div
-        className={`min-h-screen bg-white ${
-          location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"
-        }`}
-      >
-        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-brand mb-8">Students</h1>
-          <div className="flex items-center justify-between mb-8">
-            <div className="relative flex-1 max-w-md">
-              <Skeleton className="h-10 w-full" />
+      <PageLayout>
+        <PageHeader
+          title="Students"
+          icon={Users}
+          actions={
+            <div className="flex items-center gap-4">
+              <div className="relative w-full md:w-64 lg:w-80">
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="ml-4">
+                <Skeleton className="h-10 w-32" />
+              </div>
             </div>
-            <div className="ml-4">
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </div>
+          }
+        />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-sm border border-border p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-14 h-14 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-5 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Skeleton className="h-9 w-full" />
-                  <Skeleton className="h-9 w-full" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-lg shadow-sm border border-border p-4"
+            >
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-14 h-14 rounded-lg" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="mt-4 space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Skeleton className="h-9 w-full" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (error) {
     return (
-      <div
-        className={`min-h-screen bg-white ${
-          location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"
-        }`}
-      >
-        <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-brand mb-8">Students</h1>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-semibold text-red-700 mb-2">
-              Oops! Something went wrong
-            </h2>
-            <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+      <PageLayout>
+        <PageHeader title="Students" icon={Users} />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-700 mb-2">
+            Oops! Something went wrong
+          </h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand-dark transition-colors"
+          >
+            Try Again
+          </button>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -286,76 +280,51 @@ export function StudentsPage() {
   ];
 
   return (
-    <div
-      className={`min-h-screen bg-white ${
-        location.pathname.startsWith("/admin") ? "pt-6" : "pt-32"
-      }`}
-    >
-      <div className="max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-3xl font-bold text-brand mb-6"
-        >
-          Students
-        </motion.h1>
+    <PageLayout>
+      <PageHeader
+        title="Students"
+        icon={Users}
+        actions={
+          <div className="flex items-center gap-4">
+            <div className="relative w-full md:w-64 lg:w-80">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search students..." />
+            </div>
 
-        <div className="flex items-center justify-between mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative flex-1 max-w-md"
-          >
-            <Input
-              type="search"
-              placeholder="Search by name, category, or level..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          </motion.div>
+            {/* Add Filters Button Here */}
+            <div className="relative">
+              <button
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
+                  isOpen || activeFilterCount > 0 ? "bg-brand text-white" : "text-foreground hover:bg-secondary-light"
+                }`}
+                onClick={() => setIsOpen(true)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="bg-white text-brand text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
 
-          <div className="relative ml-4">
-            <button
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors ${
-                isOpen || activeFilterCount > 0 ? "bg-brand text-white" : "text-foreground hover:bg-secondary-light"
-              }`}
-              onClick={() => setIsOpen(true)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Filters</span>
-              {activeFilterCount > 0 && (
-                <span className="bg-white text-brand text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            <FilterPanel
-              sections={filterSections}
-              onClose={() => setIsOpen(false)}
-              onClearAll={clearFilters}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-            />
+              <FilterPanel
+                sections={filterSections}
+                onClose={() => setIsOpen(false)}
+                onClearAll={clearFilters}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
+            </div>
           </div>
-        </div>
+        }
+      />
 
         {filteredStudents.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-center py-16 bg-secondary rounded-lg"
-          >
-            <h2 className="text-xl font-semibold text-foreground mb-2">
-              No students found
-            </h2>
-            <p className="text-muted-foreground">Try adjusting your search criteria</p>
-          </motion.div>
+          <EmptyState
+            icon={Users}
+            title="No students found"
+            description="Try adjusting your search criteria"
+          />
         ) : (
           <motion.div
             variants={containerVariants}
@@ -379,8 +348,7 @@ export function StudentsPage() {
             ))}
           </motion.div>
         )}
-      </div>
-    </div>
+    </PageLayout>
   );
 }
 

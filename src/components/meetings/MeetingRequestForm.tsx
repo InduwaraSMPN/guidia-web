@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { AppointmentPicker, TimeSlot as AppointmentTimeSlot } from './AppointmentPicker';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
+import { RichTextEditor } from '../ui/RichTextEditor';
 import {
   Form,
   FormControl,
@@ -337,16 +337,10 @@ export function MeetingRequestForm({
               <FormItem>
                 <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <RichTextEditor
                     placeholder="Enter meeting description"
-                    className="resize-none"
-                    {...field}
-                    onKeyDown={(e) => {
-                      // Prevent form submission on Enter key
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                      }
-                    }}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
