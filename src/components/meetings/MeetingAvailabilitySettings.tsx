@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select-radix"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { API_URL } from "@/config"
 import axios from "axios"
-import { Plus, Trash2, Clock, Calendar, Save } from "lucide-react"
+import { Plus, Trash2, Clock, Calendar, Save, X } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -72,7 +72,6 @@ type FormValues = z.infer<typeof formSchema>
 export function MeetingAvailabilitySettings() {
   const { user } = useAuth()
   const token = localStorage.getItem("token")
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -162,20 +161,16 @@ export function MeetingAvailabilitySettings() {
               availabilitySlots: defaultSlots,
             })
 
-            toast({
-              title: "Using Default Settings",
-              description: "We've loaded default availability settings that you can customize.",
-              variant: "default",
+            toast.info("Using Default Settings", {
+              description: "We've loaded default availability settings that you can customize."
             })
             return
           }
         }
 
         // Generic error handling
-        toast({
-          title: "Error",
-          description: "Failed to fetch availability settings. Using default settings instead.",
-          variant: "destructive",
+        toast.error("Error", {
+          description: "Failed to fetch availability settings. Using default settings instead."
         })
 
         // Set default slots for any error
@@ -200,13 +195,13 @@ export function MeetingAvailabilitySettings() {
   }, [user?.id, token, form, toast])
 
   // Add a new availability slot
-  const addAvailabilitySlot = () => {
+  const addAvailabilitySlot = (isRecurring = true, day = 1) => {
     append({
-      dayOfWeek: 1, // Monday
+      dayOfWeek: day, // Default to Monday
       startTime: "09:00",
       endTime: "17:00",
-      isRecurring: true,
-      specificDate: null,
+      isRecurring: isRecurring,
+      specificDate: isRecurring ? null : new Date().toISOString().split("T")[0],
     })
 
     // Scroll to the newly added slot
@@ -216,6 +211,132 @@ export function MeetingAvailabilitySettings() {
         behavior: "smooth",
       })
     }, 100)
+  }
+
+  // Add quick template for weekdays 9-5
+  const addWeekdayTemplate = () => {
+    // Check if there are existing slots
+    if (fields.length > 0) {
+      // Use Sonner toast for confirmation
+      toast('Apply weekday template?', {
+        description: 'This will replace your existing availability slots with the weekday template.',
+        position: 'top-center',
+        action: {
+          label: 'Apply',
+          onClick: () => {
+            // Safely remove existing slots
+            const fieldsCopy = [...fields];
+            fieldsCopy.forEach(() => {
+              remove(0); // Always remove the first item as the array shifts
+            });
+
+            // Add Monday through Friday, 9am-5pm
+            setTimeout(() => {
+              [1, 2, 3, 4, 5].forEach(day => {
+                append({
+                  dayOfWeek: day,
+                  startTime: "09:00",
+                  endTime: "17:00",
+                  isRecurring: true,
+                  specificDate: null,
+                });
+              });
+
+              toast.success("Weekday template applied");
+            }, 0);
+          },
+        },
+        cancel: {
+          label: 'Cancel',
+          onClick: () => {},
+        },
+      });
+      return;
+    }
+
+    // If no existing slots, just add the template without confirmation
+    [1, 2, 3, 4, 5].forEach(day => {
+      append({
+        dayOfWeek: day,
+        startTime: "09:00",
+        endTime: "17:00",
+        isRecurring: true,
+        specificDate: null,
+      });
+    });
+
+    toast.success("Weekday template applied");
+  }
+
+  // Function to clear all slots
+  const clearAllSlots = () => {
+    if (fields.length === 0) {
+      toast.info("No slots to clear");
+      return;
+    }
+
+    // Directly remove all slots without confirmation
+    const fieldsCopy = [...fields];
+    fieldsCopy.forEach(() => {
+      remove(0); // Always remove the first item as the array shifts
+    });
+
+    toast.success("All slots cleared");
+  }
+
+  // Add quick template for weekend availability
+  const addWeekendTemplate = () => {
+    // Check if there are existing slots
+    if (fields.length > 0) {
+      // Use Sonner toast for confirmation
+      toast('Apply weekend template?', {
+        description: 'This will replace your existing availability slots with the weekend template.',
+        position: 'top-center',
+        action: {
+          label: 'Apply',
+          onClick: () => {
+            // Safely remove existing slots
+            const fieldsCopy = [...fields];
+            fieldsCopy.forEach(() => {
+              remove(0); // Always remove the first item as the array shifts
+            });
+
+            // Add Saturday and Sunday, 10am-4pm
+            setTimeout(() => {
+              [0, 6].forEach(day => {
+                append({
+                  dayOfWeek: day,
+                  startTime: "10:00",
+                  endTime: "16:00",
+                  isRecurring: true,
+                  specificDate: null,
+                });
+              });
+
+              toast.success("Weekend template applied");
+            }, 0);
+          },
+        },
+        cancel: {
+          label: 'Cancel',
+          onClick: () => {},
+        },
+      });
+      return;
+    }
+
+    // If no existing slots, just add the template without confirmation
+    [0, 6].forEach(day => {
+      append({
+        dayOfWeek: day,
+        startTime: "10:00",
+        endTime: "16:00",
+        isRecurring: true,
+        specificDate: null,
+      });
+    });
+
+    toast.success("Weekend template applied");
   }
 
   // Handle form submission
@@ -249,9 +370,8 @@ export function MeetingAvailabilitySettings() {
       // Mark form as pristine after successful save
       form.reset(values)
 
-      toast({
-        title: "Success",
-        description: "Your availability settings have been saved successfully",
+      toast.success("Success", {
+        description: "Your availability settings have been saved successfully"
       })
     } catch (error: any) {
       console.error("Error saving availability settings:", error)
@@ -260,20 +380,16 @@ export function MeetingAvailabilitySettings() {
       // Handle specific error cases
       if (error.response) {
         if (error.response.status === 403) {
-          toast({
-            title: "Permission Error",
-            description: "You don't have permission to save availability settings. Please contact support.",
-            variant: "destructive",
+          toast.error("Permission Error", {
+            description: "You don't have permission to save availability settings. Please contact support."
           })
           return
         }
       }
 
       // Generic error handling
-      toast({
-        title: "Error",
-        description: "Failed to save availability settings. Please try again later.",
-        variant: "destructive",
+      toast.error("Error", {
+        description: "Failed to save availability settings. Please try again later."
       })
     } finally {
       setIsSaving(false)
@@ -286,40 +402,67 @@ export function MeetingAvailabilitySettings() {
     return days[day]
   }
 
-  // Format time for better readability
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":")
-    const hour = Number.parseInt(hours)
-    const ampm = hour >= 12 ? "PM" : "AM"
-    const formattedHour = hour % 12 || 12
-    return `${formattedHour}:${minutes} ${ampm}`
-  }
-
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <Skeleton className="h-8 w-3/4 mb-2" />
-          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-7 w-1/2 mb-2" />
+          <Skeleton className="h-4 w-3/4" />
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
-            {[1, 2, 3].map((_, index) => (
-              <div key={index} className="p-4 border rounded-md">
-                <div className="flex justify-between items-center mb-4">
-                  <Skeleton className="h-5 w-1/4" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
+          {/* Skeleton for recurring slots table */}
+          <div>
+            <Skeleton className="h-5 w-40 mb-2" />
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted/50 p-3">
+                <div className="flex">
+                  <Skeleton className="h-4 w-16 mr-auto" />
+                  <Skeleton className="h-4 w-24 mx-auto" />
+                  <Skeleton className="h-4 w-16 ml-auto" />
                 </div>
               </div>
-            ))}
+              <div className="divide-y">
+                {[1, 2, 3].map((_, index) => (
+                  <div key={index} className="p-3 flex items-center">
+                    <Skeleton className="h-8 w-24 mr-auto" />
+                    <Skeleton className="h-8 w-48 mx-auto" />
+                    <Skeleton className="h-8 w-8 ml-auto rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <Skeleton className="h-10 w-full" />
+
+          {/* Skeleton for template buttons */}
+          <div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="flex justify-between items-center mb-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-32" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Skeleton for save button */}
+          <div className="flex justify-end">
+            <Skeleton className="h-10 w-32" />
+          </div>
         </CardContent>
       </Card>
     )
@@ -327,21 +470,21 @@ export function MeetingAvailabilitySettings() {
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-xl">
           <Calendar className="h-5 w-5 text-primary" />
-          <span>Availability Settings</span>
+          <span>When are you available?</span>
           {isFirstTimeSetup && (
             <span className="ml-2 text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded-full">
               New Setup
             </span>
           )}
         </CardTitle>
-        <CardDescription>
-          Set your availability for meetings. Others will only be able to request meetings during these times.
+        <CardDescription className="text-sm">
+          Set times when you're available for meetings. Others can only request meetings during these times.
           {isFirstTimeSetup && (
             <p className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium">
-              Please save your default availability settings to activate your meeting schedule.
+              We've added some default times to get you started. Save to activate your schedule.
             </p>
           )}
         </CardDescription>
@@ -364,193 +507,255 @@ export function MeetingAvailabilitySettings() {
                 </div>
               )}
 
-              {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="p-5 border rounded-lg bg-card transition-all hover:shadow-sm focus-within:shadow-sm focus-within:border-primary/50"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-medium text-lg flex items-center gap-2">
-                      {form.watch(`availabilitySlots.${index}.isRecurring`) ? (
-                        <>
-                          <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs">
-                            {getDayName(form.watch(`availabilitySlots.${index}.dayOfWeek`)).substring(0, 1)}
-                          </span>
-                          <span>{getDayName(form.watch(`availabilitySlots.${index}.dayOfWeek`))}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs">
-                            <Calendar className="h-3 w-3" />
-                          </span>
-                          <span>
-                            {form.watch(`availabilitySlots.${index}.specificDate`)
-                              ? new Date(
-                                  form.watch(`availabilitySlots.${index}.specificDate`) as string,
-                                ).toLocaleDateString()
-                              : "Specific Date"}
-                          </span>
-                        </>
-                      )}
-
-                      {/* Show time summary */}
-                      <span className="text-sm font-normal text-muted-foreground ml-2">
-                        {form.watch(`availabilitySlots.${index}.startTime`) &&
-                          form.watch(`availabilitySlots.${index}.endTime`) && (
-                            <>
-                              <Clock className="h-3 w-3 inline mr-1" />
-                              {formatTime(form.watch(`availabilitySlots.${index}.startTime`))} -{" "}
-                              {formatTime(form.watch(`availabilitySlots.${index}.endTime`))}
-                            </>
-                          )}
-                      </span>
-                    </h3>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => remove(index)}
-                      className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-                      aria-label={`Remove availability slot ${index + 1}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Remove slot</span>
-                    </Button>
+              {/* Group slots by type for better organization */}
+              {fields.length > 0 && (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-medium">Your Availability</h3>
                   </div>
+                  {/* Weekly recurring slots */}
+                  {fields.some((_field, i) => form.watch(`availabilitySlots.${i}.isRecurring`)) && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Weekly Recurring Slots</h3>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="text-left p-3 text-xs font-medium">Day</th>
+                              <th className="text-left p-3 text-xs font-medium">Time</th>
+                              <th className="text-right p-3 text-xs font-medium w-16">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {fields.map((field, index) =>
+                              form.watch(`availabilitySlots.${index}.isRecurring`) ? (
+                                <tr key={field.id} className="hover:bg-muted/30 transition-colors">
+                                  <td className="p-3">
+                                    <Select
+                                      value={form.watch(`availabilitySlots.${index}.dayOfWeek`).toString()}
+                                      onValueChange={(value) => form.setValue(`availabilitySlots.${index}.dayOfWeek`, Number.parseInt(value), { shouldDirty: true })}
+                                    >
+                                      <SelectTrigger className="w-full border-none shadow-none h-8 p-0 bg-transparent">
+                                        <SelectValue placeholder="Select day" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                                          <SelectItem key={day} value={day.toString()}>
+                                            {getDayName(day)}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="time"
+                                          value={form.watch(`availabilitySlots.${index}.startTime`)}
+                                          onChange={(e) => form.setValue(`availabilitySlots.${index}.startTime`, e.target.value, { shouldDirty: true })}
+                                          className="border-none shadow-none h-8 p-0 w-20 bg-transparent"
+                                        />
+                                        <span className="text-sm font-medium ml-1">
+                                          {form.watch(`availabilitySlots.${index}.startTime`) ?
+                                            Number.parseInt(form.watch(`availabilitySlots.${index}.startTime`).split(':')[0]) >= 12 ? 'PM' : 'AM'
+                                            : ''}
+                                        </span>
+                                      </div>
+                                      <span>to</span>
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="time"
+                                          value={form.watch(`availabilitySlots.${index}.endTime`)}
+                                          onChange={(e) => form.setValue(`availabilitySlots.${index}.endTime`, e.target.value, { shouldDirty: true })}
+                                          className="border-none shadow-none h-8 p-0 w-20 bg-transparent"
+                                        />
+                                        <span className="text-sm font-medium ml-1">
+                                          {form.watch(`availabilitySlots.${index}.endTime`) ?
+                                            Number.parseInt(form.watch(`availabilitySlots.${index}.endTime`).split(':')[0]) >= 12 ? 'PM' : 'AM'
+                                            : ''}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => remove(index)}
+                                      className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Remove</span>
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ) : null
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="flex justify-end mt-2">
+                        <button
+                          type="button"
+                          onClick={clearAllSlots}
+                          className="text-brand text-xs font-style: italic hover:underline mt-2"
+                        >
+                          Clear All Slots
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name={`availabilitySlots.${index}.isRecurring`}
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              id={`recurring-${index}`}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel htmlFor={`recurring-${index}`} className="cursor-pointer">
-                              Recurring weekly
-                            </FormLabel>
-                            <p className="text-sm text-muted-foreground">This slot repeats every week</p>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                  {/* One-time slots */}
+                  {fields.some((_field, i) => !form.watch(`availabilitySlots.${i}.isRecurring`)) && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">One-time Availability</h3>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="text-left p-3 text-xs font-medium">Date</th>
+                              <th className="text-left p-3 text-xs font-medium">Time</th>
+                              <th className="text-right p-3 text-xs font-medium w-16">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {fields.map((field, index) =>
+                              !form.watch(`availabilitySlots.${index}.isRecurring`) ? (
+                                <tr key={field.id} className="hover:bg-muted/30 transition-colors">
+                                  <td className="p-3">
+                                    <Input
+                                      type="date"
+                                      value={form.watch(`availabilitySlots.${index}.specificDate`) || ""}
+                                      onChange={(e) => form.setValue(`availabilitySlots.${index}.specificDate`, e.target.value, { shouldDirty: true })}
+                                      min={new Date().toISOString().split("T")[0]}
+                                      className="border-none shadow-none h-8 p-0 bg-transparent"
+                                    />
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="time"
+                                          value={form.watch(`availabilitySlots.${index}.startTime`)}
+                                          onChange={(e) => form.setValue(`availabilitySlots.${index}.startTime`, e.target.value, { shouldDirty: true })}
+                                          className="border-none shadow-none h-8 p-0 w-20 bg-transparent"
+                                        />
+                                        <span className="text-sm font-medium ml-1">
+                                          {form.watch(`availabilitySlots.${index}.startTime`) ?
+                                            Number.parseInt(form.watch(`availabilitySlots.${index}.startTime`).split(':')[0]) >= 12 ? 'PM' : 'AM'
+                                            : ''}
+                                        </span>
+                                      </div>
+                                      <span>to</span>
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="time"
+                                          value={form.watch(`availabilitySlots.${index}.endTime`)}
+                                          onChange={(e) => form.setValue(`availabilitySlots.${index}.endTime`, e.target.value, { shouldDirty: true })}
+                                          className="border-none shadow-none h-8 p-0 w-20 bg-transparent"
+                                        />
+                                        <span className="text-sm font-medium ml-1">
+                                          {form.watch(`availabilitySlots.${index}.endTime`) ?
+                                            Number.parseInt(form.watch(`availabilitySlots.${index}.endTime`).split(':')[0]) >= 12 ? 'PM' : 'AM'
+                                            : ''}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => remove(index)}
+                                      className="h-8 w-8 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Remove</span>
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ) : null
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                    {form.watch(`availabilitySlots.${index}.isRecurring`) ? (
-                      <FormField
-                        control={form.control}
-                        name={`availabilitySlots.${index}.dayOfWeek`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel htmlFor={`day-${index}`}>Day of Week</FormLabel>
-                            <Select
-                              value={field.value.toString()}
-                              onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                            >
-                              <FormControl>
-                                <SelectTrigger id={`day-${index}`} className="w-full">
-                                  <SelectValue placeholder="Select day" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-                                  <SelectItem key={day} value={day.toString()}>
-                                    {getDayName(day)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name={`availabilitySlots.${index}.specificDate`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel htmlFor={`date-${index}`}>Specific Date</FormLabel>
-                            <FormControl>
-                              <Input
-                                id={`date-${index}`}
-                                type="date"
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                min={new Date().toISOString().split("T")[0]} // Prevent past dates
-                                className="w-full"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Quick Templates</h4>
+                    <p className="text-xs text-muted-foreground">Templates replace all existing slots</p>
+                  </div>
+                  <div className="flex flex-wrap">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Apply Templates:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addWeekdayTemplate}
+                          className="text-xs"
+                        >
+                          Weekdays (9-5)
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addWeekendTemplate}
+                          className="text-xs"
+                        >
+                          Weekends (10-4)
+                        </Button>
+                      </div>
+                    </div>
 
-                    <FormField
-                      control={form.control}
-                      name={`availabilitySlots.${index}.startTime`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel htmlFor={`start-${index}`}>Start Time</FormLabel>
-                          <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input id={`start-${index}`} type="time" {...field} className="pl-10" />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`availabilitySlots.${index}.endTime`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel htmlFor={`end-${index}`}>End Time</FormLabel>
-                          <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <FormControl>
-                              <Input id={`end-${index}`} type="time" {...field} className="pl-10" />
-                            </FormControl>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Add Individual Slots:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addAvailabilitySlot(true)}
+                          className="text-xs"
+                        >
+                          Add Weekly Slot
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addAvailabilitySlot(false)}
+                          className="text-xs"
+                        >
+                          Add One-time Slot
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addAvailabilitySlot}
-                className="w-full h-12 border-dashed hover:border-primary"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Availability Slot
-              </Button>
+              </div>
             </div>
 
-            <CardFooter className="px-0 pt-6 pb-0 flex flex-col sm:flex-row gap-4 justify-end">
+            <div className="mt-6 flex justify-end">
               <Button
                 type="button"
                 onClick={(e) => {
                   if (!form.formState.isDirty && !isFirstTimeSetup) {
                     // Show toast message when trying to save without changes
                     e.preventDefault();
-                    toast({
-                      title: "No Changes Detected",
-                      description: "Please make changes first to update availability settings",
-                      variant: "default"
+                    toast.info("No Changes Detected", {
+                      description: "Please make changes first to update availability settings"
                     });
                   } else {
                     // Submit the form if there are changes
@@ -558,21 +763,11 @@ export function MeetingAvailabilitySettings() {
                   }
                 }}
                 disabled={isSaving}
-                className="w-full sm:w-auto min-w-[120px]"
+                className="px-6"
               >
-                {isSaving ? (
-                  <>
-                    <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Settings
-                  </>
-                )}
+                {isSaving ? "Saving..." : "Save Schedule"}
               </Button>
-            </CardFooter>
+            </div>
           </form>
         </Form>
       </CardContent>
