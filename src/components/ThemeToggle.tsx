@@ -4,7 +4,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Moon, Sun } from "lucide-react";
 import { useThemeContext } from "@/contexts/ThemeContext";
 
-export function ThemeToggle() {
+export function ThemeToggle({ showLabel = true }: { showLabel?: boolean }) {
   const { theme, toggleTheme } = useThemeContext();
 
   return (
@@ -29,9 +29,11 @@ export function ThemeToggle() {
           aria-hidden="true"
         />
       </Toggle>
-      <span className="text-sm font-medium">
-        {theme === "dark" ? "Dark" : "Light"} Mode
-      </span>
+      {showLabel && (
+        <span className="text-sm font-medium">
+          {theme === "dark" ? "Dark" : "Light"} Mode
+        </span>
+      )}
     </div>
   );
 }

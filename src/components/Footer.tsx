@@ -3,6 +3,7 @@
 import { Github, Linkedin, Twitter, Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useThemeContext } from "@/contexts/ThemeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Footer() {
   const { isDark } = useThemeContext();
@@ -27,8 +28,6 @@ export function Footer() {
       title: "Company",
       links: [
         { name: "About", href: "/about" },
-        { name: "Privacy Policy", href: "/privacy" },
-        { name: "Terms of Service", href: "/terms" },
         { name: "Contact", href: "/contact" },
       ],
     },
@@ -110,16 +109,15 @@ export function Footer() {
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Guidia. All rights reserved.
           </p>
-          <div className="flex gap-6 mt-4 sm:mt-0 text-sm text-muted-foreground">
-            <a
-              href="/privacy"
-              className="hover:text-brand transition-colors"
-            >
+          <div className="mt-4 sm:mt-0 flex items-center gap-4 text-sm text-muted-foreground">
+            <a href="/privacy" className="hover:text-brand transition-colors">
               Privacy Policy
             </a>
             <a href="/terms" className="hover:text-brand transition-colors">
               Terms of Service
             </a>
+            <div className="h-4 w-px bg-secondary-light mx-1"></div>
+            <ThemeToggle showLabel={false} />
           </div>
         </div>
       </div>
