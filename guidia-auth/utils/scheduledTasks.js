@@ -406,6 +406,34 @@ class ScheduledTasks {
   }
 
   /**
+   * Check for pending registrations and notify admins
+   * This should be run daily
+   */
+  async checkPendingRegistrations() {
+    try {
+      console.log('Running scheduled task: checkPendingRegistrations');
+
+      // Get count of pending registrations
+      const [pendingCount] = await this.pool.execute(
+        'SELECT COUNT(*) as count FROM registrations WHERE status = "pending"'
+      );
+
+      const count = pendingCount[0].count;
+      console.log(`Found ${count} pending registrations`);
+
+      if (count > 0) {
+        // Send notification to admins
+        await this.notificationTriggers.pendingRegistrationsNotification(count);
+        console.log(`Sent pending registrations notification to admins (${count} pending registrations)`);
+      } else {
+        console.log('No pending registrations found, skipping notification');
+      }
+    } catch (error) {
+      console.error('Error in checkPendingRegistrations task:', error);
+    }
+  }
+
+  /**
    * Run all scheduled tasks
    * This can be called from a cron job
    */
@@ -414,6 +442,7 @@ class ScheduledTasks {
     await this.sendApplicationDeadlineReminders();
     await this.checkIncompleteProfiles();
     await this.sendMeetingFeedbackRequests();
+    await this.checkPendingRegistrations();
   }
 
   /**

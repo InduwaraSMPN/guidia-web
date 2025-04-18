@@ -21,7 +21,7 @@ class NotificationTriggers {
       );
 
       // Create a notification for each student
-      const promises = students.map(student => 
+      const promises = students.map(student =>
         this.notificationService.createFromTemplate(
           student.userID,
           'NEW_JOB_POSTING',
@@ -88,7 +88,7 @@ class NotificationTriggers {
       );
 
       // Create a notification for each interested student
-      const promises = interestedStudents.map(student => 
+      const promises = interestedStudents.map(student =>
         this.notificationService.createFromTemplate(
           student.userID,
           'JOB_APPLICATION_DEADLINE',
@@ -195,7 +195,7 @@ class NotificationTriggers {
         [student.studentID]
       );
 
-      const promises = counselors.map(counselor => 
+      const promises = counselors.map(counselor =>
         this.notificationService.createFromTemplate(
           counselor.userID,
           'STUDENT_JOB_APPLICATION',
@@ -281,7 +281,7 @@ class NotificationTriggers {
       );
 
       // Create a notification for each admin
-      const promises = admins.map(admin => 
+      const promises = admins.map(admin =>
         this.notificationService.createFromTemplate(
           admin.userID,
           'NEW_USER_REGISTRATION',
@@ -337,6 +337,43 @@ class NotificationTriggers {
       await Promise.all(promises);
     } catch (error) {
       console.error('Error triggering platform announcement notification:', error);
+    }
+  }
+
+  /**
+   * Trigger a notification for pending registrations
+   * @param {number} count - The number of pending registrations
+   */
+  async pendingRegistrationsNotification(count) {
+    try {
+      if (count <= 0) {
+        return; // No pending registrations, no need to send notification
+      }
+
+      // Get all admins
+      const [admins] = await this.notificationService.pool.execute(
+        'SELECT userID FROM users WHERE roleID = 1'
+      );
+
+      // Create a notification for each admin
+      const promises = admins.map(admin =>
+        this.notificationService.createNotification({
+          userID: admin.userID,
+          notificationType: 'PENDING_REGISTRATIONS',
+          title: 'Pending Registrations Require Attention',
+          message: `There are ${count} pending registration(s) that require your review. Please visit the admin dashboard to approve or reject them.`,
+          targetUserRole: 'Admin',
+          priority: 'high',
+          metadata: {
+            redirectUrl: '/admin/registrations/pending',
+            count: count
+          }
+        })
+      );
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error('Error triggering pending registrations notification:', error);
     }
   }
 }

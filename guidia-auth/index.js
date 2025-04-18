@@ -1194,6 +1194,24 @@ app.post("/auth/register", registrationLimiter, async (req, res) => {
         "UPDATE otp_verifications SET completed = TRUE WHERE email = ?",
         [email]
       );
+
+      // Notify admins about the new pending registration
+      try {
+        const NotificationTriggers = require('./utils/notificationTriggers');
+        const notificationTriggers = new NotificationTriggers(pool);
+
+        // Get count of pending registrations
+        const [pendingCount] = await pool.query(
+          'SELECT COUNT(*) as count FROM registrations WHERE status = "pending"'
+        );
+
+        // Send notification to admins
+        await notificationTriggers.pendingRegistrationsNotification(pendingCount[0].count);
+      } catch (notificationError) {
+        console.error('Error sending pending registration notification:', notificationError);
+        // Continue with the response even if notification fails
+      }
+
       return res.json({
         message: "Registration request submitted for approval",
         status: "pending",

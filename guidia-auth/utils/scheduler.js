@@ -75,6 +75,17 @@ class Scheduler {
       }
     });
 
+    // Schedule pending registrations check to run every 2 hours
+    this.jobs.pendingRegistrationsCheck = schedule.scheduleJob('0 */2 * * *', async () => {
+      console.log(`Running pending registrations check at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.checkPendingRegistrations();
+        console.log(`Completed pending registrations check at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running pending registrations check:', error);
+      }
+    });
+
     console.log('Scheduler started with the following schedule:');
     console.log('- Daily tasks: Every day at midnight (00:00)');
     console.log('- Weekly tasks: Every Sunday at midnight (00:00)');
@@ -82,6 +93,7 @@ class Scheduler {
     console.log('- Job expiration checks: Every 12 hours');
     console.log('- Meeting reminders: Every 4 hours');
     console.log('- Meeting feedback requests: Every day at noon (12:00)');
+    console.log('- Pending registrations check: Every 2 hours');
   }
 
   /**

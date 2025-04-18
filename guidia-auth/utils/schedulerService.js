@@ -30,10 +30,10 @@ class SchedulerService {
 
       // Initialize scheduled tasks with the pool
       this.scheduledTasks = new ScheduledTasks(pool);
-      
+
       // Schedule all tasks
       this.scheduleAllTasks();
-      
+
       this.initialized = true;
       console.log('Scheduler service initialized successfully');
     } catch (error) {
@@ -87,6 +87,17 @@ class SchedulerService {
       }
     });
 
+    // Schedule pending registrations check to run every 2 hours
+    this.jobs.pendingRegistrationsCheck = schedule.scheduleJob('0 */2 * * *', async () => {
+      console.log(`Running pending registrations check at ${new Date().toISOString()}`);
+      try {
+        await this.scheduledTasks.checkPendingRegistrations();
+        console.log(`Completed pending registrations check at ${new Date().toISOString()}`);
+      } catch (error) {
+        console.error('Error running pending registrations check:', error);
+      }
+    });
+
     console.log('All scheduled tasks have been set up');
   }
 
@@ -114,6 +125,9 @@ class SchedulerService {
         break;
       case 'jobStats':
         await this.scheduledTasks.sendJobPostingStats();
+        break;
+      case 'pendingRegistrations':
+        await this.scheduledTasks.checkPendingRegistrations();
         break;
       default:
         throw new Error(`Unknown task type: ${taskType}`);

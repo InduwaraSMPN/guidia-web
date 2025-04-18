@@ -263,6 +263,13 @@ export function NotificationsPopover() {
                       ) {
                         // Redirect to meetings page for any meeting-related notifications
                         window.location.href = '/meetings/meetings';
+                      } else if (
+                        notification.notificationType === 'PENDING_REGISTRATIONS' ||
+                        (notification.metadata && notification.metadata.redirectUrl)
+                      ) {
+                        // Use the redirectUrl from metadata if available
+                        const redirectUrl = notification.metadata?.redirectUrl || '/admin/registrations/pending';
+                        window.location.href = redirectUrl;
                       }
                     }}
                   >
