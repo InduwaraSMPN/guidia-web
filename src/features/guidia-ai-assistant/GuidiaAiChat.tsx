@@ -214,7 +214,7 @@ export function GuidiaAiChat() {
             </div>
 
             {/* Chat input */}
-            <div className="absolute bottom-0 left-0 right-0 p-4">
+            <div className="absolute bottom-0 left-0 right-0 p-4 mb-4">
               <div className="max-w-3xl mx-auto flex gap-2">
                 <textarea
                   value={inputValue}

@@ -282,7 +282,7 @@ export function StudentProfilePage() {
               {/* Profile Photo and Student Number - Square image with proper positioning */}
               <div className="flex-shrink-0 relative">
                 <div
-                  className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-md transition-transform hover:scale-105 duration-300 absolute -top-20 md:-top-24"
+                  className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-md transition-transform hover:scale-105 duration-300 absolute -top-20 md:-top-24 bg-white"
                   aria-hidden="true"
                 >
                   <StudentImage
