@@ -306,6 +306,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/news"
                       ref={(el) => (itemRefs.current[0] = el)}
                       className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       News
                     </Link>
@@ -365,6 +366,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     to="/news"
                     ref={(el) => (itemRefs.current[0] = el)} // Index 0
                     className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                   >
                     News
                   </Link>
@@ -393,6 +395,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/jobs"
                       ref={(el) => (itemRefs.current[2] = el)} // Index 2
                       className={`${navItemBaseClasses} ${location.pathname === '/jobs' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Jobs
                     </Link>
@@ -405,6 +408,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/students"
                       ref={(el) => (itemRefs.current[3] = el)} // Index 3
                       className={`${navItemBaseClasses} ${location.pathname === '/students' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Students
                     </Link>
@@ -417,6 +421,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/counselors"
                       ref={(el) => (itemRefs.current[4] = el)} // Index 4
                       className={`${navItemBaseClasses} ${location.pathname === '/counselors' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Counselors
                     </Link>
@@ -429,6 +434,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/companies"
                       ref={(el) => (itemRefs.current[5] = el)} // Index 5
                       className={`${navItemBaseClasses} ${location.pathname === '/companies' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Companies
                     </Link>
@@ -503,12 +509,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     <Link
                       to="/auth/login"
                       className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Login
                     </Link>
                     <Link
                       to="/auth/register"
                       className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
                       Register
                     </Link>
