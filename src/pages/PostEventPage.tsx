@@ -118,18 +118,37 @@ export function PostEventPage() {
         imageFormData.append('image', formData.image);
         imageFormData.append('type', 'event');
 
-        const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
-          method: 'POST',
-          body: imageFormData,
-        });
+        try {
+          // Get token from localStorage
+          const token = localStorage.getItem('token');
 
-        if (!uploadResponse.ok) {
-          throw new Error('Failed to upload image');
+          const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
+            body: imageFormData,
+          });
+
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.text();
+            console.error('Upload response error:', {
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+              errorData
+            });
+            throw new Error(`Failed to upload image: ${uploadResponse.status} ${uploadResponse.statusText}`);
+          }
+
+          const uploadResult = await uploadResponse.json();
+          imageURL = uploadResult.imageURL;
+          imagePath = uploadResult.imagePath;
+
+          console.log('Upload successful:', uploadResult);
+        } catch (uploadError: any) {
+          console.error('Image upload error:', uploadError);
+          throw new Error(`Image upload failed: ${uploadError.message || 'Unknown error'}`);
         }
-
-        const uploadResult = await uploadResponse.json();
-        imageURL = uploadResult.imageURL;
-        imagePath = uploadResult.imagePath;
       }
 
       // Create or update event
@@ -138,10 +157,14 @@ export function PostEventPage() {
         ? `${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`
         : `${import.meta.env.VITE_API_BASE_URL}/api/events`;
 
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+
       const eventResponse = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           title: formData.title,
@@ -152,7 +175,13 @@ export function PostEventPage() {
       });
 
       if (!eventResponse.ok) {
-        throw new Error(id ? 'Failed to update event' : 'Failed to create event');
+        const errorData = await eventResponse.text();
+        console.error('Event response error:', {
+          status: eventResponse.status,
+          statusText: eventResponse.statusText,
+          errorData
+        });
+        throw new Error(`${id ? 'Failed to update event' : 'Failed to create event'}: ${eventResponse.status} ${eventResponse.statusText}`);
       }
 
       // Clean up preview URL if it's from a local file
@@ -165,9 +194,9 @@ export function PostEventPage() {
       // Determine where to navigate based on current path
       const isAdminRoute = location.pathname.startsWith('/admin');
       navigate(isAdminRoute ? '/admin/events' : '/events');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating/updating event:', error);
-      toast.error(id ? 'Failed to update event' : 'Failed to create event');
+      toast.error(error.message || (id ? 'Failed to update event' : 'Failed to create event'));
     }
   };
 

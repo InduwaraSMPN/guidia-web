@@ -169,25 +169,43 @@ export function PostNewsPage() {
           imageFormData.append('image', image);
           imageFormData.append('type', 'news');
 
-          const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
-            method: 'POST',
-            body: imageFormData,
-          });
+          try {
+            // Get token from localStorage
+            const token = localStorage.getItem('token');
 
-          if (!uploadResponse.ok) {
-            throw new Error('Failed to upload image');
+            const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
+              method: 'POST',
+              headers: {
+                'Authorization': token ? `Bearer ${token}` : ''
+              },
+              body: imageFormData,
+            });
+
+            if (!uploadResponse.ok) {
+              const errorData = await uploadResponse.text();
+              console.error('Upload response error:', {
+                status: uploadResponse.status,
+                statusText: uploadResponse.statusText,
+                errorData
+              });
+              throw new Error(`Failed to upload image: ${uploadResponse.status} ${uploadResponse.statusText}`);
+            }
+
+            const uploadResult = await uploadResponse.json();
+            console.log('Upload successful:', uploadResult);
+
+            // Replace or add the image URL
+            if (i < imageURLs.length) {
+              imageURLs[i] = uploadResult.imageURL;
+            } else {
+              imageURLs.push(uploadResult.imageURL);
+            }
+
+            imagePaths.push(uploadResult.imagePath);
+          } catch (uploadError: any) {
+            console.error('Image upload error:', uploadError);
+            throw new Error(`Image upload failed: ${uploadError.message || 'Unknown error'}`);
           }
-
-          const uploadResult = await uploadResponse.json();
-
-          // Replace or add the image URL
-          if (i < imageURLs.length) {
-            imageURLs[i] = uploadResult.imageURL;
-          } else {
-            imageURLs.push(uploadResult.imageURL);
-          }
-
-          imagePaths.push(uploadResult.imagePath);
         }
       }
 
@@ -200,10 +218,14 @@ export function PostNewsPage() {
         ? `${import.meta.env.VITE_API_BASE_URL}/api/news/${id}`
         : `${import.meta.env.VITE_API_BASE_URL}/api/news`;
 
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+
       const newsResponse = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           title: formData.title,
@@ -215,7 +237,13 @@ export function PostNewsPage() {
       });
 
       if (!newsResponse.ok) {
-        throw new Error(id ? 'Failed to update news' : 'Failed to create news');
+        const errorData = await newsResponse.text();
+        console.error('News response error:', {
+          status: newsResponse.status,
+          statusText: newsResponse.statusText,
+          errorData
+        });
+        throw new Error(`${id ? 'Failed to update news' : 'Failed to create news'}: ${newsResponse.status} ${newsResponse.statusText}`);
       }
 
       // Clean up preview URLs if they're from local files
@@ -230,9 +258,9 @@ export function PostNewsPage() {
       // Determine where to navigate based on current path
       const isAdminRoute = location.pathname.startsWith('/admin');
       navigate(isAdminRoute ? '/admin/news' : '/news');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating/updating news:', error);
-      toast.error(id ? 'Failed to update news' : 'Failed to create news');
+      toast.error(error.message || (id ? 'Failed to update news' : 'Failed to create news'));
     }
   };
 

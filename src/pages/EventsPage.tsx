@@ -4,10 +4,10 @@ import { Plus, Calendar } from "lucide-react"
 import { SearchBar } from "../components/SearchBar"
 import { Button } from "../components/ui/button"
 import { useState, useMemo, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { EventCard, type Event } from "../components/EventCard"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageLayout } from "@/components/PageLayout"
 import { PageHeader } from "@/components/PageHeader"
@@ -35,14 +35,40 @@ export function EventsPage() {
     }
   }
 
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
+
   useEffect(() => {
     fetchEvents()
   }, [])
 
-  const [selectedType, setSelectedType] = useState<EventType>("Upcoming")
+  // Update selected type when URL changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const tab = params.get('tab')
+    if (tab === 'past') {
+      setSelectedType('Past')
+    } else if (tab === 'upcoming') {
+      setSelectedType('Upcoming')
+    }
+  }, [location.search])
+
+  // Get tab from URL query parameter
+  const queryParams = new URLSearchParams(location.search)
+  const tabParam = queryParams.get('tab')
+
+  // Set initial selected type based on URL query parameter
+  const [selectedType, setSelectedType] = useState<EventType>(
+    tabParam === 'past' ? "Past" : "Upcoming"
+  )
   const [searchQuery, setSearchQuery] = useState("")
-  const navigate = useNavigate()
-  const { user } = useAuth()
+
+  // Update URL when tab changes
+  const handleTypeChange = (type: EventType) => {
+    setSelectedType(type)
+    navigate(`/events?tab=${type.toLowerCase()}`, { replace: true })
+  }
 
   // Filter events based on date and search query
   const filteredEvents = useMemo(() => {
@@ -124,30 +150,27 @@ export function EventsPage() {
     }
 
     return (
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={selectedType + searchQuery}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {filteredEvents.map((event, index) => (
-            <motion.div
-              key={event.eventID}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: { delay: index * 0.05 },
-              }}
-            >
-              <EventCard event={event} onDelete={fetchEvents} />
-            </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        key={selectedType + searchQuery}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
+        {filteredEvents.map((event, index) => (
+          <motion.div
+            key={event.eventID}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              transition: { delay: index * 0.05 },
+            }}
+          >
+            <EventCard event={event} onDelete={fetchEvents} />
+          </motion.div>
+        ))}
+      </motion.div>
     )
   }
 
@@ -176,7 +199,7 @@ export function EventsPage() {
             {(["Upcoming", "Past"] as EventType[]).map((type) => (
               <motion.button
                 key={type}
-                onClick={() => setSelectedType(type)}
+                onClick={() => handleTypeChange(type)}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className={`px-6 py-2 rounded-md text-base font-medium transition-all duration-200 ${

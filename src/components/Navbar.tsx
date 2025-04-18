@@ -1,76 +1,78 @@
+"use client"
 
-import { Menu, X, MessageSquare } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
+import type React from "react"
+
+import { MenuIcon, X, MessageSquare } from "lucide-react"
+import { useState, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { useThemeContext } from "../contexts/ThemeContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { ProfileDropdown } from "./ProfileDropdown"
-import { NavDropdown, MobileNavDropdown } from "./NavDropdown"
+import { Menu, MenuItem, HoveredLink } from "./navbar-menu"
+import { EventsDropdown } from "./EventsDropdown"
 import { motion } from "framer-motion"
-import { getDatabase, ref, onValue, off } from 'firebase/database'
+import { getDatabase, ref, onValue, off } from "firebase/database"
 
 interface NavbarProps {
   logoOnly?: boolean
 }
 
 const ChatPopover: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { user } = useAuth()
+  const [unreadCount, setUnreadCount] = useState(0)
 
-  const isChatRoute = location.pathname.includes('/chat') || location.pathname.includes('/messages');
+  const isChatRoute = location.pathname.includes("/chat") || location.pathname.includes("/messages")
 
   useEffect(() => {
-    if (!user?.userID) return;
+    if (!user?.userID) return
 
-    const db = getDatabase();
-    const messagesRef = ref(db, 'messages/conversations');
+    const db = getDatabase()
+    const messagesRef = ref(db, "messages/conversations")
 
     onValue(messagesRef, (snapshot) => {
-      const conversations = snapshot.val();
-      if (!conversations) return;
+      const conversations = snapshot.val()
+      if (!conversations) return
 
-      let unreadTotal = 0;
+      let unreadTotal = 0
       Object.entries(conversations).forEach(([_, conv]: [string, any]) => {
-        const participants = conv.participants || {};
-        const isParticipant = participants[user.userID];
-        if (!isParticipant) return;
+        const participants = conv.participants || {}
+        const isParticipant = participants[user.userID]
+        if (!isParticipant) return
 
-        const messages = conv.messages || {};
+        const messages = conv.messages || {}
         Object.entries(messages).forEach(([_, msg]: [string, any]) => {
           if (msg.receiver === user.userID && !msg.read) {
-            unreadTotal++;
+            unreadTotal++
           }
-        });
-      });
+        })
+      })
 
-      console.log('Unread messages count:', unreadTotal);
-      setUnreadCount(unreadTotal);
-    });
+      console.log("Unread messages count:", unreadTotal)
+      setUnreadCount(unreadTotal)
+    })
 
-    return () => off(messagesRef);
-  }, [user]);
+    return () => off(messagesRef)
+  }, [user])
 
   // Handle click to navigate to messages
   const handleChatClick = () => {
     if (user) {
-      if (user.userType === 'Admin') {
-        navigate(`/admin/${user.userID}/messages`);
+      if (user.userType === "Admin") {
+        navigate(`/admin/${user.userID}/messages`)
       } else {
-        navigate(`/${user.userType.toLowerCase()}/${user.userID}/messages`);
+        navigate(`/${user.userType.toLowerCase()}/${user.userID}/messages`)
       }
     }
-  };
+  }
 
   return (
     <button
       onClick={handleChatClick}
       className={`relative p-2 rounded-full text-muted-foreground transition-colors duration-300 ${
-        isChatRoute
-          ? "bg-brand/10 text-brand"
-          : "hover:bg-brand/10 hover:text-brand"
+        isChatRoute ? "bg-brand/10 text-brand" : "hover:bg-brand/10 hover:text-brand"
       }`}
     >
       <MessageSquare className="h-6 w-6" />
@@ -80,19 +82,19 @@ const ChatPopover: React.FC = () => {
         </span>
       )}
     </button>
-  );
-};
+  )
+}
 
 export function Navbar({ logoOnly = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 })
-  const [isAuthPage, setIsAuthPage] = useState(false) // Add state for isAuthPage
+  const [isAuthPage, setIsAuthPage] = useState(false)
+  const [active, setActive] = useState<string | null>(null)
   const { isDark } = useThemeContext()
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrolled = window.scrollY > 20 // Reduced threshold for quicker response
+      const scrolled = window.scrollY > 20
       if (scrolled !== isScrolled) {
         setIsScrolled(scrolled)
       }
@@ -104,8 +106,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
 
   const location = useLocation()
   const { user, isVerifyingToken } = useAuth()
-  const navRef = useRef<HTMLDivElement>(null)
-  const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
 
   // Check if we're on an auth page
   useEffect(() => {
@@ -127,7 +127,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   // Define navigation items based on user type
   const navItems = [
     { path: "/news", label: "News" },
-    { path: "/events", label: "Events" },
+    // Events is now handled separately as a dropdown
     ...(user ? [{ path: "/jobs", label: "Jobs" }] : []),
     ...(user?.userType === "Student" ||
     user?.userType === "Company" ||
@@ -138,8 +138,10 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
           { path: "/counselors", label: "Counselors" },
           { path: "/companies", label: "Companies" },
         ]
-      : [])
+      : []),
   ]
+
+  // Events are now handled by the EventsDropdown component
 
   // Define meeting dropdown items
   const meetingDropdownItems = [
@@ -148,38 +150,13 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     { path: "/calendar", label: "Calendar" },
   ]
 
-  const activeIndex = navItems.findIndex((item) => location.pathname === item.path)
-
-  useEffect(() => {
-    const updateIndicator = () => {
-      if (activeIndex === -1 || !navRef.current || !itemRefs.current[activeIndex]) return
-
-      const activeItem = itemRefs.current[activeIndex]
-      if (!activeItem) return
-
-      const navRect = navRef.current.getBoundingClientRect()
-      const itemRect = activeItem.getBoundingClientRect()
-
-      setIndicatorStyle({
-        width: itemRect.width,
-        left: itemRect.left - navRect.left,
-      })
-    }
-
-    updateIndicator()
-    window.addEventListener("resize", updateIndicator)
-    return () => window.removeEventListener("resize", updateIndicator)
-  }, [activeIndex, location.pathname, navItems.length])
-
-
-
   return (
     <nav
       className={`fixed w-full top-0 z-[40] transition-all duration-300 ${
         isScrolled ? "bg-background/95 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-4"
       }`}
     >
-      <div className="max-w-[1216px] mx-auto px-6 pt-2 pb-2">
+      <div className="max-w-[1216px] mx-auto px-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
@@ -193,45 +170,39 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             </Link>
 
             {!logoOnly && !isVerifyingToken && (
-              <div className="hidden md:block ml-12 relative" ref={navRef}>
-                <div className="flex space-x-8">
-                  {navItems.map((item, index) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      ref={(el) => (itemRefs.current[index] = el)}
-                      className={`relative px-1 py-2 text-sm font-medium hover:text-brand transition-colors duration-200 ${
-                        location.pathname === item.path ? "text-brand" : "text-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
+              <div className="hidden md:block ml-12">
+                {/* Animated Menu */}
+                <Menu setActive={setActive}>
+                  {navItems.map((item) => (
+                    <MenuItem key={item.path} setActive={setActive} active={active} item={item.label}>
+                      <div className="flex flex-col space-y-4 text-sm">
+                        <HoveredLink href={item.path}>{item.label}</HoveredLink>
+                      </div>
+                    </MenuItem>
                   ))}
 
+                  {/* Events Dropdown with Grid Layout */}
+                  <MenuItem
+                    setActive={setActive}
+                    active={active}
+                    item="Events"
+                  >
+                    <EventsDropdown />
+                  </MenuItem>
+
                   {/* Meetings Dropdown */}
-                  {user && user.userType !== 'Admin' && (
-                    <NavDropdown
-                      label="Meetings"
-                      items={meetingDropdownItems}
-                    />
+                  {user && user.userType !== "Admin" && (
+                    <MenuItem setActive={setActive} active={active} item="Meetings">
+                      <div className="flex flex-col space-y-4 text-sm">
+                        {meetingDropdownItems.map((item) => (
+                          <HoveredLink key={item.path} href={item.path}>
+                            {item.label}
+                          </HoveredLink>
+                        ))}
+                      </div>
+                    </MenuItem>
                   )}
-                </div>
-                {activeIndex !== -1 && (
-                  <motion.div
-                    className="absolute bottom-0 h-[2px] bg-brand rounded-full"
-                    initial={false}
-                    animate={{
-                      width: `${indicatorStyle.width}px`,
-                      left: `${indicatorStyle.left}px`,
-                      opacity: 1,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  />
-                )}
+                </Menu>
               </div>
             )}
           </div>
@@ -270,7 +241,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 className="p-2 rounded-full text-foreground hover:bg-secondary transition-colors duration-200"
                 title={isMenuOpen ? "Close menu" : "Open menu"}
               >
-                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                {isMenuOpen ? <X size={20} /> : <MenuIcon size={20} />}
               </button>
             </div>
           )}
@@ -278,70 +249,107 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
       </div>
 
       {/* Mobile menu */}
-        {!logoOnly && isMenuOpen && !isVerifyingToken && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-background border-t border-border overflow-hidden"
-          >
-            <div className="px-6 py-4 space-y-2">
-              {navItems.map((item) => (
+      {!logoOnly && isMenuOpen && !isVerifyingToken && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden bg-background border-t border-border overflow-hidden"
+        >
+          <div className="px-6 py-4 space-y-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm font-medium hover:text-brand py-3 transition-colors ${
+                  location.pathname === item.path ? "text-brand" : "text-foreground"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {/* Mobile Events Section */}
+            <div className="py-2">
+              <div className="text-sm font-medium py-2">Events</div>
+              <div className="pl-4 space-y-2 border-l border-border">
                 <Link
-                  key={item.path}
-                  to={item.path}
+                  to="/events?tab=upcoming"
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block text-sm font-medium hover:text-brand py-3 transition-colors ${
-                    location.pathname === item.path ? "text-brand" : "text-foreground"
+                  className={`block py-2 text-sm transition-colors ${
+                    location.pathname === "/events" && location.search.includes("tab=upcoming") ? "text-brand font-medium" : "text-foreground hover:text-brand"
                   }`}
                 >
-                  {item.label}
+                  Upcoming Events
                 </Link>
-              ))}
-
-              {/* Mobile Meetings Dropdown */}
-              {user && user.userType !== 'Admin' && (
-                <MobileNavDropdown
-                  label="Meetings"
-                  items={meetingDropdownItems}
-                />
-              )}
-
-              {!isAuthPage && (
-                <div className="pt-4 mt-4 border-t border-border">
-                  {user ? (
-                    <>
-                      <div className="flex items-center gap-4 mb-4">
-                        <NotificationsPopover />
-                        <ChatPopover />
-                        <ProfileDropdown />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col space-y-3 pt-2">
-                      <Link
-                        to="/auth/login"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="w-full py-2.5 text-center text-sm font-medium text-brand border border-brand/20 rounded-md hover:bg-brand hover:text-white transition-colors"
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        to="/auth/register"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="w-full py-2.5 text-center text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-light transition-colors"
-                      >
-                        Register
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
+                <Link
+                  to="/events?tab=past"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block py-2 text-sm transition-colors ${
+                    location.pathname === "/events" && location.search.includes("tab=past") ? "text-brand font-medium" : "text-foreground hover:text-brand"
+                  }`}
+                >
+                  Past Events
+                </Link>
+              </div>
             </div>
-          </motion.div>
-        )}
+
+            {/* Mobile Meetings Section */}
+            {user && user.userType !== "Admin" && (
+              <div className="py-2">
+                <div className="text-sm font-medium py-2">Meetings</div>
+                <div className="pl-4 space-y-2 border-l border-border">
+                  {meetingDropdownItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`block py-2 text-sm transition-colors ${
+                        location.pathname === item.path ? "text-brand font-medium" : "text-foreground hover:text-brand"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!isAuthPage && (
+              <div className="pt-4 mt-4 border-t border-border">
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-4 mb-4">
+                      <NotificationsPopover />
+                      <ChatPopover />
+                      <ProfileDropdown />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col space-y-3 pt-2">
+                    <Link
+                      to="/auth/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full py-2.5 text-center text-sm font-medium text-brand border border-brand/20 rounded-md hover:bg-brand hover:text-white transition-colors"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/auth/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full py-2.5 text-center text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-light transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
     </nav>
   )
 }
-
