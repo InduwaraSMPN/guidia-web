@@ -225,7 +225,7 @@ export function JobApplication() {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 flex items-center justify-center">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-adaptive-dark">Job not found</h2>
           <p className="mt-2 text-muted-foreground">The job you're looking for doesn't exist or has been removed.</p>

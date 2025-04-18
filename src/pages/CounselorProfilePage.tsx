@@ -182,7 +182,7 @@ export function CounselorProfilePage() {
 
   if (error || !counselorData) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-xl font-semibold text-adaptive-dark">
             {error || (!userID ? "Invalid profile URL" : "Counselor profile not found")}

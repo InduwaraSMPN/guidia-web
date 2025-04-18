@@ -294,7 +294,7 @@ export function EditStudentProfile() {
 
   if (pageLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-3xl mx-auto mb-16">
           <Skeleton className="h-10 w-64 mb-8" />
 
@@ -359,7 +359,7 @@ export function EditStudentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>

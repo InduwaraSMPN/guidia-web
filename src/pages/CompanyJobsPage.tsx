@@ -124,7 +124,7 @@ export function CompanyJobsPage() {
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-5xl mx-auto">
           {/* Company Header Skeleton */}
           <div className="bg-white rounded-lg border border-border p-6 mb-8">
@@ -171,7 +171,7 @@ export function CompanyJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       <div className="max-w-5xl mx-auto">
         {/* Company Header */}
         <div className="bg-white rounded-lg border border-border p-6 mb-8">

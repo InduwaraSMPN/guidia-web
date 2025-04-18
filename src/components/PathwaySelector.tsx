@@ -3,6 +3,7 @@ import { Trash2, Plus } from 'lucide-react';
 import { Button } from './ui/button';
 import { CustomPathwayModal } from './CustomPathwayModal';
 import { motion } from 'framer-motion';
+import { MultipleInput } from './ui/MultipleInput';
 
 interface PathwaySelectorProps {
   selectedPaths: string[];
@@ -42,10 +43,6 @@ export function PathwaySelector({ selectedPaths, onPathwaysChange, onSave }: Pat
     setIsCustomModalOpen(false);
   };
 
-  const handleRemove = (pathToRemove: string) => {
-    onPathwaysChange(selectedPaths.filter(path => path !== pathToRemove));
-  };
-
   // Filter suggestions to only show ones not already selected
   const filteredSuggestions = AVAILABLE_PATHS.filter(
     path => !selectedPaths.includes(path)
@@ -79,30 +76,23 @@ export function PathwaySelector({ selectedPaths, onPathwaysChange, onSave }: Pat
           }
         </label>
 
-        {selectedPaths.length === 0 ? (
-          <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary">
-            <p className="text-muted-foreground">No career pathways selected yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below or add your own</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {selectedPaths.map((path) => (
-              <div
-                key={path}
-                className="flex items-center justify-between bg-brand text-white px-4 py-2 rounded-md"
-              >
-                <span>{path}</span>
-                <button
-                  onClick={() => handleRemove(path)}
-                  className="text-white hover:text-muted-foreground"
-                  title="Remove pathway"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="mb-4">
+          {selectedPaths.length === 0 && (
+            <div className="py-4 mb-4 text-center border border-dashed border-border rounded-lg bg-secondary">
+              <p className="text-muted-foreground">No career pathways selected yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below or add your own</p>
+            </div>
+          )}
+
+          <MultipleInput
+            items={selectedPaths}
+            onItemsChange={onPathwaysChange}
+            placeholder="Enter a career pathway"
+            allowDuplicates={false}
+            maxItems={10}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* Suggestions section */}

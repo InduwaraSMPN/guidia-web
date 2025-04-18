@@ -200,7 +200,7 @@ export function EditDocuments() {
 
   if (pageLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-3xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-10 w-48" />
@@ -237,7 +237,7 @@ export function EditDocuments() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-brand">

@@ -269,7 +269,7 @@ export function WelcomeEditStudentProfile() {
 
   if (pageLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-3xl mx-auto mb-16">
           <div className="text-center mb-12">
             <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
@@ -346,7 +346,7 @@ export function WelcomeEditStudentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       <div className="max-w-3xl mx-auto mb-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-brand mb-4">

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
+import { RichTextEditor } from '../ui/RichTextEditor';
 import {
   Form,
   FormControl,
@@ -234,12 +234,13 @@ export function MeetingFeedbackForm({
             name="comments"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Additional Comments (Optional)</FormLabel>
+                <FormLabel>Description (Optional)</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Enter your comments"
-                    className="resize-none"
-                    {...field}
+                  <RichTextEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Enter your description"
+                    className="min-h-[120px]"
                   />
                 </FormControl>
                 <FormMessage />

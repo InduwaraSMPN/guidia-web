@@ -184,7 +184,7 @@ export function StudentProfilePage() {
   // Show loading state with skeleton screens
   if (loading) {
     return (
-      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8">
+      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Profile Header Skeleton */}
           <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
@@ -236,7 +236,7 @@ export function StudentProfilePage() {
   // Show error state
   if (error || !studentData) {
     return (
-      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8" aria-labelledby="error-title">
+      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32" aria-labelledby="error-title">
         <div className="max-w-5xl mx-auto text-center p-8 bg-secondary rounded-lg shadow-sm">
           <h1 id="error-title" className="text-xl font-semibold text-adaptive-dark mb-4">
             {error || (!userID ? "Invalid profile URL" : "Student profile not found")}
