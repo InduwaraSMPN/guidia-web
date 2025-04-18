@@ -60,14 +60,20 @@ const ChatPopover: React.FC = () => {
             }
         }
         // Fallback: iterate messages if lastMessage logic isn't fully reliable yet
-        // else {
-        //   const messages = conv.messages || {}
-        //   Object.entries(messages).forEach(([_, msg]: [string, any]) => {
-        //     if (msg.receiver === user.userID && !msg.read && msg.sender !== user.userID) {
-        //       unreadTotal++
-        //     }
-        //   })
-        // }
+        else if (conv.messages) {
+          const messages = conv.messages || {}
+          let hasUnreadMessages = false
+
+          Object.entries(messages).forEach(([_, msg]: [string, any]) => {
+            if (msg.receiver === user.userID && !msg.read && msg.sender !== user.userID) {
+              hasUnreadMessages = true
+            }
+          })
+
+          if (hasUnreadMessages) {
+            unreadTotal++
+          }
+        }
       })
 
       // console.log("Unread messages count:", unreadTotal)
@@ -91,8 +97,12 @@ const ChatPopover: React.FC = () => {
   return (
     <button
       onClick={handleChatClick}
-      className={`relative p-2 rounded-full text-muted-foreground transition-colors duration-300 ${
-        isChatRoute ? "bg-brand/10 text-brand" : "hover:bg-brand/10 hover:text-brand"
+      className={`relative p-2 rounded-full transition-colors duration-300 ${
+        isChatRoute
+          ? "bg-brand/10 text-brand"
+          : unreadCount > 0
+            ? "text-brand hover:bg-brand/10"
+            : "text-muted-foreground hover:bg-brand/10 hover:text-brand"
       }`}
     >
       <MessageSquare className="h-6 w-6" />
