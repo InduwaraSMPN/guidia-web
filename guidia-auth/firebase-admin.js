@@ -1,7 +1,12 @@
 const admin = require('firebase-admin');
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-  : require('./firebase-service-account.json');
+
+// Always use environment variable for service account
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  console.error('FIREBASE_SERVICE_ACCOUNT environment variable is not set');
+  process.exit(1);
+}
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!admin.apps.length) {

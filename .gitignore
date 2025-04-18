@@ -14,7 +14,11 @@ src/mocks/*
 **/mock-data/*
 
 # Environment files
-
+.env
+**/.env
+.env.local
+.env.development
+.env.production
 
 # Build output
 build/
@@ -37,4 +41,7 @@ yarn-error.log*
 #examples
 database_creation_plan.md
 index.sql
+# Firebase service account keys
 guidia-auth/firebase-service-account.json
+**/firebase-service-account.json
+**/key-backups/
