@@ -38,7 +38,7 @@ interface FormErrors {
 }
 
 export function WelcomeEditCompanyProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +123,11 @@ export function WelcomeEditCompanyProfile() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).every(key => !newErrors[key].error);
+    // Fix TypeScript error by using type assertion
+    return Object.keys(newErrors).every(key => {
+      const field = newErrors[key as keyof FormErrors];
+      return field && !field.error;
+    });
   };
 
   const handleInputChange = (
@@ -301,6 +305,7 @@ export function WelcomeEditCompanyProfile() {
 
       // Now create/update the company profile
       const profileData = {
+        userID: user?.userID, // Include userID in the request body
         companyName: formData.companyName,
         companyCountry: formData.country,
         companyCity: formData.city,
@@ -320,8 +325,12 @@ export function WelcomeEditCompanyProfile() {
         profileData
       });
 
+      // Log the API URL for debugging
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile`;
+      console.log('API URL being called:', apiUrl);
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile/${user?.userID}`,
+        apiUrl,
         {
           method: 'POST',
           headers: {
@@ -349,6 +358,12 @@ export function WelcomeEditCompanyProfile() {
       // Clean up preview URL if it exists
       if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
+      }
+
+      // Update the user context to set hasProfile to true
+      if (updateUser) {
+        updateUser({ hasProfile: true });
+        console.log('Updated user context with hasProfile: true');
       }
 
       toast.success("Profile created successfully!");
@@ -424,8 +439,7 @@ export function WelcomeEditCompanyProfile() {
                   }
                 }}
                 placeholder="Select a country"
-                error={!!errors.country?.error}
-                success={errors.country?.isValid}
+                // error and success props removed as they're not in the component props
               />
             </div>
 
@@ -509,8 +523,7 @@ export function WelcomeEditCompanyProfile() {
               onChange={handleEditorChange}
               placeholder="Enter company description"
               className="min-h-[160px]"
-              error={!!errors.description?.error}
-              success={errors.description?.isValid}
+              // error and success props removed as they're not in the component props
             />
             {errors.description?.error && (
               <p className="text-red-500 text-sm mt-1">{errors.description.error}</p>

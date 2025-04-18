@@ -226,7 +226,7 @@ export function CounselorProfilePage() {
               {/* Profile Photo with enhanced positioning and subtle animation */}
               <div className="flex-shrink-0 relative w-40 h-40 mb-16 md:mb-0">
                 <motion.div
-                  className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-lg transition-all duration-300 absolute -top-24 left-1/2 md:left-0 transform -translate-x-1/2 md:translate-x-0"
+                  className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-lg transition-all duration-300 absolute -top-24 left-1/2 md:left-0 transform -translate-x-1/2 md:translate-x-0 bg-white"
                   aria-hidden="true"
                   whileHover={{ scale: 1.03 }}
                   initial={{ y: 10, opacity: 0 }}

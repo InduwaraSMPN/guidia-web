@@ -24,10 +24,36 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// Create new company profile
+// Create new company profile - supports both URL patterns
 router.post('/profile/:userID', verifyToken, async (req, res) => {
   const pool = req.app.locals.pool;
+  let connection;
+
   try {
+    // Check if pool exists
+    if (!pool) {
+      console.error('Database pool is undefined');
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: 'Database pool is not available'
+      });
+    }
+
+    // Get a dedicated connection from the pool
+    try {
+      connection = await pool.getConnection();
+      console.log('Successfully obtained database connection');
+    } catch (connError) {
+      console.error('Error getting database connection:', connError);
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: connError.message
+      });
+    }
+
+    // Begin transaction
+    await connection.beginTransaction();
+
     const { userID } = req.params;
     const {
       companyName,
@@ -56,7 +82,7 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
     }
 
     // Check if profile already exists
-    const [existing] = await pool.execute(
+    const [existing] = await connection.execute(
       'SELECT companyID FROM companies WHERE userID = ?',
       [userID]
     );
@@ -65,6 +91,7 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
 
     if (existing.length > 0) {
       console.log('Company profile already exists for user:', userID);
+      if (connection) connection.release();
       return res.status(400).json({
         error: 'Company profile already exists'
       });
@@ -103,32 +130,77 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       companyEmail
     });
 
-    const [result] = await pool.execute(insertQuery, values);
+    try {
+      const [result] = await connection.execute(insertQuery, values);
 
-    console.log('Company profile insert result:', {
-      insertId: result.insertId,
-      affectedRows: result.affectedRows
-    });
+      console.log('Company profile insert result:', {
+        insertId: result.insertId,
+        affectedRows: result.affectedRows
+      });
+    } catch (dbError) {
+      console.error('Database error during insert:', dbError);
+      await connection.rollback();
+      if (connection) connection.release();
+      throw dbError;
+    }
 
     // Verify the profile was created by querying it back
-    const [newProfile] = await pool.execute(
-      'SELECT companyID FROM companies WHERE userID = ?',
-      [userID]
-    );
+    console.log('Executing verification query for userID:', userID);
+    try {
+      const [newProfile] = await connection.execute(
+        'SELECT companyID FROM companies WHERE userID = ?',
+        [userID]
+      );
 
-    console.log('Verification query result:', {
-      found: newProfile.length > 0,
-      companyID: newProfile.length > 0 ? newProfile[0].companyID : null
-    });
+      console.log('Verification query result:', {
+        found: newProfile.length > 0,
+        companyID: newProfile.length > 0 ? newProfile[0].companyID : null
+      });
 
-    res.status(201).json({
-      success: true,
-      message: 'Profile created successfully',
-      companyID: newProfile.length > 0 ? newProfile[0].companyID : null
-    });
+      // If verification fails, roll back the transaction
+      if (newProfile.length === 0) {
+        console.error('Verification failed - no profile found after insert');
+        await connection.rollback();
+        if (connection) connection.release();
+        throw new Error('Profile creation verification failed');
+      }
+
+      // Commit the transaction if verification succeeds
+      await connection.commit();
+      console.log('Transaction committed successfully');
+
+      // Release the connection back to the pool
+      if (connection) connection.release();
+      console.log('Database connection released');
+
+      res.status(201).json({
+        success: true,
+        message: 'Profile created successfully',
+        companyID: newProfile.length > 0 ? newProfile[0].companyID : null
+      });
+    } catch (verifyError) {
+      console.error('Error during verification query:', verifyError);
+      await connection.rollback();
+      if (connection) connection.release();
+      throw verifyError;
+    }
 
   } catch (error) {
     console.error('Error creating company profile:', error);
+
+    // Rollback transaction if it was started
+    if (connection) {
+      try {
+        await connection.rollback();
+        console.log('Transaction rolled back due to error');
+      } catch (rollbackError) {
+        console.error('Error rolling back transaction:', rollbackError);
+      } finally {
+        connection.release();
+        console.log('Database connection released after error');
+      }
+    }
+
     res.status(500).json({
       error: 'Failed to create profile',
       details: error.message
@@ -317,6 +389,211 @@ router.get('/profile/:userID', async (req, res) => {
   }
 });
 
+// Alternative endpoint for company profile creation (without userID in URL)
+router.post('/profile', verifyToken, async (req, res) => {
+  const pool = req.app.locals.pool;
+  let connection;
+
+  try {
+    // Check if pool exists
+    if (!pool) {
+      console.error('Database pool is undefined');
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: 'Database pool is not available'
+      });
+    }
+
+    // Get a dedicated connection from the pool
+    try {
+      connection = await pool.getConnection();
+      console.log('Successfully obtained database connection');
+    } catch (connError) {
+      console.error('Error getting database connection:', connError);
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: connError.message
+      });
+    }
+
+    // Extract userID from the request body
+    const { userID, ...profileData } = req.body;
+
+    console.log('Company profile creation request (alternative endpoint):', {
+      userID,
+      companyName: profileData.companyName,
+      companyEmail: profileData.companyEmail,
+      requestUser: req.user ? req.user.id : 'No user in token'
+    });
+
+    // Log the database connection pool
+    console.log('Database pool:', {
+      poolExists: !!pool,
+      hasConfig: !!(pool && pool._config),
+      connectionLimit: pool && pool._config ? pool._config.connectionLimit : 'unknown',
+      queueSize: pool && pool._config ? pool._config.queueLimit : 'unknown',
+      database: pool && pool._config ? pool._config.database : 'unknown'
+    });
+
+    // Begin transaction
+    await connection.beginTransaction();
+
+    // Verify that the userID matches the token
+    if (userID?.toString() !== req.user.id) {
+      console.error('User ID mismatch:', { tokenUserId: req.user.id, requestUserId: userID });
+      return res.status(403).json({
+        error: 'Unauthorized: User ID mismatch'
+      });
+    }
+
+    // Check if profile already exists
+    const [existing] = await connection.execute(
+      'SELECT companyID FROM companies WHERE userID = ?',
+      [userID]
+    );
+
+    console.log('Existing company check result:', { count: existing.length, userID });
+
+    if (existing.length > 0) {
+      console.log('Company profile already exists for user:', userID);
+      return res.status(400).json({
+        error: 'Company profile already exists'
+      });
+    }
+
+    // Create new profile
+    const insertQuery = `
+      INSERT INTO companies (
+        userID,
+        companyName,
+        companyCountry,
+        companyCity,
+        companyWebsite,
+        companyContactNumber,
+        companyEmail,
+        companyDescription,
+        companyLogoPath
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      userID,
+      profileData.companyName,
+      profileData.companyCountry,
+      profileData.companyCity,
+      profileData.companyWebsite,
+      profileData.companyContactNumber,
+      profileData.companyEmail,
+      profileData.companyDescription,
+      profileData.companyLogoPath
+    ];
+
+    console.log('Executing company profile insert with values:', {
+      userID,
+      companyName: profileData.companyName,
+      companyEmail: profileData.companyEmail
+    });
+
+    console.log('Executing SQL query:', {
+      query: insertQuery,
+      values: values
+    });
+
+    try {
+      const [result] = await connection.execute(insertQuery, values);
+
+      console.log('Company profile insert result:', {
+        insertId: result.insertId,
+        affectedRows: result.affectedRows
+      });
+    } catch (dbError) {
+      console.error('Database error during insert:', dbError);
+      await connection.rollback();
+      throw dbError;
+    }
+
+    // Verify the profile was created by querying it back
+    console.log('Executing verification query for userID:', userID);
+    try {
+      const [newProfile] = await connection.execute(
+        'SELECT companyID FROM companies WHERE userID = ?',
+        [userID]
+      );
+
+      console.log('Verification query result:', {
+        found: newProfile.length > 0,
+        companyID: newProfile.length > 0 ? newProfile[0].companyID : null,
+        rawResult: JSON.stringify(newProfile)
+      });
+
+      // If verification fails, roll back the transaction
+      if (newProfile.length === 0) {
+        console.error('Verification failed - no profile found after insert');
+        await connection.rollback();
+        throw new Error('Profile creation verification failed');
+      }
+
+      // Commit the transaction if verification succeeds
+      await connection.commit();
+      console.log('Transaction committed successfully');
+
+    } catch (verifyError) {
+      console.error('Error during verification query:', verifyError);
+      await connection.rollback();
+      throw verifyError;
+    }
+
+    // Get the companyID from the verification query
+    let companyID = null;
+    try {
+      const [verifyResult] = await connection.execute(
+        'SELECT companyID FROM companies WHERE userID = ?',
+        [userID]
+      );
+      companyID = verifyResult.length > 0 ? verifyResult[0].companyID : null;
+
+      console.log('Final verification before response:', {
+        userID,
+        companyID,
+        found: verifyResult.length > 0
+      });
+    } catch (finalError) {
+      console.error('Error in final verification:', finalError);
+    } finally {
+      // Release the connection back to the pool
+      if (connection) connection.release();
+      console.log('Database connection released');
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Profile created successfully',
+      companyID: companyID
+    });
+
+    console.log('Response sent with companyID:', companyID);
+
+  } catch (error) {
+    console.error('Error creating company profile:', error);
+
+    // Rollback transaction if it was started
+    if (connection) {
+      try {
+        await connection.rollback();
+        console.log('Transaction rolled back due to error');
+      } catch (rollbackError) {
+        console.error('Error rolling back transaction:', rollbackError);
+      } finally {
+        connection.release();
+        console.log('Database connection released after error');
+      }
+    }
+
+    res.status(500).json({
+      error: 'Failed to create profile',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;
-
-

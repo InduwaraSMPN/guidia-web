@@ -8,7 +8,35 @@ const { verifyToken, verifyCounselor, verifyOwnership } = require('../middleware
 router.post('/profile', verifyToken, async (req, res) => {
   // Log the user's role ID for debugging
   console.log('User role ID:', req.user.roleId);
+  const pool = req.app.locals.pool;
+  let connection;
+
   try {
+    // Check if pool exists
+    if (!pool) {
+      console.error('Database pool is undefined');
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: 'Database pool is not available'
+      });
+    }
+
+    // Get a dedicated connection from the pool
+    try {
+      connection = await pool.getConnection();
+      console.log('Successfully obtained database connection for counselor profile');
+    } catch (connError) {
+      console.error('Error getting database connection:', connError);
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: connError.message
+      });
+    }
+
+    // Begin transaction
+    await connection.beginTransaction();
+    console.log('Transaction started for counselor profile');
+
     console.log('Received counselor profile request:', req.body);
     console.log('User from token:', req.user);
 
@@ -16,6 +44,8 @@ router.post('/profile', verifyToken, async (req, res) => {
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
+      if (connection) connection.release();
+      console.error('User ID mismatch:', { tokenUserId: req.user.id, requestUserId: userID });
       return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
@@ -23,7 +53,7 @@ router.post('/profile', verifyToken, async (req, res) => {
 
     // Check if counselor profile already exists
     console.log('Checking for existing profile with userID:', userID);
-    const [existing] = await req.app.locals.pool.execute(
+    const [existing] = await connection.execute(
       'SELECT * FROM counselors WHERE userID = ?',
       [userID]
     );
@@ -63,13 +93,28 @@ router.post('/profile', verifyToken, async (req, res) => {
         userID
       ];
 
-      await req.app.locals.pool.execute(updateQuery, updateParams);
+      try {
+        await connection.execute(updateQuery, updateParams);
 
-      res.json({
-        success: true,
-        counselorID: existing[0].counselorID,
-        message: 'Profile updated successfully'
-      });
+        // Commit the transaction
+        await connection.commit();
+        console.log('Transaction committed successfully for profile update');
+
+        // Release the connection back to the pool
+        if (connection) connection.release();
+        console.log('Database connection released after profile update');
+
+        res.json({
+          success: true,
+          counselorID: existing[0].counselorID,
+          message: 'Profile updated successfully'
+        });
+      } catch (updateError) {
+        console.error('Error updating counselor profile:', updateError);
+        await connection.rollback();
+        if (connection) connection.release();
+        throw updateError;
+      }
     } else {
       // Create new profile
       const insertQuery = `
@@ -102,8 +147,36 @@ router.post('/profile', verifyToken, async (req, res) => {
 
       console.log('Creating new profile with params:', insertParams);
       try {
-        const [result] = await req.app.locals.pool.execute(insertQuery, insertParams);
+        const [result] = await connection.execute(insertQuery, insertParams);
         console.log('Insert result:', result);
+
+        // Verify the profile was created by querying it back
+        console.log('Executing verification query for userID:', userID);
+        const [newProfile] = await connection.execute(
+          'SELECT counselorID FROM counselors WHERE userID = ?',
+          [userID]
+        );
+
+        console.log('Verification query result:', {
+          found: newProfile.length > 0,
+          counselorID: newProfile.length > 0 ? newProfile[0].counselorID : null
+        });
+
+        // If verification fails, roll back the transaction
+        if (newProfile.length === 0) {
+          console.error('Verification failed - no profile found after insert');
+          await connection.rollback();
+          if (connection) connection.release();
+          throw new Error('Profile creation verification failed');
+        }
+
+        // Commit the transaction if verification succeeds
+        await connection.commit();
+        console.log('Transaction committed successfully');
+
+        // Release the connection back to the pool
+        if (connection) connection.release();
+        console.log('Database connection released');
 
         res.json({
           success: true,
@@ -112,65 +185,161 @@ router.post('/profile', verifyToken, async (req, res) => {
         });
       } catch (dbError) {
         console.error('Database error during insert:', dbError);
+        await connection.rollback();
+        if (connection) connection.release();
         throw dbError;
       }
     }
   } catch (error) {
     console.error('Error in counselor profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+
+    // Rollback transaction if it was started
+    if (connection) {
+      try {
+        await connection.rollback();
+        console.log('Transaction rolled back due to error');
+      } catch (rollbackError) {
+        console.error('Error rolling back transaction:', rollbackError);
+      } finally {
+        connection.release();
+        console.log('Database connection released after error');
+      }
+    }
+
+    res.status(500).json({
+      error: 'Failed to create/update profile',
+      details: error.message
+    });
   }
 });
 
 // Update counselor specializations
 router.patch('/specializations', verifyToken, async (req, res) => {
+  const pool = req.app.locals.pool;
+  let connection;
+
   try {
+    // Check if pool exists
+    if (!pool) {
+      console.error('Database pool is undefined');
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: 'Database pool is not available'
+      });
+    }
+
+    // Get a dedicated connection from the pool
+    try {
+      connection = await pool.getConnection();
+      console.log('Successfully obtained database connection for specializations update');
+    } catch (connError) {
+      console.error('Error getting database connection:', connError);
+      return res.status(500).json({
+        error: 'Database connection error',
+        details: connError.message
+      });
+    }
+
+    // Begin transaction
+    await connection.beginTransaction();
+    console.log('Transaction started for specializations update');
+
     const { specializations, userID } = req.body;
 
     // Verify that the userID matches the token
     if (userID?.toString() !== req.user.id) {
+      if (connection) connection.release();
+      console.error('User ID mismatch:', { tokenUserId: req.user.id, requestUserId: userID });
       return res.status(403).json({
         error: 'Unauthorized: User ID mismatch'
       });
     }
 
     if (!Array.isArray(specializations)) {
+      if (connection) connection.release();
       return res.status(400).json({
         error: 'Specializations must be an array'
       });
     }
 
     // Check if counselor exists
-    const [existing] = await req.app.locals.pool.execute(
+    const [existing] = await connection.execute(
       'SELECT * FROM counselors WHERE userID = ?',
       [userID]
     );
 
+    console.log('Existing counselor check result:', { count: existing.length, userID });
+
     // Ensure proper JSON string format
     const specializationsJson = JSON.stringify(specializations);
 
-    if (existing.length > 0) {
-      // Update existing counselor
-      await req.app.locals.pool.execute(
-        'UPDATE counselors SET counselorSpecializations = ? WHERE userID = ?',
-        [specializationsJson, userID]
-      );
-    } else {
-      // Create new counselor record
-      await req.app.locals.pool.execute(
-        'INSERT INTO counselors (userID, counselorSpecializations) VALUES (?, ?)',
-        [userID, specializationsJson]
-      );
-    }
+    try {
+      if (existing.length > 0) {
+        // Update existing counselor
+        await connection.execute(
+          'UPDATE counselors SET counselorSpecializations = ? WHERE userID = ?',
+          [specializationsJson, userID]
+        );
+        console.log('Updated specializations for existing counselor:', userID);
+      } else {
+        // Create new counselor record
+        await connection.execute(
+          'INSERT INTO counselors (userID, counselorSpecializations) VALUES (?, ?)',
+          [userID, specializationsJson]
+        );
+        console.log('Created new counselor record with specializations:', userID);
+      }
 
-    res.json({
-      success: true,
-      message: 'Specializations updated successfully',
-      specializations: specializations // Return the updated specializations
-    });
+      // Verify the update/insert was successful
+      const [verification] = await connection.execute(
+        'SELECT counselorID, counselorSpecializations FROM counselors WHERE userID = ?',
+        [userID]
+      );
+
+      console.log('Verification result:', {
+        found: verification.length > 0,
+        counselorID: verification.length > 0 ? verification[0].counselorID : null
+      });
+
+      // Commit the transaction
+      await connection.commit();
+      console.log('Transaction committed successfully');
+
+      // Release the connection back to the pool
+      if (connection) connection.release();
+      console.log('Database connection released');
+
+      res.json({
+        success: true,
+        message: 'Specializations updated successfully',
+        specializations: specializations, // Return the updated specializations
+        counselorID: verification.length > 0 ? verification[0].counselorID : null
+      });
+    } catch (dbError) {
+      console.error('Database error during specializations update:', dbError);
+      await connection.rollback();
+      if (connection) connection.release();
+      throw dbError;
+    }
   } catch (error) {
     console.error('Error updating specializations:', error);
+
+    // Rollback transaction if it was started
+    if (connection) {
+      try {
+        await connection.rollback();
+        console.log('Transaction rolled back due to error');
+      } catch (rollbackError) {
+        console.error('Error rolling back transaction:', rollbackError);
+      } finally {
+        connection.release();
+        console.log('Database connection released after error');
+      }
+    }
+
     res.status(500).json({
-      error: 'Failed to update specializations'
+      error: 'Failed to update specializations',
+      details: error.message
     });
   }
 });

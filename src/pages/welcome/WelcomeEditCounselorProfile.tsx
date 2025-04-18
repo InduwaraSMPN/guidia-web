@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
-import { FileText, Trash2, LoaderCircle } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 import { ViewDocumentModal } from '@/components/ViewDocumentModal';
 import { MultipleInput } from '@/components/ui/MultipleInput';
@@ -112,10 +112,13 @@ export function WelcomeEditCounselorProfile() {
 
       // Log the profile data being sent
       console.log('Sending profile data:', profileData);
-      console.log('API URL:', `${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`);
+
+      // Log the API URL for debugging
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`;
+      console.log('API URL being called:', apiUrl);
 
       // Send profile data to the server
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,6 +146,12 @@ export function WelcomeEditCounselorProfile() {
       // Update the user context to set hasProfile to true
       updateUser({ hasProfile: true });
       console.log('Updated user context with hasProfile: true');
+
+      // Store counselorID in localStorage for future use
+      if (responseData.counselorID) {
+        localStorage.setItem('counselorID', responseData.counselorID.toString());
+        console.log('Stored counselorID in localStorage:', responseData.counselorID);
+      }
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
@@ -202,27 +211,8 @@ export function WelcomeEditCounselorProfile() {
     setShowFileUploader(true);
   };
 
-  const handleAddLanguage = () => {
-    if (!formData.languageInput.trim()) return;
-
-    const newLanguage = formData.languageInput.trim();
-    if (!formData.languages.includes(newLanguage)) {
-      setFormData(prev => ({
-        ...prev,
-        languages: [...prev.languages, newLanguage],
-        languageInput: ''
-      }));
-    } else {
-      toast.error('Language already added');
-    }
-  };
-
-  const handleRemoveLanguage = (languageToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      languages: prev.languages.filter(lang => lang !== languageToRemove)
-    }));
-  };
+  // Note: Language handling is managed by the MultipleInput component
+  // which internally handles adding and removing items
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8">
