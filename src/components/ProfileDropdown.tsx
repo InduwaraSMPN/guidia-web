@@ -5,6 +5,7 @@ import { User, LogOut, Settings, Edit, Clock } from "lucide-react";
 import { format } from "date-fns";
 import ThemeToggle from "./ThemeToggle";
 import { motion } from "framer-motion";
+import { useDropdown } from "../contexts/DropdownContext";
 import {
   AzureImage,
   StudentImage,
@@ -35,15 +36,14 @@ export function ProfileDropdown() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
+  const { activeDropdown, setActiveDropdown, isHoveringDropdown, setIsHoveringDropdown } = useDropdown();
+  const isOpen = activeDropdown === "profile-dropdown";
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [adminUsername, setAdminUsername] = useState<string>(""); // New state for admin username
-  const [isHoveringDropdown, setIsHoveringDropdown] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
   const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Update the date and time every minute
@@ -174,47 +174,18 @@ export function ProfileDropdown() {
     fetchProfileData();
   }, [user]);
 
-  // Handle clicking outside to close the dropdown
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        isOpen &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-        setIsHoveringDropdown(false);
-        setIsLeaving(false);
-
-        if (leaveTimeoutRef.current) {
-          clearTimeout(leaveTimeoutRef.current);
-          leaveTimeoutRef.current = null;
-        }
-      }
-    }
-
-    // Add event listener for all clicks
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Cleanup event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
+  // We don't need a separate click outside handler as it's handled by DropdownContext
 
   // Close dropdown when route changes
   useEffect(() => {
-    setIsOpen(false);
+    setActiveDropdown(null);
     setIsHoveringDropdown(false);
-    setIsLeaving(false);
 
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
-  }, [location.pathname]);
+  }, [location.pathname, setActiveDropdown]);
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -225,30 +196,7 @@ export function ProfileDropdown() {
     };
   }, []);
 
-  // Handle mouse enter on the dropdown
-  const handleDropdownMouseEnter = () => {
-    setIsHoveringDropdown(true);
-    setIsLeaving(false);
-
-    // Clear any existing timeout
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-      leaveTimeoutRef.current = null;
-    }
-  };
-
-  // Handle mouse leave on the dropdown
-  const handleDropdownMouseLeave = () => {
-    setIsHoveringDropdown(false);
-    setIsLeaving(true);
-
-    // Set a timeout to close the dropdown after a delay
-    leaveTimeoutRef.current = setTimeout(() => {
-      if (isLeaving) {
-        setIsOpen(false);
-      }
-    }, 500); // 500ms delay before closing (increased for better UX)
-  };
+  // These handlers are defined later in the component
 
   // Create a hover path between the button and dropdown
   const createHoverPath = () => {
@@ -256,7 +204,11 @@ export function ProfileDropdown() {
       return (
         <div
           className="absolute right-0 w-16 h-6 top-full z-40"
-          onMouseEnter={handleDropdownMouseEnter}
+          data-dropdown-content="profile"
+          onMouseEnter={() => {
+            setIsHoveringDropdown(true);
+            setActiveDropdown("profile-dropdown"); // Ensure dropdown stays open
+          }}
           style={{ marginTop: '-2px' }} // Ensure no gap between button and hover path
         />
       );
@@ -422,24 +374,39 @@ export function ProfileDropdown() {
     return <User className={type === "button" ? "h-6 w-6" : "h-10 w-10"} />;
   };
 
+  // Handle button mouse enter
+  const handleButtonMouseEnter = () => {
+    setActiveDropdown("profile-dropdown"); // Open on hover
+    setIsHoveringDropdown(true);
+  };
+
+  // Handle button mouse leave
+  const handleButtonMouseLeave = () => {
+    // Don't close immediately - this is handled by the global mousemove handler
+  };
+
+  // Handle dropdown mouse enter
+  const handleDropdownMouseEnter = () => {
+    setIsHoveringDropdown(true);
+  };
+
+  // Handle dropdown mouse leave
+  const handleDropdownMouseLeave = () => {
+    setIsHoveringDropdown(false);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Profile Icon Button */}
       <motion.button
         ref={buttonRef}
+        data-dropdown-trigger="profile"
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation(); // Prevent event from bubbling up
-          setIsOpen(!isOpen);
+          setActiveDropdown(isOpen ? null : "profile-dropdown");
         }}
-        onMouseEnter={() => {
-          setIsOpen(true); // Always open on hover
-          setIsLeaving(false);
-          setIsHoveringDropdown(true); // Set this to true to prevent immediate closing
-          if (leaveTimeoutRef.current) {
-            clearTimeout(leaveTimeoutRef.current);
-            leaveTimeoutRef.current = null;
-          }
-        }}
+        onMouseEnter={handleButtonMouseEnter}
+        onMouseLeave={handleButtonMouseLeave}
         className="p-2 rounded-full text-muted-foreground hover:bg-brand/10 hover:text-brand transition-colors duration-300"
         aria-label="Profile menu"
         whileHover={{ scale: 1.05 }}
@@ -460,6 +427,7 @@ export function ProfileDropdown() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={transition}
           className="absolute right-0 mt-2 w-64 z-50"
+          data-dropdown-content="profile"
           onMouseEnter={handleDropdownMouseEnter}
           onMouseLeave={handleDropdownMouseLeave}
           onClick={(e: React.MouseEvent) => e.stopPropagation()} // Prevent clicks inside dropdown from closing it
@@ -494,8 +462,12 @@ export function ProfileDropdown() {
           <div className="py-2">
             <Link
               to={getProfilePath()}
-              onClick={() => setIsOpen(false)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                setActiveDropdown(null);
+              }}
               className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+              data-dropdown-content="profile-item"
             >
               <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
               <span className="group-hover:text-brand transition-colors">
@@ -506,8 +478,12 @@ export function ProfileDropdown() {
             {user?.userType !== "Admin" && (
               <Link
                 to={getEditProfilePath()}
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent event bubbling
+                  setActiveDropdown(null);
+                }}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                data-dropdown-content="profile-item"
               >
                 <Edit className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
                 <span className="group-hover:text-brand transition-colors">
@@ -519,8 +495,12 @@ export function ProfileDropdown() {
             {user?.userType === "Admin" && (
               <Link
                 to="/admin/settings"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent event bubbling
+                  setActiveDropdown(null);
+                }}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                data-dropdown-content="profile-item"
               >
                 <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
                 <span className="group-hover:text-brand transition-colors">
@@ -532,8 +512,12 @@ export function ProfileDropdown() {
             {user?.userType !== "Admin" && (
               <Link
                 to={getSettingsPath()}
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent event bubbling
+                  setActiveDropdown(null);
+                }}
                 className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                data-dropdown-content="profile-item"
               >
                 <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
                 <span className="group-hover:text-brand transition-colors">
@@ -543,11 +527,13 @@ export function ProfileDropdown() {
             )}
 
             <button
-              onClick={() => {
-                setIsOpen(false);
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                setActiveDropdown(null);
                 handleLogout();
               }}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+              data-dropdown-content="profile-item"
             >
               <LogOut className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
               <span className="group-hover:text-brand transition-colors">
@@ -557,12 +543,12 @@ export function ProfileDropdown() {
           </div>
 
           {/* Theme Toggle */}
-          <div className="px-4 py-2 border-t border-border">
+          <div className="px-4 py-2 border-t border-border" data-dropdown-content="profile-item">
             <ThemeToggle />
           </div>
 
           {/* Date and Time */}
-          <div className="p-3 border-t border-border bg-secondary rounded-b-lg">
+          <div className="p-3 border-t border-border bg-secondary rounded-b-lg" data-dropdown-content="profile-item">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <div>

@@ -50,6 +50,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { FirebaseProvider } from './contexts/FirebaseContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { DropdownProvider } from './contexts/DropdownContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
@@ -481,7 +482,9 @@ export function App() {
         <FirebaseProvider>
           <SocketProvider>
             <ThemeProvider>
-              <AppContent />
+              <DropdownProvider>
+                <AppContent />
+              </DropdownProvider>
             </ThemeProvider>
           </SocketProvider>
         </FirebaseProvider>

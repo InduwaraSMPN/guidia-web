@@ -279,7 +279,9 @@ export function EventsDropdown() {
   }
 
   return (
-    <div className="flex flex-col p-4 min-w-[400px]">
+    <div
+      className="flex flex-col p-4 min-w-[400px]"
+    >
       {/* Header with Navigation Links */}
       <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
         <HoveredLink

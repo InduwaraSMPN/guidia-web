@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { useThemeContext } from "../contexts/ThemeContext"
+import { useDropdown } from "../contexts/DropdownContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { ProfileDropdown } from "./ProfileDropdown"
 import { MenuItem, HoveredLink } from "./navbar-menu"
@@ -109,9 +110,9 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isAuthPage, setIsAuthPage] = useState(false)
-  const [active, setActive] = useState<string | null>(null)
   const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 })
   const { isDark } = useThemeContext()
+  const { activeDropdown, setActiveDropdown } = useDropdown()
 
   const navRef = useRef<HTMLDivElement>(null)
   // --- IMPORTANT: Adjust size based on MAX possible nav items ---
@@ -151,11 +152,11 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
       // Check if the click is outside the dropdown trigger areas
       // This logic might need refinement if clicks inside the dropdown content
       // shouldn't close it immediately. For now, it closes on any outside click.
-      if (active !== null) {
+      if (activeDropdown !== null && activeDropdown.startsWith('navbar-')) {
          // A simple check: if the click target isn't inside the nav bar, close.
          // This prevents closing when clicking dropdown items themselves.
          if (navRef.current && !navRef.current.contains(event.target as Node)) {
-            setActive(null);
+            setActiveDropdown(null);
          }
       }
     };
@@ -165,7 +166,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     return () => {
       document.removeEventListener('click', handleGlobalClick);
     };
-  }, [active]); // Re-run when 'active' state changes
+  }, [activeDropdown, setActiveDropdown]); // Re-run when 'activeDropdown' state changes
 
 
   useEffect(() => {
@@ -308,7 +309,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/news"
                       ref={(el) => (itemRefs.current[0] = el)}
                       className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       News
                     </Link>
@@ -320,8 +321,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <MenuItem
-                        setActive={setActive}
-                        active={active === "Events" ? "Events" : null}
+                        setActive={(item) => setActiveDropdown(item ? `navbar-${item}` : null)}
+                        active={activeDropdown === "navbar-Events" ? "Events" : null}
                         item="Events"
                         isRouteActive={isEventsActive} // Pass the route active state
                       >
@@ -335,7 +336,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/guidia-ai"
                       ref={(el) => (itemRefs.current[2] = el)}
                       className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       Guidia AI
                     </Link>
@@ -379,7 +380,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     to="/news"
                     ref={(el) => (itemRefs.current[0] = el)} // Index 0
                     className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                    onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                    onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                   >
                     News
                   </Link>
@@ -390,10 +392,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     className={`${navItemBaseClasses} ${isEventsActive ? activeNavItemClasses : inactiveNavItemClasses}`} // Use calculated active state
                     // Prevent click inside from closing the menu immediately if needed
                     onClick={(e) => e.stopPropagation()}
+                    data-dropdown-trigger="events"
+                    onMouseEnter={() => {
+                      // If another dropdown is open, close it
+                      if (activeDropdown && !activeDropdown.includes('Events')) {
+                        setActiveDropdown(null);
+                      }
+                    }}
                   >
                     <MenuItem
-                      setActive={setActive}
-                      active={active === "Events" ? "Events" : null}
+                      setActive={(item) => setActiveDropdown(item ? `navbar-${item}` : null)}
+                      active={activeDropdown === "navbar-Events" ? "Events" : null}
                       item="Events"
                       isRouteActive={isEventsActive} // Pass the route active state
                     >
@@ -407,7 +416,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     to="/guidia-ai"
                     ref={(el) => (itemRefs.current[2] = el)} // Index 2
                     className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                    onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                    onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                   >
                     Guidia AI
                   </Link>
@@ -419,7 +429,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/jobs"
                       ref={(el) => (itemRefs.current[3] = el)} // Index 3
                       className={`${navItemBaseClasses} ${location.pathname === '/jobs' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       Jobs
                     </Link>
@@ -432,7 +443,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/students"
                       ref={(el) => (itemRefs.current[4] = el)} // Index 4
                       className={`${navItemBaseClasses} ${location.pathname === '/students' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       Students
                     </Link>
@@ -445,7 +457,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/counselors"
                       ref={(el) => (itemRefs.current[5] = el)} // Index 5
                       className={`${navItemBaseClasses} ${location.pathname === '/counselors' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       Counselors
                     </Link>
@@ -458,7 +471,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       to="/companies"
                       ref={(el) => (itemRefs.current[6] = el)} // Index 6
                       className={`${navItemBaseClasses} ${location.pathname === '/companies' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       Companies
                     </Link>
@@ -471,10 +485,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       className={`${navItemBaseClasses} ${isMeetingsActive ? activeNavItemClasses : inactiveNavItemClasses}`} // Use calculated active state
                        // Prevent click inside from closing the menu immediately if needed
                        onClick={(e) => e.stopPropagation()}
+                       data-dropdown-trigger="meetings"
+                       onMouseEnter={() => {
+                         // If another dropdown is open, close it
+                         if (activeDropdown && !activeDropdown.includes('Meetings')) {
+                           setActiveDropdown(null);
+                         }
+                       }}
                     >
                       <MenuItem
-                        setActive={setActive}
-                        active={active === "Meetings" ? "Meetings" : null}
+                        setActive={(item) => setActiveDropdown(item ? `navbar-${item}` : null)}
+                        active={activeDropdown === "navbar-Meetings" ? "Meetings" : null}
                         item="Meetings"
                         isRouteActive={isMeetingsActive} // Pass the route active state
                       >
@@ -533,14 +554,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     <Link
                       to="/auth/login"
                       className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       Login
                     </Link>
                     <Link
                       to="/auth/register"
                       className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
-                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       Register
                     </Link>

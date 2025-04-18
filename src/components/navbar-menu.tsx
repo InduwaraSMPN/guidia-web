@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Link as RouterLink } from "react-router-dom"
+import { useDropdown } from "../contexts/DropdownContext"
 
 const transition = {
   type: "spring",
@@ -29,11 +30,18 @@ export const MenuItem = ({
 }) => {
   const menuItemRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isHoveringDropdown, setIsHoveringDropdown] = useState(false);
+  const { isHoveringDropdown, setIsHoveringDropdown } = useDropdown();
 
   // Handle mouse enter on the menu item
   const handleMouseEnter = () => {
+    // This will close any other open dropdown and open this one
     setActive(item);
+  };
+
+  // Handle mouse leave on the menu item
+  const handleMouseLeave = () => {
+    // We don't close immediately - let the parent Menu component handle this
+    // This allows the user to move to the dropdown
   };
 
   // Handle click on the menu item
@@ -44,6 +52,7 @@ export const MenuItem = ({
       setActive(null);
     } else {
       e.stopPropagation(); // Prevent event from bubbling up
+      // Close any other open dropdown and open this one
       setActive(item);
     }
   };
@@ -58,8 +67,7 @@ export const MenuItem = ({
   // Handle mouse leave on the dropdown
   const handleDropdownMouseLeave = () => {
     setIsHoveringDropdown(false);
-    // We don't close the dropdown immediately here
-    // The parent Menu component will handle the closing with a delay
+    // Let the parent Menu component handle closing with a delay
   };
 
   // Create a path between the menu item and dropdown for smoother hover
@@ -83,11 +91,13 @@ export const MenuItem = ({
     <div
       ref={menuItemRef}
       onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="relative"
     >
       <motion.p
         onClick={handleClick}
         transition={{ duration: 0.3 }}
+        data-dropdown-trigger={item}
         className={`cursor-pointer px-0 py-1 flex items-center h-[28px] ${isActiveItem ? 'text-brand ' : 'text-foreground hover:text-brand dark:text-white'}`}
       >
         {item}
@@ -108,6 +118,7 @@ export const MenuItem = ({
               onMouseEnter={handleDropdownMouseEnter}
               onMouseLeave={handleDropdownMouseLeave}
               className="absolute top-[calc(100%_+_0.5rem)] left-1/2 transform -translate-x-1/2 pt-2 z-50"
+              data-dropdown-content={item}
               onClick={(e) => e.stopPropagation()} // Prevent clicks inside dropdown from closing it
             >
               <motion.div
@@ -150,6 +161,7 @@ export const Menu = ({
 }) => {
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
+  const { isHoveringDropdown: isHovering, setIsHoveringDropdown: setIsHovering } = useDropdown();
   const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLElement>(null);
 
@@ -165,17 +177,30 @@ export const Menu = ({
     setActive(item);
   };
 
+  // Handle mouse enter on the menu
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    setIsLeaving(false);
+
+    // Clear any existing timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  };
+
   // Handle mouse leave with a delay
   const handleMouseLeave = () => {
+    setIsHovering(false);
     setIsLeaving(true);
 
     // Set a timeout to close the dropdown after a delay
     leaveTimeoutRef.current = setTimeout(() => {
-      if (isLeaving) {
+      if (isLeaving && !isHovering) {
         setActiveItem(null);
         setActive(null);
       }
-    }, 500); // 500ms delay before closing (increased for better UX)
+    }, 300); // 300ms delay before closing
   };
 
   // Handle click outside
@@ -208,7 +233,8 @@ export const Menu = ({
   return (
     <nav
       ref={menuRef}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave} // This will close the dropdown when mouse leaves the entire menu
       className="relative shadow-input flex justify-center items-center space-x-8 w-full"
     >
       {Array.isArray(children)
