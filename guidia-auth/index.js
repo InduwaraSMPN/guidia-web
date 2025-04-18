@@ -19,6 +19,9 @@ const getRegistrationDeclinedTemplate = require("./email-templates/registration-
 const getPasswordResetTemplate = require("./email-templates/password-reset-template");
 const azureStorageUtils = require("./utils/azureStorageUtils");
 
+// Import key rotation scheduler
+const { scheduleKeyRotation } = require("./scripts/schedule-key-rotation");
+
 // Import the authentication middleware
 const { verifyToken, verifyAdmin } = require("./middleware/auth");
 
@@ -1557,8 +1560,17 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Auth service running on port ${PORT}`);
 
-  // Initialize and start the scheduler
+  // Initialize and start the task scheduler
   const scheduler = new Scheduler(pool);
   scheduler.start();
   console.log("Task scheduler initialized and started");
+
+  // Initialize key rotation scheduler if enabled
+  if (process.env.ENABLE_KEY_ROTATION === 'true') {
+    const keyRotationJob = scheduleKeyRotation();
+    console.log("Firebase key rotation scheduler initialized");
+    if (keyRotationJob) {
+      console.log(`Next key rotation scheduled for: ${keyRotationJob.nextInvocation()}`);
+    }
+  }
 });
