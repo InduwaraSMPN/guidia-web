@@ -3,13 +3,13 @@
 import type React from "react"
 
 import { MenuIcon, X, MessageSquare } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { useThemeContext } from "../contexts/ThemeContext"
 import { NotificationsPopover } from "./NotificationsPopover"
 import { ProfileDropdown } from "./ProfileDropdown"
-import { Menu, MenuItem, HoveredLink } from "./navbar-menu"
+import { MenuItem, HoveredLink } from "./navbar-menu"
 import { EventsDropdown } from "./EventsDropdown"
 import { motion } from "framer-motion"
 import { getDatabase, ref, onValue, off } from "firebase/database"
@@ -32,9 +32,13 @@ const ChatPopover: React.FC = () => {
     const db = getDatabase()
     const messagesRef = ref(db, "messages/conversations")
 
-    onValue(messagesRef, (snapshot) => {
+    const listener = onValue(messagesRef, (snapshot) => {
       const conversations = snapshot.val()
-      if (!conversations) return
+      if (!conversations) {
+        setUnreadCount(0); // Reset count if no conversations
+        return;
+      }
+
 
       let unreadTotal = 0
       Object.entries(conversations).forEach(([_, conv]: [string, any]) => {
@@ -42,22 +46,37 @@ const ChatPopover: React.FC = () => {
         const isParticipant = participants[user.userID]
         if (!isParticipant) return
 
-        const messages = conv.messages || {}
-        Object.entries(messages).forEach(([_, msg]: [string, any]) => {
-          if (msg.receiver === user.userID && !msg.read) {
-            unreadTotal++
-          }
-        })
+        // Check last message's read status for the user
+        const lastMessageKey = conv.lastMessageKey;
+        if (lastMessageKey && conv.messages && conv.messages[lastMessageKey]) {
+            const lastMsg = conv.messages[lastMessageKey];
+            // Count as unread if the current user is the receiver and hasn't read it
+            if (lastMsg.receiver === user.userID && !lastMsg.read) {
+                 // Additional check: ensure the message wasn't sent by the current user
+                 if (lastMsg.sender !== user.userID) {
+                    unreadTotal++;
+                 }
+            }
+        }
+        // Fallback: iterate messages if lastMessage logic isn't fully reliable yet
+        // else {
+        //   const messages = conv.messages || {}
+        //   Object.entries(messages).forEach(([_, msg]: [string, any]) => {
+        //     if (msg.receiver === user.userID && !msg.read && msg.sender !== user.userID) {
+        //       unreadTotal++
+        //     }
+        //   })
+        // }
       })
 
-      console.log("Unread messages count:", unreadTotal)
+      // console.log("Unread messages count:", unreadTotal)
       setUnreadCount(unreadTotal)
     })
 
-    return () => off(messagesRef)
-  }, [user])
+    return () => off(messagesRef, 'value', listener)
 
-  // Handle click to navigate to messages
+  }, [user]) // Added user dependency
+
   const handleChatClick = () => {
     if (user) {
       if (user.userType === "Admin") {
@@ -85,12 +104,67 @@ const ChatPopover: React.FC = () => {
   )
 }
 
+
 export function Navbar({ logoOnly = false }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isAuthPage, setIsAuthPage] = useState(false)
   const [active, setActive] = useState<string | null>(null)
+  const [indicatorStyle, setIndicatorStyle] = useState({ width: 0, left: 0 })
   const { isDark } = useThemeContext()
+
+  const navRef = useRef<HTMLDivElement>(null)
+  // --- IMPORTANT: Adjust size based on MAX possible nav items ---
+  // Needs to accommodate News, Events, Jobs, Students, Counselors, Companies, Meetings
+  const itemRefs = useRef<Array<HTMLAnchorElement | HTMLDivElement | null>>(Array(7).fill(null)) // Increased size
+
+  const location = useLocation()
+  const { user, isVerifyingToken } = useAuth()
+
+  // --- Define paths for active indicator - INCLUDING Events and Meetings ---
+  // --- Order MUST match the visual order of elements in the JSX ---
+  const navPaths = [
+    "/news",
+    "/events", // Identifier for Events section
+    "/jobs",
+    "/students",
+    "/counselors",
+    "/companies",
+    "/meetings", // Identifier for Meetings section
+  ];
+
+  // --- Calculate activeIndex based on the NEW logic ---
+  const activeIndex = navPaths.findIndex(path => {
+    // Handle special cases for sections first
+    if (path === "/events") return location.pathname.startsWith('/events');
+    if (path === "/meetings") return location.pathname.startsWith('/meetings');
+    // Handle direct link matches
+    return location.pathname === path;
+  });
+
+
+  // Close dropdown when clicking elsewhere on the page
+  useEffect(() => {
+    const handleGlobalClick = (event: MouseEvent) => {
+      // Check if the click is outside the dropdown trigger areas
+      // This logic might need refinement if clicks inside the dropdown content
+      // shouldn't close it immediately. For now, it closes on any outside click.
+      if (active !== null) {
+         // A simple check: if the click target isn't inside the nav bar, close.
+         // This prevents closing when clicking dropdown items themselves.
+         if (navRef.current && !navRef.current.contains(event.target as Node)) {
+            setActive(null);
+         }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+
+    return () => {
+      document.removeEventListener('click', handleGlobalClick);
+    };
+  }, [active]); // Re-run when 'active' state changes
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,8 +178,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [isScrolled])
 
-  const location = useLocation()
-  const { user, isVerifyingToken } = useAuth()
 
   // Check if we're on an auth page
   useEffect(() => {
@@ -121,34 +193,87 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     )
   }, [location.pathname])
 
+  // Effect to update the indicator position
+  useEffect(() => {
+    const updateIndicator = () => {
+      // Ensure activeIndex is valid and corresponding ref exists
+      if (activeIndex === -1 || !navRef.current || !itemRefs.current[activeIndex]) {
+        // console.log("Resetting indicator: activeIndex", activeIndex, "ref exists:", !!itemRefs.current[activeIndex]);
+        setIndicatorStyle({ width: 0, left: 0 }) // Reset if no active item or ref not ready
+        return
+      }
+
+      const activeItem = itemRefs.current[activeIndex]
+      if (!activeItem) {
+        // console.log("Resetting indicator: activeItem ref is null for index", activeIndex);
+        setIndicatorStyle({ width: 0, left: 0 }); // Reset if ref is somehow null
+        return;
+      }
+
+
+      const navRect = navRef.current.getBoundingClientRect()
+      const itemRect = activeItem.getBoundingClientRect()
+
+      // Calculate style relative to the navRef container
+      const newLeft = itemRect.left - navRect.left;
+      const newWidth = itemRect.width;
+
+      // console.log("Updating indicator:", { width: newWidth, left: newLeft }, "for index:", activeIndex, "path:", navPaths[activeIndex]);
+
+
+      // Only update if values are valid (prevents potential NaN issues)
+      if (!isNaN(newWidth) && !isNaN(newLeft) && newWidth > 0) {
+        setIndicatorStyle({
+          width: newWidth,
+          left: newLeft,
+        })
+      } else {
+         // If calculation results in invalid numbers, reset or keep previous
+         console.warn("Indicator calculation resulted in invalid values:", { newWidth, newLeft });
+         // Optional: Reset if calculation is bad
+         // setIndicatorStyle({ width: 0, left: 0 });
+      }
+
+    }
+
+    // Update indicator on initial load and resize
+    // Use requestAnimationFrame to ensure measurements are taken after layout
+    requestAnimationFrame(updateIndicator);
+    window.addEventListener("resize", updateIndicator)
+
+    // Add a small delay on location change to allow refs to potentially update
+    const timer = setTimeout(() => {
+        requestAnimationFrame(updateIndicator);
+    }, 50); // Adjust delay as needed
+
+
+    return () => {
+        window.removeEventListener("resize", updateIndicator);
+        clearTimeout(timer);
+    }
+    // Depend on activeIndex AND location.pathname to recalculate when route changes
+    // Also depend on user, as the items available change
+  }, [activeIndex, location.pathname, user]) // Rerun when active index, path, or user changes
+
   // Don't render anything while verifying token on auth pages
   if (isAuthPage && isVerifyingToken) return null
 
-  // Define navigation items based on user type
-  const navItems = [
-    { path: "/news", label: "News" },
-    // Events is now handled separately as a dropdown
-    ...(user ? [{ path: "/jobs", label: "Jobs" }] : []),
-    ...(user?.userType === "Student" ||
-    user?.userType === "Company" ||
-    user?.userType === "Counselor" ||
-    user?.userType === "Admin"
-      ? [
-          { path: "/students", label: "Students" },
-          { path: "/counselors", label: "Counselors" },
-          { path: "/companies", label: "Companies" },
-        ]
-      : []),
-  ]
-
-  // Events are now handled by the EventsDropdown component
-
   // Define meeting dropdown items
   const meetingDropdownItems = [
-    { path: "/meeting-availability", label: "Set Availability" },
-    { path: "/meetings", label: "My Meetings" },
-    { path: "/calendar", label: "Calendar" },
+    { path: `/meetings/meetings`, label: "Meetings" }, // Make paths dynamic if needed based on user
+    { path: `/meetings/calendar`, label: "Meetings Calendar" },
+    { path: `/meetings/settings`, label: "Meeting Settings" },
   ]
+
+  // Common class string for top-level nav items (links and dropdown triggers)
+  const navItemBaseClasses = "relative px-3 py-2 text-sm font-medium hover:text-brand transition-colors duration-200 flex items-center cursor-pointer" // Use px-3 for slightly more space
+  const activeNavItemClasses = "text-brand font-bold"
+  const inactiveNavItemClasses = "text-foreground"
+
+  // --- Determine active states specifically for conditional classes ---
+  const isEventsActive = location.pathname.startsWith('/events');
+  const isMeetingsActive = location.pathname.startsWith('/meetings');
+
 
   return (
     <nav
@@ -157,85 +282,238 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
       }`}
     >
       <div className="max-w-[1216px] mx-auto px-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 transition-transform duration-300 hover:scale-105">
-              <div className="flex items-center gap-2">
-                {isDark ? (
-                  <img src="/images/logo-light.svg" alt="Guidia" className="h-8 w-32" />
-                ) : (
-                  <img src="/images/logo-dark.svg" alt="Guidia" className="h-8 w-32" />
+        <div className="flex items-center justify-between">
+          {/* Logo and possibly News/Events when no user */}
+          <div className={`flex-shrink-0 ${!user ? 'flex-1' : 'w-[180px]'}`}>
+            <div className="flex items-center">
+              <Link to="/" className="transition-transform duration-300 hover:scale-105 inline-block">
+                <div className="flex items-center gap-2">
+                  {isDark ? (
+                    <img src="/images/logo-light.svg" alt="Guidia" className="h-8 w-auto max-w-[150px]" />
+                  ) : (
+                    <img src="/images/logo-dark.svg" alt="Guidia" className="h-8 w-auto max-w-[150px]" />
+                  )}
+                </div>
+              </Link>
+
+              {/* News and Events next to logo when no user */}
+              {!user && !logoOnly && !isVerifyingToken && (
+                <div className="ml-8 relative" ref={navRef}>
+                  <div className="flex items-center space-x-6">
+                    {/* News Link */}
+                    <Link
+                      key="/news"
+                      to="/news"
+                      ref={(el) => (itemRefs.current[0] = el)}
+                      className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    >
+                      News
+                    </Link>
+
+                    {/* Events Dropdown */}
+                    <div
+                      ref={(el) => (itemRefs.current[1] = el)}
+                      className={`${navItemBaseClasses} ${isEventsActive ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MenuItem
+                        setActive={setActive}
+                        active={active === "Events" ? "Events" : null}
+                        item="Events"
+                      >
+                        <EventsDropdown />
+                      </MenuItem>
+                    </div>
+                  </div>
+
+                  {/* Animated Underline Indicator for non-logged-in layout */}
+                  {!user && activeIndex !== -1 && activeIndex < 2 && indicatorStyle.width > 0 && (
+                    <motion.div
+                      className="absolute bottom-[1px] h-[2px] bg-brand rounded-full"
+                      layoutId="navbar-underline-no-user"
+                      initial={false}
+                      animate={{
+                        width: indicatorStyle.width,
+                        left: indicatorStyle.left,
+                        opacity: 1,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 30,
+                      }}
+                      style={{ originX: 0 }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Navigation Menu - Centered - Only when user is logged in */}
+          {!logoOnly && !isVerifyingToken && user && (
+            <div className="hidden md:flex flex-1 justify-center items-center">
+              {/* Animated Menu with Underline Indicator */}
+              <div className="relative" ref={navRef}>
+                {/* --- Ensure correct order and refs --- */}
+                <div className="flex space-x-4"> {/* Reduced spacing slightly */}
+
+                  {/* 1. News - Direct Link (Index 0) */}
+                  <Link
+                    key="/news"
+                    to="/news"
+                    ref={(el) => (itemRefs.current[0] = el)} // Index 0
+                    className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                  >
+                    News
+                  </Link>
+
+                  {/* 2. Events Dropdown (Index 1) */}
+                  <div
+                    ref={(el) => (itemRefs.current[1] = el)} // Index 1
+                    className={`${navItemBaseClasses} ${isEventsActive ? activeNavItemClasses : inactiveNavItemClasses}`} // Use calculated active state
+                    // Prevent click inside from closing the menu immediately if needed
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MenuItem
+                      setActive={setActive}
+                      active={active === "Events" ? "Events" : null}
+                      item="Events"
+                    >
+                      <EventsDropdown />
+                    </MenuItem>
+                  </div>
+
+                  {/* 3. Jobs - Direct Link (Index 2) */}
+                  {user && (
+                    <Link
+                      key="/jobs"
+                      to="/jobs"
+                      ref={(el) => (itemRefs.current[2] = el)} // Index 2
+                      className={`${navItemBaseClasses} ${location.pathname === '/jobs' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    >
+                      Jobs
+                    </Link>
+                  )}
+
+                  {/* 4. Students - Direct Link (Index 3) */}
+                  {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+                    <Link
+                      key="/students"
+                      to="/students"
+                      ref={(el) => (itemRefs.current[3] = el)} // Index 3
+                      className={`${navItemBaseClasses} ${location.pathname === '/students' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    >
+                      Students
+                    </Link>
+                  )}
+
+                  {/* 5. Counselors - Direct Link (Index 4) */}
+                  {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+                    <Link
+                      key="/counselors"
+                      to="/counselors"
+                      ref={(el) => (itemRefs.current[4] = el)} // Index 4
+                      className={`${navItemBaseClasses} ${location.pathname === '/counselors' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    >
+                      Counselors
+                    </Link>
+                  )}
+
+                  {/* 6. Companies - Direct Link (Index 5) */}
+                  {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+                    <Link
+                      key="/companies"
+                      to="/companies"
+                      ref={(el) => (itemRefs.current[5] = el)} // Index 5
+                      className={`${navItemBaseClasses} ${location.pathname === '/companies' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    >
+                      Companies
+                    </Link>
+                  )}
+
+                  {/* 7. Meetings Dropdown (Index 6) */}
+                  {user && user.userType !== "Admin" && (
+                    <div
+                      ref={(el) => (itemRefs.current[6] = el)} // Index 6
+                      className={`${navItemBaseClasses} ${isMeetingsActive ? activeNavItemClasses : inactiveNavItemClasses}`} // Use calculated active state
+                       // Prevent click inside from closing the menu immediately if needed
+                       onClick={(e) => e.stopPropagation()}
+                    >
+                      <MenuItem setActive={setActive} active={active === "Meetings" ? "Meetings" : null} item="Meetings">
+                        <div className="flex flex-col space-y-4 text-sm p-4"> {/* Add padding to dropdown */}
+                          {meetingDropdownItems.map((item) => (
+                            <HoveredLink
+                               key={item.path}
+                               href={item.path}
+                               isActive={location.pathname === item.path}
+                            >
+                              {item.label}
+                            </HoveredLink>
+                          ))}
+                        </div>
+                      </MenuItem>
+                    </div>
+                  )}
+                </div>
+
+                {/* Animated Underline Indicator - Should now work for all items */}
+                {user && activeIndex !== -1 && indicatorStyle.width > 0 && (
+                  <motion.div
+                    className="absolute bottom-[1px] h-[2px] bg-brand rounded-full" // Adjusted position slightly
+                    layoutId="navbar-underline-user" // Add layoutId for smoother transition
+                    initial={false}
+                    animate={{
+                      width: indicatorStyle.width,
+                      left: indicatorStyle.left,
+                      opacity: 1,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 30,
+                      // duration: 0.3 // Alternatively use duration
+                    }}
+                    style={{ originX: 0 }} // Ensure width animation originates from the left
+                  />
                 )}
               </div>
-            </Link>
+            </div>
+          )}
 
-            {!logoOnly && !isVerifyingToken && (
-              <div className="hidden md:block ml-12">
-                {/* Animated Menu */}
-                <Menu setActive={setActive}>
-                  {navItems.map((item) => (
-                    <MenuItem key={item.path} setActive={setActive} active={active} item={item.label}>
-                      <div className="flex flex-col space-y-4 text-sm">
-                        <HoveredLink href={item.path}>{item.label}</HoveredLink>
-                      </div>
-                    </MenuItem>
-                  ))}
-
-                  {/* Events Dropdown with Grid Layout */}
-                  <MenuItem
-                    setActive={setActive}
-                    active={active}
-                    item="Events"
-                  >
-                    <EventsDropdown />
-                  </MenuItem>
-
-                  {/* Meetings Dropdown */}
-                  {user && user.userType !== "Admin" && (
-                    <MenuItem setActive={setActive} active={active} item="Meetings">
-                      <div className="flex flex-col space-y-4 text-sm">
-                        {meetingDropdownItems.map((item) => (
-                          <HoveredLink key={item.path} href={item.path}>
-                            {item.label}
-                          </HoveredLink>
-                        ))}
-                      </div>
-                    </MenuItem>
-                  )}
-                </Menu>
+          {/* Right Side - User Controls */}
+          <div className="flex-shrink-0 flex justify-end items-center">
+            {!logoOnly && !isAuthPage && !isVerifyingToken && (
+              <div className="hidden md:flex items-center space-x-2">
+                {user ? (
+                  <>
+                    <NotificationsPopover />
+                    <ChatPopover />
+                    <ProfileDropdown />
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/auth/login"
+                      className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/auth/register"
+                      className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>
 
-          {!logoOnly && !isAuthPage && !isVerifyingToken && (
-            <div className="hidden md:flex items-center space-x-3">
-              {user ? (
-                <>
-                  <NotificationsPopover />
-                  <ChatPopover />
-                  <ProfileDropdown />
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/auth/login"
-                    className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
-                  >
-                    Register
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
-
+          {/* Mobile Menu Button */}
           {!logoOnly && !isVerifyingToken && (
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-full text-foreground hover:bg-secondary transition-colors duration-200"
@@ -248,7 +526,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu - Apply similar active logic */}
       {!logoOnly && isMenuOpen && !isVerifyingToken && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -257,29 +535,27 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
           transition={{ duration: 0.3 }}
           className="md:hidden bg-background border-t border-border overflow-hidden"
         >
-          <div className="px-6 py-4 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm font-medium hover:text-brand py-3 transition-colors ${
-                  location.pathname === item.path ? "text-brand" : "text-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+           <div className="px-6 py-4 space-y-2">
+            {/* News */}
+            <Link
+              to="/news"
+              onClick={() => setIsMenuOpen(false)}
+              className={`block text-sm hover:text-brand py-3 transition-colors ${
+                location.pathname === "/news" ? "text-brand font-bold" : "text-foreground font-medium"
+              }`}
+            >
+              News
+            </Link>
 
-            {/* Mobile Events Section */}
+            {/* Mobile Events Section - Highlight parent based on child route */}
             <div className="py-2">
-              <div className="text-sm font-medium py-2">Events</div>
+              <div className={`text-sm py-2 ${isEventsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}>Events</div>
               <div className="pl-4 space-y-2 border-l border-border">
                 <Link
                   to="/events?tab=upcoming"
                   onClick={() => setIsMenuOpen(false)}
                   className={`block py-2 text-sm transition-colors ${
-                    location.pathname === "/events" && location.search.includes("tab=upcoming") ? "text-brand font-medium" : "text-foreground hover:text-brand"
+                    location.pathname === "/events" && (!location.search || location.search.includes("tab=upcoming")) ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                   }`}
                 >
                   Upcoming Events
@@ -288,26 +564,82 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                   to="/events?tab=past"
                   onClick={() => setIsMenuOpen(false)}
                   className={`block py-2 text-sm transition-colors ${
-                    location.pathname === "/events" && location.search.includes("tab=past") ? "text-brand font-medium" : "text-foreground hover:text-brand"
+                    location.pathname === "/events" && location.search.includes("tab=past") ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                   }`}
                 >
                   Past Events
                 </Link>
+                {/* Add other event sub-links here if needed */}
               </div>
             </div>
 
-            {/* Mobile Meetings Section */}
+            {/* Jobs */}
+            {user && (
+              <Link
+                to="/jobs"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                  location.pathname === "/jobs" ? "text-brand font-bold" : "text-foreground font-medium"
+                }`}
+              >
+                Jobs
+              </Link>
+            )}
+
+             {/* Students */}
+            {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+              <Link
+                key="/students"
+                to="/students"
+                 onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                  location.pathname === "/students" ? "text-brand font-bold" : "text-foreground font-medium"
+                }`}
+              >
+                Students
+              </Link>
+            )}
+
+            {/* Counselors */}
+            {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+              <Link
+                key="/counselors"
+                to="/counselors"
+                 onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                  location.pathname === "/counselors" ? "text-brand font-bold" : "text-foreground font-medium"
+                }`}
+              >
+                Counselors
+              </Link>
+            )}
+
+            {/* Companies */}
+            {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
+              <Link
+                key="/companies"
+                to="/companies"
+                 onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                  location.pathname === "/companies" ? "text-brand font-bold" : "text-foreground font-medium"
+                }`}
+              >
+                Companies
+              </Link>
+            )}
+
+            {/* Mobile Meetings Section - Highlight parent based on child route */}
             {user && user.userType !== "Admin" && (
               <div className="py-2">
-                <div className="text-sm font-medium py-2">Meetings</div>
-                <div className="pl-4 space-y-2 border-l border-border">
+                 <div className={`text-sm py-2 ${isMeetingsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}>Meetings</div>
+                 <div className="pl-4 space-y-2 border-l border-border">
                   {meetingDropdownItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMenuOpen(false)}
                       className={`block py-2 text-sm transition-colors ${
-                        location.pathname === item.path ? "text-brand font-medium" : "text-foreground hover:text-brand"
+                        location.pathname === item.path ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                       }`}
                     >
                       {item.label}
@@ -317,16 +649,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               </div>
             )}
 
+            {/* Auth buttons / Profile controls */}
             {!isAuthPage && (
               <div className="pt-4 mt-4 border-t border-border">
                 {user ? (
-                  <>
-                    <div className="flex items-center gap-4 mb-4">
-                      <NotificationsPopover />
-                      <ChatPopover />
-                      <ProfileDropdown />
-                    </div>
-                  </>
+                  <div className="flex items-center justify-between">
+                     <div className="flex items-center space-x-4">
+                        <NotificationsPopover />
+                        <ChatPopover />
+                     </div>
+                     <ProfileDropdown />
+                  </div>
                 ) : (
                   <div className="flex flex-col space-y-3 pt-2">
                     <Link

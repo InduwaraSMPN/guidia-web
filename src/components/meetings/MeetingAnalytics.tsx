@@ -49,7 +49,7 @@ const meetingTypeLabels: Record<string, string> = {
 };
 
 export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { toast } = useToast();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,14 +57,25 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
   // Fetch analytics data
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!token) return;
+      if (!token) {
+        console.log('No token available, skipping analytics fetch');
+        setIsLoading(false);
+        return;
+      }
 
       setIsLoading(true);
       try {
+        // Use the userId from props if provided, otherwise use the current user's ID
+        const actualUserId = userId || (user?.id ? parseInt(user.id) : undefined);
+
+        console.log('Fetching analytics with user ID:', actualUserId);
+
         let url = `${API_URL}/api/meeting/analytics/meetings`;
-        if (userId) {
-          url = `${API_URL}/api/meeting/analytics/meetings/user/${userId}`;
+        if (actualUserId) {
+          url = `${API_URL}/api/meeting/analytics/meetings/user/${actualUserId}`;
         }
+
+        console.log('Analytics API URL:', url);
 
         const response = await axios.get(url, {
           headers: {
@@ -72,34 +83,53 @@ export function MeetingAnalytics({ userId }: MeetingAnalyticsProps) {
           },
         });
 
+        console.log('Analytics API response:', response.data);
         setAnalyticsData(response.data.data || null);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching meeting analytics:', error);
+        // More detailed error logging
+        if (error.response) {
+          console.error('Error response:', error.response.status, error.response.data);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error setting up request:', error.message);
+        }
+
         toast({
           title: 'Error',
-          description: 'Failed to fetch meeting analytics',
+          description: 'Failed to fetch meeting analytics. Please try again later.',
           variant: 'destructive',
         });
+
+        // Set analytics data to null to show the no data message
+        setAnalyticsData(null);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAnalytics();
-  }, [token, userId, toast]);
+  }, [token, userId, user, toast]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="w-8 h-8 border-4 border-border border-t-brand rounded-full animate-spin" />
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <div className="w-12 h-12 border-4 border-border border-t-brand rounded-full animate-spin" />
+        <p className="text-muted-foreground text-sm">Loading analytics data...</p>
       </div>
     );
   }
 
   if (!analyticsData) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No analytics data available.
+      <div className="text-center py-8 space-y-4">
+        <p className="text-muted-foreground">
+          No analytics data available. This could be because you haven't had any meetings yet.
+        </p>
+        <p className="text-muted-foreground">
+          Once you have scheduled and completed meetings, you'll see analytics data here.
+        </p>
       </div>
     );
   }

@@ -152,7 +152,7 @@ export function EventsDropdown() {
     return (
       <div className="flex flex-col p-4 min-w-[400px]">
         {/* Header with Navigation Links */}
-        <div className="flex border-b border-border pb-2 mb-4">
+        <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
           <div className="text-sm font-medium mr-6">Upcoming Events</div>
           <div className="text-sm font-medium text-muted-foreground">Past Events</div>
         </div>
@@ -182,11 +182,19 @@ export function EventsDropdown() {
     return (
       <div className="flex flex-col p-4 min-w-[400px]">
         {/* Header with Navigation Links */}
-        <div className="flex border-b border-border pb-2 mb-4">
-          <HoveredLink href="/events?tab=upcoming" className="text-sm font-medium mr-6">
+        <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
+          <HoveredLink
+            href="/events?tab=upcoming"
+            className="text-sm font-medium mr-6"
+            isActive={window.location.pathname === "/events" && (!window.location.search || window.location.search.includes("tab=upcoming"))}
+          >
             Upcoming Events
           </HoveredLink>
-          <HoveredLink href="/events?tab=past" className="text-sm font-medium text-muted-foreground">
+          <HoveredLink
+            href="/events?tab=past"
+            className="text-sm font-medium text-muted-foreground"
+            isActive={window.location.pathname === "/events" && window.location.search.includes("tab=past")}
+          >
             Past Events
           </HoveredLink>
         </div>
@@ -199,14 +207,22 @@ export function EventsDropdown() {
         {/* Footer with Links */}
         <div className="mt-4 pt-3 border-t border-border flex justify-between">
           <div className="flex items-center">
-            <HoveredLink href="/events?tab=upcoming" className="text-sm font-medium">
+            <HoveredLink
+              href="/events?tab=upcoming"
+              className="text-sm font-medium"
+              isActive={window.location.pathname === "/events" && (!window.location.search || window.location.search.includes("tab=upcoming"))}
+            >
               View Upcoming Events
             </HoveredLink>
             {useBackupData && (
               <span className="ml-2 text-xs text-amber-500">(Sample Data)</span>
             )}
           </div>
-          <HoveredLink href="/events?tab=past" className="text-sm font-medium">
+          <HoveredLink
+            href="/events?tab=past"
+            className="text-sm font-medium"
+            isActive={window.location.pathname === "/events" && window.location.search.includes("tab=past")}
+          >
             View Past Events
           </HoveredLink>
         </div>
@@ -265,11 +281,19 @@ export function EventsDropdown() {
   return (
     <div className="flex flex-col p-4 min-w-[400px]">
       {/* Header with Navigation Links */}
-      <div className="flex border-b border-border pb-2 mb-4">
-        <HoveredLink href="/events?tab=upcoming" className="text-sm font-medium mr-6">
+      <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
+        <HoveredLink
+          href="/events?tab=upcoming"
+          className="text-sm font-medium mr-6"
+          isActive={window.location.pathname === "/events" && (!window.location.search || window.location.search.includes("tab=upcoming"))}
+        >
           Upcoming Events
         </HoveredLink>
-        <HoveredLink href="/events?tab=past" className="text-sm font-medium text-muted-foreground">
+        <HoveredLink
+          href="/events?tab=past"
+          className="text-sm font-medium text-muted-foreground"
+          isActive={window.location.pathname === "/events" && window.location.search.includes("tab=past")}
+        >
           Past Events
         </HoveredLink>
       </div>
@@ -355,14 +379,22 @@ export function EventsDropdown() {
       {/* Footer with Links */}
       {/* <div className="mt-4 pt-3 border-t border-border flex justify-between">
         <div className="flex items-center">
-          <HoveredLink href="/events?tab=upcoming" className="text-sm font-medium">
+          <HoveredLink
+            href="/events?tab=upcoming"
+            className="text-sm font-medium"
+            isActive={window.location.pathname === "/events" && (!window.location.search || window.location.search.includes("tab=upcoming"))}
+          >
             View Upcoming Events
           </HoveredLink>
           {useBackupData && (
             <span className="ml-2 text-xs text-amber-500">(Sample Data)</span>
           )}
         </div>
-        <HoveredLink href="/events?tab=past" className="text-sm font-medium">
+        <HoveredLink
+          href="/events?tab=past"
+          className="text-sm font-medium"
+          isActive={window.location.pathname === "/events" && window.location.search.includes("tab=past")}
+        >
           View Past Events
         </HoveredLink>
       </div> */}

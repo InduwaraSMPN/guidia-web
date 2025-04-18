@@ -364,7 +364,7 @@ export function MeetingsPage() {
         Back
       </Button>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Meetings</h1>
+        <h1 className="text-3xl font-bold text-brand pb-2">Meetings</h1>
       </div>
 
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">

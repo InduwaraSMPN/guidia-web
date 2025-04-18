@@ -262,7 +262,7 @@ export function NotificationsPopover() {
                         (notification.metadata && notification.metadata.meetingID)
                       ) {
                         // Redirect to meetings page for any meeting-related notifications
-                        window.location.href = '/meetings';
+                        window.location.href = '/meetings/meetings';
                       }
                     }}
                   >

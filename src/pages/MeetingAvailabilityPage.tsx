@@ -4,9 +4,13 @@ import { MeetingAnalytics } from '@/components/meetings/MeetingAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function MeetingAvailabilityPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   // Simulate loading delay
@@ -20,7 +24,7 @@ export function MeetingAvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="container py-8">
+      <div className="mx-auto max-w-[1216px] px-4 sm:px-6 lg:px-8 pb-32">
         <Skeleton className="h-10 w-64 mb-6" />
 
         <div className="space-y-6">
@@ -75,8 +79,18 @@ export function MeetingAvailabilityPage() {
   }
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-6">Meeting Settings</h1>
+    <div className="mx-auto max-w-[1216px] px-4 sm:px-6 lg:px-8 pb-32 pt-32">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-2 text-muted-foreground hover:text-foreground transition-colors"
+        onClick={() => navigate(-1)}
+        aria-label="Go back"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
+      <h1 className="text-3xl font-bold text-brand pb-2">Meeting Settings</h1>
 
       <Tabs defaultValue="availability" className="space-y-6">
         <TabsList>
@@ -95,7 +109,7 @@ export function MeetingAvailabilityPage() {
           <p className="text-muted-foreground">
             View analytics about your meetings and feedback.
           </p>
-          <MeetingAnalytics userId={user?.id} />
+          <MeetingAnalytics userId={user?.id ? parseInt(user.id) : undefined} />
         </TabsContent>
       </Tabs>
     </div>

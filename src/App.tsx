@@ -225,12 +225,12 @@ function AppContent() {
               <SavedJobsPage />
             </ProtectedRoute>
           } />
-          <Route path="/meetings" element={
+          <Route path="/meetings/meetings" element={
             <ProtectedRoute requiredUserType={["Student", "Company", "Counselor"]}>
               <MeetingsPage />
             </ProtectedRoute>
           } />
-          <Route path="/meetings/availability" element={
+          <Route path="/meetings/settings" element={
             <ProtectedRoute requiredUserType={["Student", "Company", "Counselor"]}>
               <MeetingAvailabilityPage />
             </ProtectedRoute>
@@ -456,8 +456,8 @@ function AppContent() {
           </Route>
 
           {/* Meeting Pages */}
-          <Route path="/meeting-availability" element={<MeetingAvailability />} />
-          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/meetings/settings" element={<MeetingAvailability />} />
+          <Route path="/meetings/calendar" element={<CalendarPage />} />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />

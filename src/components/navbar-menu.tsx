@@ -71,6 +71,10 @@ export const MenuItem = ({
     return null;
   };
 
+  // Determine if this item is active for styling purposes
+  // This handles both the dropdown being open (active === item) and the route being active
+  const isActiveItem = active === item;
+
   return (
     <div
       ref={menuItemRef}
@@ -80,7 +84,7 @@ export const MenuItem = ({
       <motion.p
         onClick={handleClick}
         transition={{ duration: 0.3 }}
-        className="cursor-pointer text-foreground hover:text-brand dark:text-white"
+        className={`cursor-pointer px-0 py-1 flex items-center h-[28px] ${isActiveItem ? 'text-brand font-bold' : 'text-foreground hover:text-brand dark:text-white'}`}
       >
         {item}
       </motion.p>
@@ -99,7 +103,7 @@ export const MenuItem = ({
               ref={dropdownRef}
               onMouseEnter={handleDropdownMouseEnter}
               onMouseLeave={handleDropdownMouseLeave}
-              className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4 z-50"
+              className="absolute top-[calc(100%_+_0.5rem)] left-1/2 transform -translate-x-1/2 pt-2 z-50"
               onClick={(e) => e.stopPropagation()} // Prevent clicks inside dropdown from closing it
             >
               <motion.div
@@ -167,7 +171,7 @@ export const Menu = ({
         setActiveItem(null);
         setActive(null);
       }
-    }, 500); // 500ms delay before closing for better UX
+    }, 250); // 250ms delay before closing (reduced by 50%)
   };
 
   // Handle click outside
@@ -179,16 +183,14 @@ export const Menu = ({
       }
     };
 
-    // Add event listener when dropdown is open
-    if (activeItem !== null) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    // Add event listener for all clicks
+    document.addEventListener('mousedown', handleClickOutside);
 
     // Clean up event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [activeItem, setActive]);
+  }, [setActive]);
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -203,7 +205,7 @@ export const Menu = ({
     <nav
       ref={menuRef}
       onMouseLeave={handleMouseLeave}
-      className="relative shadow-input flex justify-center space-x-6 px-4 py-4"
+      className="relative shadow-input flex justify-center items-center space-x-8 w-full"
     >
       {Array.isArray(children)
         ? children.map((child, index) => {
@@ -297,12 +299,12 @@ export const EventItem = ({
   )
 }
 
-export const HoveredLink = ({ children, href, ...rest }: any) => {
+export const HoveredLink = ({ children, href, isActive, ...rest }: any) => {
   return (
     <RouterLink
       to={href}
       {...rest}
-      className="block py-2 px-1 text-muted-foreground dark:text-neutral-200 hover:text-brand transition-colors rounded-md hover:bg-secondary/50"
+      className={`block py-2 px-1 ${isActive ? 'text-brand font-bold' : 'text-muted-foreground dark:text-neutral-200'} hover:text-brand transition-colors rounded-md`}
       onClick={(e) => e.stopPropagation()} // Prevent the dropdown from closing when clicking a link
     >
       {children}
