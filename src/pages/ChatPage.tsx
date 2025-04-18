@@ -310,7 +310,7 @@ export function ChatPage(): JSX.Element {
   if (!user) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-secondary pt-20 pb-6">
+    <div className="min-h-screen bg-secondary pt-32 pb-6">
       <div className="max-w-3xl mx-auto px-4">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-border transition-shadow duration-300 hover:shadow-xl">
           {/* Enhanced Header with better visual hierarchy */}

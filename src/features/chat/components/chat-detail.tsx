@@ -260,12 +260,16 @@ export function ChatDetail({ chatId, onBack, receiver }: ChatDetailProps) {
             )}
 
             <div className="flex-1 min-w-0">
-              <h2 className="font-medium text-adaptive-dark truncate">
-                {receiver?.name || 'Unknown User'}
+              <h2 className="font-medium text-adaptive-dark truncate max-w-[200px] message-content">
+                {receiver?.name && receiver.name.length > 30
+                  ? receiver.name.substring(0, 30) + '...'
+                  : receiver?.name || 'Unknown User'}
               </h2>
               {receiver?.subtitle && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {receiver.subtitle}
+                <p className="text-sm text-muted-foreground truncate max-w-[250px] overflow-hidden break-words message-content">
+                  {receiver.subtitle.length > 40
+                    ? receiver.subtitle.substring(0, 40) + '...'
+                    : receiver.subtitle}
                 </p>
               )}
             </div>
@@ -449,14 +453,21 @@ function MessageBubble({ message, receiverImage, receiverName, receiverType = 's
       )}
       <div
         className={cn(
-          "max-w-[80%] rounded-lg px-4 py-2",
+          "max-w-[80%] rounded-lg px-4 py-2 overflow-hidden chat-message-bubble",
           message.isCurrentUser
             ? "bg-brand text-white"
             : "bg-secondary-light"
         )}
+        style={{
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word'
+        }}
       >
         {message.content ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <p className="overflow-hidden break-words message-content" style={{ whiteSpace: 'normal' }}>
+            {message.content}
+          </p>
         ) : (
           <p className="text-muted-foreground italic">Empty message</p>
         )}

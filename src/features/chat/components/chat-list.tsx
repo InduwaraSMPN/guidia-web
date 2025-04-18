@@ -263,7 +263,7 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-4 p-4 cursor-pointer hover:bg-accent",
+        "flex items-center gap-4 p-4 cursor-pointer hover:bg-accent chat-list-item",
         isSelected && "bg-secondary-light"
       )}
       onClick={onClick}
@@ -290,10 +290,18 @@ function ChatItem({ chat, onClick, isSelected }: ChatItemProps) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline">
-          <h3 className="font-medium truncate">{chat.name}</h3>
+          <h3 className="font-medium truncate max-w-[150px] overflow-hidden break-words message-content">
+            {chat.name.length > 25
+              ? chat.name.substring(0, 25) + '...'
+              : chat.name}
+          </h3>
           <span className="text-xs text-muted-foreground">{formatShortDate(chat.timestamp)}</span>
         </div>
-        <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+        <p className="text-sm text-muted-foreground truncate overflow-hidden break-words message-content">
+          {chat.lastMessage.length > 50
+            ? chat.lastMessage.substring(0, 50) + '...'
+            : chat.lastMessage}
+        </p>
       </div>
     </div>
   );
