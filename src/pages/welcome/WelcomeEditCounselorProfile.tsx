@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCounselorRegistration } from '@/contexts/CounselorRegistrationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -35,24 +36,36 @@ export function WelcomeEditCounselorProfile() {
   const { user, updateUser } = useAuth();
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
+  const { registrationData, updateRegistrationData } = useCounselorRegistration();
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(true);
   const [formData, setFormData] = useState<FormData>({
-    counselorName: '',
-    position: '',
-    education: '',
-    contactNumber: '',
-    emailMail: user?.email || '',
-    description: '',
-    image: null,
-    yearsOfExperience: '',
-    location: '',
+    counselorName: registrationData.counselorName || '',
+    position: registrationData.position || '',
+    education: registrationData.education || '',
+    contactNumber: registrationData.contactNumber || '',
+    emailMail: user?.email || registrationData.emailMail || '',
+    description: registrationData.description || '',
+    image: null, // File objects can't be stored in context/sessionStorage
+    yearsOfExperience: registrationData.yearsOfExperience || '',
+    location: registrationData.location || '',
     languageInput: '',
-    languages: []
+    languages: registrationData.languages || []
   });
   const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  // Load image from context if available
+  useEffect(() => {
+    if (registrationData.profileImagePath) {
+      // If we have a profile image path, we don't need to show the uploader
+      setShowFileUploader(false);
+      // Set the preview URL to display the image
+      setPreviewUrl(registrationData.profileImagePath);
+      console.log('Loaded profile image from context:', registrationData.profileImagePath);
+    }
+  }, [registrationData.profileImagePath]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,12 +100,19 @@ export function WelcomeEditCounselorProfile() {
         });
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          throw new Error(errorData.error || 'Failed to upload profile image');
+          const errorText = await uploadResponse.text();
+          try {
+            const errorData = JSON.parse(errorText);
+            throw new Error(errorData.error || 'Failed to upload profile image');
+          } catch (e) {
+            throw new Error(`Failed to upload profile image: ${errorText}`);
+          }
         }
 
         const uploadResult = await uploadResponse.json();
-        profileImagePath = uploadResult.blobPath || uploadResult.imagePath;
+        // Use imagePath which contains the full URL, not blobPath which is just the relative path
+        profileImagePath = uploadResult.imagePath;
+        console.log('Uploaded image path:', profileImagePath);
       }
 
       // Prepare profile data
@@ -111,6 +131,7 @@ export function WelcomeEditCounselorProfile() {
 
       // Log the profile data being sent
       console.log('Sending profile data:', profileData);
+      console.log('Profile image path being sent:', profileData.profileImagePath);
 
       // Log the API URL for debugging
       const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/counselors/profile`;
@@ -152,6 +173,23 @@ export function WelcomeEditCounselorProfile() {
         console.log('Stored counselorID in localStorage:', responseData.counselorID);
       }
 
+      // Save form data to the counselor registration context
+      updateRegistrationData({
+        counselorName: formData.counselorName,
+        position: formData.position,
+        education: formData.education,
+        contactNumber: formData.contactNumber,
+        yearsOfExperience: formData.yearsOfExperience,
+        location: formData.location,
+        languages: formData.languages,
+        description: formData.description,
+        profileImagePath,
+        steps: {
+          ...registrationData.steps,
+          profile: true
+        }
+      });
+
       // Show success toast
       toast.success('Profile created successfully!', {
         description: 'Redirecting to the next step...',
@@ -190,13 +228,22 @@ export function WelcomeEditCounselorProfile() {
       }
 
       setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
+
+      // Also update the registration context for state persistence
+      updateRegistrationData({ [name]: sanitizedValue });
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+
+      // Also update the registration context for state persistence
+      updateRegistrationData({ [name]: value });
     }
   };
 
   const handleEditorChange = (value: string) => {
     setFormData(prev => ({ ...prev, description: value }));
+
+    // Also update the registration context for state persistence
+    updateRegistrationData({ description: value });
   };
 
   const handleRemoveImage = () => {
@@ -206,10 +253,10 @@ export function WelcomeEditCounselorProfile() {
     setFormData(prev => ({ ...prev, image: null }));
     setPreviewUrl('');
     setShowFileUploader(true);
-  };
 
-  // Note: Language handling is managed by the MultipleInput component
-  // which internally handles adding and removing items
+    // Clear the image path in the context
+    updateRegistrationData({ profileImagePath: '' });
+  };
 
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
@@ -319,7 +366,11 @@ export function WelcomeEditCounselorProfile() {
             </label>
             <MultipleInput
               items={formData.languages}
-              onItemsChange={(languages) => setFormData(prev => ({ ...prev, languages }))}
+              onItemsChange={(languages) => {
+                setFormData(prev => ({ ...prev, languages }));
+                // Also update the registration context
+                updateRegistrationData({ languages });
+              }}
               placeholder="Enter a language"
               allowDuplicates={false}
             />
@@ -351,12 +402,19 @@ export function WelcomeEditCounselorProfile() {
                     const url = URL.createObjectURL(file);
                     setPreviewUrl(url);
                     setShowFileUploader(false);
+
+                    // We can't store the File object in context, but we can store the preview URL
+                    // This will be replaced with the actual image path after upload
+                    updateRegistrationData({
+                      // We're setting a temporary value here that will be replaced with the actual path after upload
+                      profileImagePath: url
+                    });
                   }
                 }}
                 selectedFile={formData.image}
               />
             )}
-            {formData.image && previewUrl && (
+            {previewUrl && (
               <div>
                 <div className="relative group mt-4">
                   <AzureImage
@@ -390,7 +448,7 @@ export function WelcomeEditCounselorProfile() {
                   </div>
                 </div>
                 <span className="text-sm text-muted-foreground mt-2 block">
-                  {formData.image.name}
+                  {formData.image ? formData.image.name : 'Profile Picture'}
                 </span>
               </div>
             )}
@@ -420,16 +478,3 @@ export function WelcomeEditCounselorProfile() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

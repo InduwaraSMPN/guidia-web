@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCounselorRegistration } from '@/contexts/CounselorRegistrationContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MultipleInput } from '@/components/ui/MultipleInput';
@@ -26,9 +27,12 @@ const AVAILABLE_SPECIALIZATIONS = [
 export function WelcomeEditSpecializations() {
   const navigate = useNavigate();
   const { user, isVerifyingToken, updateUser } = useAuth();
+  const { registrationData, updateRegistrationData } = useCounselorRegistration();
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
+  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>(
+    registrationData.specializations || []
+  );
   const [initialLoad, setInitialLoad] = useState(true);
   const [pageLoading, setPageLoading] = useState(true);
 
@@ -84,6 +88,15 @@ export function WelcomeEditSpecializations() {
 
     try {
       setIsLoading(true);
+
+      // Save to context first for state persistence
+      updateRegistrationData({
+        specializations: selectedSpecializations,
+        steps: {
+          ...registrationData.steps,
+          specializations: true
+        }
+      });
 
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/specializations`, {
         method: 'PATCH',
@@ -178,10 +191,10 @@ export function WelcomeEditSpecializations() {
         <Button
           variant="ghost"
           className="mb-4 flex items-center size-sm"
-          onClick={() => navigate('/welcome')}
+          onClick={() => navigate('/welcome/counselor')}
         >
           <ChevronLeft className="mr-1 h-4 w-4" />
-          Back to Welcome
+          Back to Profile
         </Button>
 
         <header className="mb-8">
@@ -218,7 +231,11 @@ export function WelcomeEditSpecializations() {
                 )}
                 <MultipleInput
                   items={selectedSpecializations}
-                  onItemsChange={setSelectedSpecializations}
+                  onItemsChange={(specializations) => {
+                    setSelectedSpecializations(specializations);
+                    // Also update the context for state persistence
+                    updateRegistrationData({ specializations });
+                  }}
                   placeholder="Enter a specialization"
                   allowDuplicates={false}
                   maxItems={10}
@@ -294,7 +311,7 @@ export function WelcomeEditSpecializations() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/welcome')}
+                onClick={() => navigate('/welcome/counselor')}
                 className="transition-all duration-200"
               >
                 Back

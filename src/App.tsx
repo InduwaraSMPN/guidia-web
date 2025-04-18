@@ -52,6 +52,7 @@ import { FirebaseProvider } from './contexts/FirebaseContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DropdownProvider } from './contexts/DropdownContext';
 import { RegistrationProvider } from './contexts/RegistrationContext';
+import { CounselorRegistrationProvider } from './contexts/CounselorRegistrationContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
@@ -485,7 +486,9 @@ export function App() {
             <ThemeProvider>
               <DropdownProvider>
                 <RegistrationProvider>
-                  <AppContent />
+                  <CounselorRegistrationProvider>
+                    <AppContent />
+                  </CounselorRegistrationProvider>
                 </RegistrationProvider>
               </DropdownProvider>
             </ThemeProvider>
