@@ -326,9 +326,15 @@ html {
 .prose * {
   background-color: transparent !important;
   color: #333 !important; /* Dark gray for better contrast */
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }
 
 /* Dark mode support */
 .dark .prose * {
   color: #e0e0e0 !important; /* Light gray for dark mode */
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }

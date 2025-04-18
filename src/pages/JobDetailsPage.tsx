@@ -74,6 +74,19 @@ export function JobDetailsPage() {
       toast.error("This job posting has expired");
       return;
     }
+
+    // Check if user is logged in and is a student before applying
+    if (!user) {
+      toast.error("Please login to apply for jobs");
+      navigate('/auth/login');
+      return;
+    }
+
+    if (user.userType !== "Student") {
+      toast.error("You must be logged in as a student to apply");
+      return;
+    }
+
     navigate(`/jobs/${id}/apply`);
   };
 
@@ -164,7 +177,20 @@ export function JobDetailsPage() {
     );
   }
 
-  if (error || !job) return <div>Error loading job details</div>;
+  if (error || !job) {
+    return (
+      <div className="min-h-screen bg-background pt-32 pb-32 px-6 lg:px-8 flex items-center justify-center">
+        <div className="max-w-md w-full bg-card rounded-lg border border-border p-8 text-center">
+          <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-card-foreground mb-2">Job Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            The job you're looking for doesn't exist or has been removed.
+          </p>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-32 pb-32 px-6 lg:px-8">

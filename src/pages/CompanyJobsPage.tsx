@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { JobCard, Job } from '../components/JobCard';
-import { Building2, Briefcase, MapPin, Clock } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface Company {
   id: string;
@@ -82,6 +84,7 @@ const mockJobsByCompany: Record<string, Job[]> = {
 export function CompanyJobsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
 
@@ -104,6 +107,18 @@ export function CompanyJobsPage() {
   }, [id]);
 
   const handleApply = (jobId: string) => {
+    // Check if user is logged in and is a student before applying
+    if (!user) {
+      toast.error("Please login to apply for jobs");
+      navigate('/auth/login');
+      return;
+    }
+
+    if (user.userType !== "Student") {
+      toast.error("You must be logged in as a student to apply");
+      return;
+    }
+
     navigate(`/jobs/${jobId}/apply`);
   };
 

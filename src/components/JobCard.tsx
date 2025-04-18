@@ -88,6 +88,18 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
     if (mode === "edit") {
       navigate(`/jobs/${job.id}/edit`)
     } else {
+      // Check if user is logged in and is a student before applying
+      if (!user) {
+        toast.error("Please login to apply for jobs");
+        navigate('/auth/login');
+        return;
+      }
+
+      if (user.userType !== "Student") {
+        toast.error("You must be logged in as a student to apply");
+        return;
+      }
+
       onApply(job.id)
     }
   }

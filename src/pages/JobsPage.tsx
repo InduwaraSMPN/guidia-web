@@ -13,6 +13,7 @@ import { FilterPanel, type FilterSection } from "@/components/FilterPanel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageLayout } from "@/components/PageLayout"
 import { EmptyState } from "@/components/EmptyState"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -29,6 +30,7 @@ export function JobsPage() {
   const filterPanelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
 
   // Close filters when clicking outside
   useEffect(() => {
@@ -157,6 +159,19 @@ export function JobsPage() {
       });
       return;
     }
+
+    // Check if user is logged in and is a student before applying
+    if (!user) {
+      toast.error("Please login to apply for jobs");
+      navigate('/auth/login');
+      return;
+    }
+
+    if (user.userType !== "Student") {
+      toast.error("You must be logged in as a student to apply");
+      return;
+    }
+
     navigate(`/jobs/${jobId}/apply`);
   }
 

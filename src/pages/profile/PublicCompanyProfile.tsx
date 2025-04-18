@@ -38,7 +38,8 @@ interface CompanyData {
   companyLogoPath: string | null;
   companyType?: string;
   postedJobs?: Array<{
-    id: string;
+    id?: string;
+    jobID?: number;
     title: string;
     company: string;
     sector: string;
@@ -396,8 +397,12 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
             About {companyData.companyName}
           </h2>
           <div
-            className="text-muted-foreground prose max-w-none leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: companyData.companyDescription }}
+            className="text-muted-foreground prose max-w-none leading-relaxed overflow-hidden"
+            dangerouslySetInnerHTML={{
+              __html: companyData.companyDescription.length > 500
+                ? companyData.companyDescription.substring(0, 500) + '...'
+                : companyData.companyDescription
+            }}
           />
         </motion.div>
 
@@ -412,8 +417,12 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
             <h2 className="text-xl font-semibold mb-4">Posted Jobs</h2>
             <div className="space-y-4">
               {companyData.postedJobs.map((job, index) => {
-                // Use job.id if available, otherwise use index as fallback
-                const jobId = job.id || `job-${index}`;
+                // Make sure we have a valid job ID (should be a number)
+                const jobId = job.id || (job as any).jobID?.toString();
+
+                // Skip jobs without a valid ID
+                if (!jobId) return null;
+
                 return (
                   <div
                     key={jobId}

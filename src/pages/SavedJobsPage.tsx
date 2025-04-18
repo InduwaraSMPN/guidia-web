@@ -4,7 +4,7 @@ import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { JobCard, Job } from "@/components/JobCard";
-import { Bookmark, ArrowLeft, User, Briefcase, MapPin, Clock } from "lucide-react";
+import { Bookmark, ArrowLeft, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -48,6 +48,18 @@ export function SavedJobsPage() {
   }, []);
 
   const handleApply = (jobId: string) => {
+    // Check if user is logged in and is a student before applying
+    if (!user) {
+      toast.error("Please login to apply for jobs");
+      navigate('/auth/login');
+      return;
+    }
+
+    if (user.userType !== "Student") {
+      toast.error("You must be logged in as a student to apply");
+      return;
+    }
+
     navigate(`/jobs/${jobId}/apply`);
   };
 

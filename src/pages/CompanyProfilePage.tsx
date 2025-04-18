@@ -7,9 +7,8 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
-import { format } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AzureImage, CompanyImage } from "@/lib/imageUtils"
+import { CompanyImage } from "@/lib/imageUtils"
 
 interface Job {
   jobID: number
@@ -98,6 +97,18 @@ export function CompanyProfilePage() {
   }, [userID])
 
   const handleApply = (jobId: string) => {
+    // Check if user is logged in and is a student before applying
+    if (!user) {
+      toast.error("Please login to apply for jobs")
+      navigate('/auth/login')
+      return
+    }
+
+    if (user.userType !== "Student") {
+      toast.error("You must be logged in as a student to apply")
+      return
+    }
+
     navigate(`/jobs/${jobId}/apply`)
   }
 
@@ -284,9 +295,11 @@ export function CompanyProfilePage() {
                   About {companyData.companyName}
                 </h2>
                 <div
-                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed"
+                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed overflow-hidden"
                   dangerouslySetInnerHTML={{
-                    __html: companyData.companyDescription,
+                    __html: companyData.companyDescription.length > 500
+                      ? companyData.companyDescription.substring(0, 500) + '...'
+                      : companyData.companyDescription
                   }}
                 />
               </motion.div>

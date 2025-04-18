@@ -291,7 +291,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   return (
     <nav
       className={`fixed w-full top-0 z-[40] transition-all duration-300 ${
-        isScrolled ? "bg-background/95 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-4"
+        isScrolled ? "bg-background/95 backdrop-blur-sm py-2" : "bg-transparent py-4"
       }`}
     >
       <div className="max-w-[1216px] mx-auto px-6">
