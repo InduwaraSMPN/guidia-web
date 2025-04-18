@@ -126,12 +126,12 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   const navPaths = [
     "/news",
     "/events", // Identifier for Events section
+    "/guidia-ai", // Guidia AI Chat
     "/jobs",
     "/students",
     "/counselors",
     "/companies",
     "/meetings", // Identifier for Meetings section
-    "/ai-chat", // Guidia AI Chat
   ];
 
   // --- Calculate activeIndex based on the NEW logic ---
@@ -139,6 +139,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     // Handle special cases for sections first
     if (path === "/events") return location.pathname.startsWith('/events');
     if (path === "/meetings") return location.pathname.startsWith('/meetings');
+    if (path === "/guidia-ai") return location.pathname === '/guidia-ai' || location.pathname === '/ai-chat';
     // Handle direct link matches
     return location.pathname === path;
   });
@@ -327,10 +328,21 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                         <EventsDropdown />
                       </MenuItem>
                     </div>
+
+                    {/* Guidia AI Link */}
+                    <Link
+                      key="/guidia-ai"
+                      to="/guidia-ai"
+                      ref={(el) => (itemRefs.current[2] = el)}
+                      className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                      onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                    >
+                      Guidia AI
+                    </Link>
                   </div>
 
                   {/* Animated Underline Indicator for non-logged-in layout */}
-                  {!user && activeIndex !== -1 && activeIndex < 2 && indicatorStyle.width > 0 && (
+                  {!user && activeIndex !== -1 && activeIndex < 3 && indicatorStyle.width > 0 && (
                     <motion.div
                       className="absolute bottom-[1px] h-[2px] bg-brand rounded-full"
                       layoutId="navbar-underline-no-user"
@@ -389,12 +401,23 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     </MenuItem>
                   </div>
 
-                  {/* 3. Jobs - Direct Link (Index 2) */}
+                  {/* 3. Guidia AI - Direct Link (Index 2) */}
+                  <Link
+                    key="/guidia-ai"
+                    to="/guidia-ai"
+                    ref={(el) => (itemRefs.current[2] = el)} // Index 2
+                    className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                  >
+                    Guidia AI
+                  </Link>
+
+                  {/* 4. Jobs - Direct Link (Index 3) */}
                   {user && (
                     <Link
                       key="/jobs"
                       to="/jobs"
-                      ref={(el) => (itemRefs.current[2] = el)} // Index 2
+                      ref={(el) => (itemRefs.current[3] = el)} // Index 3
                       className={`${navItemBaseClasses} ${location.pathname === '/jobs' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
@@ -402,12 +425,12 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     </Link>
                   )}
 
-                  {/* 4. Students - Direct Link (Index 3) */}
+                  {/* 5. Students - Direct Link (Index 4) */}
                   {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
                     <Link
                       key="/students"
                       to="/students"
-                      ref={(el) => (itemRefs.current[3] = el)} // Index 3
+                      ref={(el) => (itemRefs.current[4] = el)} // Index 4
                       className={`${navItemBaseClasses} ${location.pathname === '/students' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
@@ -415,12 +438,12 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     </Link>
                   )}
 
-                  {/* 5. Counselors - Direct Link (Index 4) */}
+                  {/* 6. Counselors - Direct Link (Index 5) */}
                   {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
                     <Link
                       key="/counselors"
                       to="/counselors"
-                      ref={(el) => (itemRefs.current[4] = el)} // Index 4
+                      ref={(el) => (itemRefs.current[5] = el)} // Index 5
                       className={`${navItemBaseClasses} ${location.pathname === '/counselors' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
@@ -428,12 +451,12 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     </Link>
                   )}
 
-                  {/* 6. Companies - Direct Link (Index 5) */}
+                  {/* 7. Companies - Direct Link (Index 6) */}
                   {(user?.userType === "Student" || user?.userType === "Company" || user?.userType === "Counselor" || user?.userType === "Admin") && (
                     <Link
                       key="/companies"
                       to="/companies"
-                      ref={(el) => (itemRefs.current[5] = el)} // Index 5
+                      ref={(el) => (itemRefs.current[6] = el)} // Index 6
                       className={`${navItemBaseClasses} ${location.pathname === '/companies' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActive(null)} // Close any open dropdown when clicking this item
                     >
@@ -441,10 +464,10 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     </Link>
                   )}
 
-                  {/* 7. Meetings Dropdown (Index 6) */}
+                  {/* 8. Meetings Dropdown (Index 7) */}
                   {user && user.userType !== "Admin" && (
                     <div
-                      ref={(el) => (itemRefs.current[6] = el)} // Index 6
+                      ref={(el) => (itemRefs.current[7] = el)} // Index 7
                       className={`${navItemBaseClasses} ${isMeetingsActive ? activeNavItemClasses : inactiveNavItemClasses}`} // Use calculated active state
                        // Prevent click inside from closing the menu immediately if needed
                        onClick={(e) => e.stopPropagation()}
@@ -469,17 +492,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       </MenuItem>
                     </div>
                   )}
-
-                  {/* 8. Guidia AI - Direct Link (Index 7) */}
-                  <Link
-                    key="/ai-chat"
-                    to="/ai-chat"
-                    ref={(el) => (itemRefs.current[7] = el)} // Index 7
-                    className={`${navItemBaseClasses} ${location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
-                  >
-                    Guidia AI
-                  </Link>
                 </div>
 
                 {/* Animated Underline Indicator - Should now work for all items */}
@@ -600,6 +612,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               </div>
             </div>
 
+            {/* Guidia AI - Available to all users */}
+            <Link
+              to="/guidia-ai"
+              onClick={() => setIsMenuOpen(false)}
+              className={`block text-sm hover:text-brand py-3 transition-colors ${
+                location.pathname === "/guidia-ai" || location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
+              }`}
+            >
+              Guidia AI
+            </Link>
+
             {/* Jobs */}
             {user && (
               <Link
@@ -675,17 +698,6 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 </div>
               </div>
             )}
-
-            {/* Guidia AI */}
-            <Link
-              to="/ai-chat"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block text-sm hover:text-brand py-3 transition-colors ${
-                location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
-              }`}
-            >
-              Guidia AI
-            </Link>
 
             {/* Auth buttons / Profile controls */}
             {!isAuthPage && (

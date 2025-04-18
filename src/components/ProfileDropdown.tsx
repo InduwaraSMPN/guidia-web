@@ -247,7 +247,7 @@ export function ProfileDropdown() {
       if (isLeaving) {
         setIsOpen(false);
       }
-    }, 250); // 250ms delay before closing (same as meetings dropdown)
+    }, 500); // 500ms delay before closing (increased for better UX)
   };
 
   // Create a hover path between the button and dropdown
@@ -255,8 +255,9 @@ export function ProfileDropdown() {
     if (isOpen || isHoveringDropdown) {
       return (
         <div
-          className="absolute right-0 w-16 h-4 top-full z-40"
+          className="absolute right-0 w-16 h-6 top-full z-40"
           onMouseEnter={handleDropdownMouseEnter}
+          style={{ marginTop: '-2px' }} // Ensure no gap between button and hover path
         />
       );
     }
@@ -431,8 +432,9 @@ export function ProfileDropdown() {
           setIsOpen(!isOpen);
         }}
         onMouseEnter={() => {
-          if (!isOpen) setIsOpen(true);
+          setIsOpen(true); // Always open on hover
           setIsLeaving(false);
+          setIsHoveringDropdown(true); // Set this to true to prevent immediate closing
           if (leaveTimeoutRef.current) {
             clearTimeout(leaveTimeoutRef.current);
             leaveTimeoutRef.current = null;

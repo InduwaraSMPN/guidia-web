@@ -58,6 +58,8 @@ export const MenuItem = ({
   // Handle mouse leave on the dropdown
   const handleDropdownMouseLeave = () => {
     setIsHoveringDropdown(false);
+    // We don't close the dropdown immediately here
+    // The parent Menu component will handle the closing with a delay
   };
 
   // Create a path between the menu item and dropdown for smoother hover
@@ -173,7 +175,7 @@ export const Menu = ({
         setActiveItem(null);
         setActive(null);
       }
-    }, 250); // 250ms delay before closing (reduced by 50%)
+    }, 500); // 500ms delay before closing (increased for better UX)
   };
 
   // Handle click outside

@@ -460,8 +460,10 @@ function AppContent() {
           <Route path="/meetings/settings" element={<MeetingAvailability />} />
           <Route path="/meetings/calendar" element={<CalendarPage />} />
 
-          {/* AI Chat Pages */}
-          <Route path="/ai-chat" element={<GuidiaAiChat />} />
+          {/* AI Chat Pages - Accessible to all users */}
+          <Route path="/guidia-ai" element={<GuidiaAiChat />} />
+          {/* Legacy route for backward compatibility */}
+          <Route path="/ai-chat" element={<Navigate to="/guidia-ai" replace />} />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />
