@@ -115,8 +115,8 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
 
   const navRef = useRef<HTMLDivElement>(null)
   // --- IMPORTANT: Adjust size based on MAX possible nav items ---
-  // Needs to accommodate News, Events, Jobs, Students, Counselors, Companies, Meetings
-  const itemRefs = useRef<Array<HTMLAnchorElement | HTMLDivElement | null>>(Array(7).fill(null)) // Increased size
+  // Needs to accommodate News, Events, Jobs, Students, Counselors, Companies, Meetings, Guidia AI
+  const itemRefs = useRef<Array<HTMLAnchorElement | HTMLDivElement | null>>(Array(8).fill(null)) // Increased size
 
   const location = useLocation()
   const { user, isVerifyingToken } = useAuth()
@@ -131,6 +131,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
     "/counselors",
     "/companies",
     "/meetings", // Identifier for Meetings section
+    "/ai-chat", // Guidia AI Chat
   ];
 
   // --- Calculate activeIndex based on the NEW logic ---
@@ -468,6 +469,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       </MenuItem>
                     </div>
                   )}
+
+                  {/* 8. Guidia AI - Direct Link (Index 7) */}
+                  <Link
+                    key="/ai-chat"
+                    to="/ai-chat"
+                    ref={(el) => (itemRefs.current[7] = el)} // Index 7
+                    className={`${navItemBaseClasses} ${location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
+                    onClick={() => setActive(null)} // Close any open dropdown when clicking this item
+                  >
+                    Guidia AI
+                  </Link>
                 </div>
 
                 {/* Animated Underline Indicator - Should now work for all items */}
@@ -663,6 +675,17 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 </div>
               </div>
             )}
+
+            {/* Guidia AI */}
+            <Link
+              to="/ai-chat"
+              onClick={() => setIsMenuOpen(false)}
+              className={`block text-sm hover:text-brand py-3 transition-colors ${
+                location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
+              }`}
+            >
+              Guidia AI
+            </Link>
 
             {/* Auth buttons / Profile controls */}
             {!isAuthPage && (

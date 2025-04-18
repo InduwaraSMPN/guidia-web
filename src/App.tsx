@@ -81,6 +81,7 @@ import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
 import { MeetingAvailability } from './pages/MeetingAvailability';
 import { CalendarPage } from './pages/CalendarPage';
+import { GuidiaAiChat } from './pages/GuidiaAiChat';
 
 function RedirectToProfile() {
   const { id } = useParams();
@@ -458,6 +459,9 @@ function AppContent() {
           {/* Meeting Pages */}
           <Route path="/meetings/settings" element={<MeetingAvailability />} />
           <Route path="/meetings/calendar" element={<CalendarPage />} />
+
+          {/* AI Chat Pages */}
+          <Route path="/ai-chat" element={<GuidiaAiChat />} />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />
