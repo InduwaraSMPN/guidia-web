@@ -81,7 +81,7 @@ import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
 import { MeetingAvailability } from './pages/MeetingAvailability';
 import { CalendarPage } from './pages/CalendarPage';
-import { GuidiaAiChat } from './pages/GuidiaAiChat';
+import { GuidiaAiChat } from './features/guidia-ai-assistant';
 
 function RedirectToProfile() {
   const { id } = useParams();

@@ -141,3 +141,5 @@ export const BackgroundBeams = React.memo(
 );
 
 BackgroundBeams.displayName = "BackgroundBeams";
+
+export default BackgroundBeams;

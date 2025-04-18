@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { BackgroundBeams } from "@/components/ui/background-beams";
-import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
+import { BackgroundBeams } from "./components/BackgroundBeams";
+import { PlaceholdersAndVanishInput } from "./components/PlaceholdersAndVanishInput";
 
 export function GuidiaAiChat() {
   // Define placeholders for the AI chat input

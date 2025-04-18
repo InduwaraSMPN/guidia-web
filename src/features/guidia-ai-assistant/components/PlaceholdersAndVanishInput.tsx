@@ -293,3 +293,5 @@ export function PlaceholdersAndVanishInput({
     </form>
   );
 }
+
+export default PlaceholdersAndVanishInput;
