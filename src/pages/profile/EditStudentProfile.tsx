@@ -51,13 +51,29 @@ export function EditStudentProfile() {
   const courseLevelOptions = {
     Undergraduate: ["Level - 1", "Level - 2", "Level - 3", "Level - 4"],
     Postgraduate: [
-      "Postgraduate Certificate (PGCert)",
-      "Postgraduate Diploma (PGDip) ",
-      "Master of Science (MSc)",
-      "Master of Arts (MA)",
-      "Master of Philosophy (MPhil)",
-      "Doctor of Medicine (DM)",
-      "Doctor of Philosophy (PhD)",
+      "PGCert (Postgraduate Certificate)",
+      "PGDip (Postgraduate Diploma)",
+      "MA (Master of Arts)",
+      "MSc (Master of Science)",
+      "MBA (Master of Business Administration)",
+      "LLM (Master of Laws)",
+      "MEd (Master of Education)",
+      "MArch (Master of Architecture)",
+      "MFA (Master of Fine Arts)",
+      "MASt (Master of Advanced Study)",
+      "PGCE (Postgraduate Certificate in Education)",
+      "MPhil (Master of Philosophy)",
+      "MRes (Master of Research)",
+      "MLitt (Master of Letters)",
+      "PhD (Doctor of Philosophy)",
+      "DPhil (Doctor of Philosophy)",
+      "EdD (Doctor of Education)",
+      "DBA (Doctor of Business Administration)",
+      "DM (Doctor of Medicine)",
+      "GradCert (Graduate Certificate)",
+      "GradDip (Graduate Diploma)",
+      "Conversion Courses",
+      "Pre-Master's Courses",
     ],
   };
 
@@ -499,7 +515,7 @@ export function EditStudentProfile() {
                   }
                   placeholder="Select Course Level"
                   disabled={!formData.studyLevel || isLoading}
-                  isSearchable={false}
+                  isSearchable={formData.studyLevel === 'Postgraduate'}
                 />
               </div>
             </div>

@@ -58,10 +58,29 @@ export function WelcomeEditStudentProfile() {
       { value: 'Level - 4', label: 'Level - 4' }
     ],
     Postgraduate: [
-      { value: 'Postgraduate Certificate (PGCert) / Postgraduate Diploma (PGDip)', label: 'PGCert / PGDip' },
-      { value: 'Master of Science (MSc) / Master of Arts (MA)', label: 'MSc / MA' },
-      { value: 'Master of Philosophy (MPhil) / Doctor of Medicine (DM)', label: 'MPhil / DM' },
-      { value: 'Doctor of Philosophy (PhD)', label: 'PhD' }
+      { value: 'PGCert (Postgraduate Certificate)', label: 'PGCert (Postgraduate Certificate)' },
+      { value: 'PGDip (Postgraduate Diploma)', label: 'PGDip (Postgraduate Diploma)' },
+      { value: 'MA (Master of Arts)', label: 'MA (Master of Arts)' },
+      { value: 'MSc (Master of Science)', label: 'MSc (Master of Science)' },
+      { value: 'MBA (Master of Business Administration)', label: 'MBA (Master of Business Administration)' },
+      { value: 'LLM (Master of Laws)', label: 'LLM (Master of Laws)' },
+      { value: 'MEd (Master of Education)', label: 'MEd (Master of Education)' },
+      { value: 'MArch (Master of Architecture)', label: 'MArch (Master of Architecture)' },
+      { value: 'MFA (Master of Fine Arts)', label: 'MFA (Master of Fine Arts)' },
+      { value: 'MASt (Master of Advanced Study)', label: 'MASt (Master of Advanced Study)' },
+      { value: 'PGCE (Postgraduate Certificate in Education)', label: 'PGCE (Postgraduate Certificate in Education)' },
+      { value: 'MPhil (Master of Philosophy)', label: 'MPhil (Master of Philosophy)' },
+      { value: 'MRes (Master of Research)', label: 'MRes (Master of Research)' },
+      { value: 'MLitt (Master of Letters)', label: 'MLitt (Master of Letters)' },
+      { value: 'PhD (Doctor of Philosophy)', label: 'PhD (Doctor of Philosophy)' },
+      { value: 'DPhil (Doctor of Philosophy)', label: 'DPhil (Doctor of Philosophy)' },
+      { value: 'EdD (Doctor of Education)', label: 'EdD (Doctor of Education)' },
+      { value: 'DBA (Doctor of Business Administration)', label: 'DBA (Doctor of Business Administration)' },
+      { value: 'DM (Doctor of Medicine)', label: 'DM (Doctor of Medicine)' },
+      { value: 'GradCert (Graduate Certificate)', label: 'GradCert (Graduate Certificate)' },
+      { value: 'GradDip (Graduate Diploma)', label: 'GradDip (Graduate Diploma)' },
+      { value: 'Conversion Courses', label: 'Conversion Courses' },
+      { value: 'Pre-Master\'s Courses', label: 'Pre-Master\'s Courses' }
     ]
   };
 

@@ -59,7 +59,7 @@ export function ProfileInput({
             value={value ? { value: value as string, label: options.find(opt => opt.value === value)?.label || '' } : null}
             onChange={(option) => onChange(field.name, option?.value || '')}
             placeholder={field.placeholder || `Select ${field.label}`}
-            isSearchable={true}
+            isSearchable={field.name === 'studyLevel' ? false : field.name === 'courseLevel' ? formState['studyLevel'] === 'Postgraduate' : true}
             disabled={isDisabled}
           />
         );

@@ -74,10 +74,10 @@ export function FilePreview({ file, previewUrl, onRemove, onPreview, className =
             </motion.div>
           </div>
           <div className="mt-2">
-            <p className="text-sm text-foreground font-medium truncate" title={file.name}>
+            <p className="ml-2 text-sm text-foreground font-medium truncate" title={file.name}>
               {file.name}
             </p>
-            <p className="text-xs text-muted-foreground">{fileSize}</p>
+            <p className="ml-2 mb-2 text-xs text-muted-foreground">{fileSize}</p>
           </div>
         </motion.div>
       ) : (
