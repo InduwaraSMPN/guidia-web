@@ -1,15 +1,26 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { User, LogOut, Settings, Edit, Clock } from "lucide-react";
 import { format } from "date-fns";
 import ThemeToggle from "./ThemeToggle";
+import { motion } from "framer-motion";
 import {
   AzureImage,
   StudentImage,
   CounselorImage,
   CompanyImage,
 } from "@/lib/imageUtils";
+
+// Animation transition configuration - matches the meetings dropdown
+const transition = {
+  type: "spring",
+  mass: 0.5,
+  damping: 11.5,
+  stiffness: 100,
+  restDelta: 0.001,
+  restSpeed: 0.001,
+};
 
 interface ProfileData {
   studentProfileImagePath?: string;
@@ -23,12 +34,17 @@ interface ProfileData {
 export function ProfileDropdown() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [adminUsername, setAdminUsername] = useState<string>(""); // New state for admin username
+  const [isHoveringDropdown, setIsHoveringDropdown] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Update the date and time every minute
   useEffect(() => {
@@ -162,23 +178,90 @@ export function ProfileDropdown() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
+        isOpen &&
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setIsHoveringDropdown(false);
+        setIsLeaving(false);
+
+        if (leaveTimeoutRef.current) {
+          clearTimeout(leaveTimeoutRef.current);
+          leaveTimeoutRef.current = null;
+        }
       }
     }
 
-    // Add event listener when dropdown is open
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    // Add event listener for all clicks
+    document.addEventListener("mousedown", handleClickOutside);
 
     // Cleanup event listener
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  // Close dropdown when route changes
+  useEffect(() => {
+    setIsOpen(false);
+    setIsHoveringDropdown(false);
+    setIsLeaving(false);
+
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  }, [location.pathname]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (leaveTimeoutRef.current) {
+        clearTimeout(leaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Handle mouse enter on the dropdown
+  const handleDropdownMouseEnter = () => {
+    setIsHoveringDropdown(true);
+    setIsLeaving(false);
+
+    // Clear any existing timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  };
+
+  // Handle mouse leave on the dropdown
+  const handleDropdownMouseLeave = () => {
+    setIsHoveringDropdown(false);
+    setIsLeaving(true);
+
+    // Set a timeout to close the dropdown after a delay
+    leaveTimeoutRef.current = setTimeout(() => {
+      if (isLeaving) {
+        setIsOpen(false);
+      }
+    }, 250); // 250ms delay before closing (same as meetings dropdown)
+  };
+
+  // Create a hover path between the button and dropdown
+  const createHoverPath = () => {
+    if (isOpen || isHoveringDropdown) {
+      return (
+        <div
+          className="absolute right-0 w-16 h-4 top-full z-40"
+          onMouseEnter={handleDropdownMouseEnter}
+        />
+      );
+    }
+    return null;
+  };
 
   const handleLogout = async () => {
     try {
@@ -339,61 +422,95 @@ export function ProfileDropdown() {
   };
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div className="relative" ref={dropdownRef}>
       {/* Profile Icon Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
+      <motion.button
+        ref={buttonRef}
+        onClick={(e: React.MouseEvent) => {
+          e.stopPropagation(); // Prevent event from bubbling up
+          setIsOpen(!isOpen);
+        }}
+        onMouseEnter={() => {
+          if (!isOpen) setIsOpen(true);
+          setIsLeaving(false);
+          if (leaveTimeoutRef.current) {
+            clearTimeout(leaveTimeoutRef.current);
+            leaveTimeoutRef.current = null;
+          }
+        }}
         className="p-2 rounded-full text-muted-foreground hover:bg-brand/10 hover:text-brand transition-colors duration-300"
         aria-label="Profile menu"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
         <div className="w-6 h-6 flex items-center justify-center overflow-hidden rounded-full">
           {getProfileImage()}
         </div>
-      </button>
+      </motion.button>
+
+      {/* Invisible hover path between button and dropdown */}
+      {createHoverPath()}
 
       {/* Profile Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border z-50">
-          {/* Header with user info */}
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                {getProfileImage("dropdown")}
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-foreground">
-                  {user?.userType === "Admin"
-                    ? adminUsername || user?.email.split("@")[0]
-                    : getUserName()}
-                </h3>
-                <p className="text-xs text-muted-foreground dark:text-neutral-400">
-                  {user?.userType === "Admin"
-                    ? "Admin"
-                    : user?.userType || "User"}
-                </p>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={transition}
+          className="absolute right-0 mt-2 w-64 z-50"
+          onMouseEnter={handleDropdownMouseEnter}
+          onMouseLeave={handleDropdownMouseLeave}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()} // Prevent clicks inside dropdown from closing it
+        >
+          <motion.div
+            transition={transition}
+            layoutId="profile-dropdown" // layoutId ensures smooth animation
+            className="bg-card dark:bg-black backdrop-blur-sm rounded-lg overflow-hidden border border-border dark:border-white/[0.2] shadow-xl"
+          >
+            {/* Header with user info */}
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {getProfileImage("dropdown")}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {user?.userType === "Admin"
+                      ? adminUsername || user?.email.split("@")[0]
+                      : getUserName()}
+                  </h3>
+                  <p className="text-xs text-muted-foreground dark:text-neutral-400">
+                    {user?.userType === "Admin"
+                      ? "Admin"
+                      : user?.userType || "User"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Menu items */}
           <div className="py-2">
             <Link
               to={getProfilePath()}
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
             >
-              <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-              {user?.userType === "Admin" ? "Dashboard" : "Profile"}
+              <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+              <span className="group-hover:text-brand transition-colors">
+                {user?.userType === "Admin" ? "Dashboard" : "Profile"}
+              </span>
             </Link>
 
             {user?.userType !== "Admin" && (
               <Link
                 to={getEditProfilePath()}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
               >
-                <Edit className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-                Edit Profile
+                <Edit className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+                <span className="group-hover:text-brand transition-colors">
+                  Edit Profile
+                </span>
               </Link>
             )}
 
@@ -401,10 +518,12 @@ export function ProfileDropdown() {
               <Link
                 to="/admin/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
               >
-                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-                Admin Settings
+                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+                <span className="group-hover:text-brand transition-colors">
+                  Admin Settings
+                </span>
               </Link>
             )}
 
@@ -412,10 +531,12 @@ export function ProfileDropdown() {
               <Link
                 to={getSettingsPath()}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary-light transition-colors"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
               >
-                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-                Settings
+                <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+                <span className="group-hover:text-brand transition-colors">
+                  Settings
+                </span>
               </Link>
             )}
 
@@ -424,10 +545,12 @@ export function ProfileDropdown() {
                 setIsOpen(false);
                 handleLogout();
               }}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
             >
-              <LogOut className="h-4 w-4 text-muted-foreground dark:text-neutral-400" />
-              Logout
+              <LogOut className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+              <span className="group-hover:text-brand transition-colors">
+                Logout
+              </span>
             </button>
           </div>
 
@@ -450,7 +573,8 @@ export function ProfileDropdown() {
               </div>
             </div>
           </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
