@@ -7,6 +7,8 @@ import { DocumentData } from '../../interfaces/Document';
 import axiosInstance from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRegistration } from '@/contexts/RegistrationContext';
+import { toast } from 'sonner';
 
 interface StudentDocument {
   stuDocType: string;
@@ -23,56 +25,70 @@ const DOCUMENT_CATEGORIES = [
 
 export function WelcomeUploadDocument() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { registrationData, updateRegistrationData, fetchExistingData } = useRegistration();
 
-  const [uploadedDocs, setUploadedDocs] = useState<StudentDocument[]>([]);
+  const [uploadedDocs, setUploadedDocs] = useState<StudentDocument[]>(registrationData.documents || []);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
-  // Simulate loading delay
+  // Simulate loading delay and fetch existing data
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      if (user) {
+        await fetchExistingData();
+        // Update uploaded docs from registration data if available
+        if (registrationData.documents && registrationData.documents.length > 0) {
+          setUploadedDocs(registrationData.documents);
+        } else {
+          // If no documents in registration context, try to fetch from API
+          try {
+            const { data } = await axiosInstance.get<{studentDocuments: StudentDocument[]}>('/api/students/documents');
+            const documents = data.studentDocuments || [];
+            setUploadedDocs(documents);
+            // Also update registration context
+            updateRegistrationData({ documents });
+          } catch (error: any) {
+            console.error('Error fetching documents:', error);
+            // Handle 404 gracefully - assume empty documents array
+            if (error.response && error.response.status === 404) {
+              setUploadedDocs([]);
+            }
+          }
+        }
+      }
       setPageLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    const fetchDocuments = async () => {
-      try {
-        const { data } = await axiosInstance.get<{studentDocuments: StudentDocument[]}>('/api/students/documents');
-        setUploadedDocs(data.studentDocuments || []);
-      } catch (error: any) {
-        console.error('Error fetching documents:', error);
-        // Handle 404 gracefully - assume empty documents array
-        if (error.response && error.response.status === 404) {
-          setUploadedDocs([]);
-        } else {
-          console.error('Error fetching documents:', error);
-        }
-      }
-    };
-    fetchDocuments();
-  }, []);
+  }, [user]);
 
   const handleDelete = async (docName: string) => {
     try {
       setLoading(true);
       const updatedDocs = uploadedDocs.filter(doc => doc.stuDocName !== docName);
 
+      // Send data directly to the API
       await axiosInstance.post('/api/students/update-documents', {
         documents: updatedDocs
       });
 
+      // Update local state
       setUploadedDocs(updatedDocs);
+
+      // Update registration context
+      updateRegistrationData({
+        documents: updatedDocs,
+        steps: {
+          ...registrationData.steps,
+          documents: true
+        }
+      });
+
+      toast.success('Document deleted successfully');
     } catch (error) {
       console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
     } finally {
       setLoading(false);
     }
@@ -104,13 +120,27 @@ export function WelcomeUploadDocument() {
 
       const newDocuments = [...uploadedDocs, newDoc];
 
+      // Send data directly to the API
       await axiosInstance.post('/api/students/update-documents', {
         documents: newDocuments
       });
 
+      // Update local state
       setUploadedDocs(newDocuments);
+
+      // Update registration context
+      updateRegistrationData({
+        documents: newDocuments,
+        steps: {
+          ...registrationData.steps,
+          documents: true
+        }
+      });
+
+      toast.success('Document uploaded successfully');
     } catch (error) {
       console.error('Error uploading document:', error);
+      toast.error('Failed to upload document');
     } finally {
       setLoading(false);
     }
@@ -259,7 +289,22 @@ export function WelcomeUploadDocument() {
               Back
             </Button>
             <Button
-              onClick={() => navigate(`/students/profile/${user?.userID}`)}
+              onClick={() => {
+                // Mark all steps as complete
+                updateRegistrationData({
+                  steps: {
+                    profile: true,
+                    career: true,
+                    documents: true
+                  }
+                });
+
+                // Ensure user has profile flag set
+                updateUser({ hasProfile: true });
+
+                // Navigate to profile
+                navigate(`/students/profile/${user?.userID}`);
+              }}
               type="button"
             >
               Continue to Profile

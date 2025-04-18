@@ -4,33 +4,95 @@ import { PathwaySelector } from '@/components/PathwaySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRegistration } from '@/contexts/RegistrationContext';
+import { toast } from 'sonner';
 
 export function WelcomeEditCareerPathways() {
   const navigate = useNavigate();
-  const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { registrationData, updateRegistrationData, isLoading, fetchExistingData } = useRegistration();
+  const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
 
-  // Simulate loading delay
+  // Simulate loading delay and fetch existing data
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      if (user) {
+        // Only fetch data if we don't already have pathways
+        if (!registrationData.pathways || registrationData.pathways.length === 0) {
+          console.log('No existing pathways in context, fetching from API');
+          await fetchExistingData();
+        } else {
+          console.log('Using existing pathways from context:', registrationData.pathways);
+        }
+      }
       setPageLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, registrationData.pathways]);
+
+  // Update selected paths when registration data changes
+  useEffect(() => {
+    // Check if registrationData.pathways exists and is an array
+    if (Array.isArray(registrationData.pathways) && registrationData.pathways.length > 0) {
+      console.log('Setting career pathways from registration data:', registrationData.pathways);
+      setSelectedPaths([...registrationData.pathways]);
+    } else {
+      console.log('No career pathways found in registration data, checking localStorage');
+
+      // Try to load from localStorage as a fallback
+      try {
+        const savedPathways = localStorage.getItem('career_pathways');
+        if (savedPathways) {
+          const parsedPathways = JSON.parse(savedPathways);
+          if (Array.isArray(parsedPathways) && parsedPathways.length > 0) {
+            console.log('Loaded pathways from localStorage:', parsedPathways);
+            setSelectedPaths(parsedPathways);
+
+            // Also update the registration context
+            updateRegistrationData({
+              pathways: [...parsedPathways]
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Error loading pathways from localStorage:', error);
+      }
+
+      console.log('No career pathways found in localStorage either');
+    }
+  }, [registrationData]);
 
   const handlePathwaysChange = (newPaths: string[]) => {
-    setSelectedPaths(newPaths);
+    console.log('Pathways changed to:', newPaths);
+    // First update local state
+    setSelectedPaths([...newPaths]);
+
+    // Then update registration context with a deep copy
+    updateRegistrationData({
+      pathways: [...newPaths]
+    });
   };
 
   const handleSave = async () => {
     try {
-      setIsLoading(true);
       setError(null);
 
+      // First update the registration context to ensure we don't lose data
+      // Make sure to create a deep copy of the selectedPaths array
+      console.log('Saving pathways to context:', [...selectedPaths]);
+      updateRegistrationData({
+        pathways: [...selectedPaths],
+        steps: {
+          ...registrationData.steps,
+          career: true
+        }
+      });
+
+      // Then send data to the API
       const response = await fetch('/api/students/career-pathways', {
         method: 'PATCH',
         headers: {
@@ -46,11 +108,18 @@ export function WelcomeEditCareerPathways() {
         throw new Error('Failed to update career pathways');
       }
 
+      toast.success('Career pathways saved successfully!');
+
+      // Store pathways in localStorage as a backup
+      try {
+        localStorage.setItem('career_pathways', JSON.stringify(selectedPaths));
+      } catch (storageError) {
+        console.warn('Failed to store pathways in localStorage:', storageError);
+      }
+
       navigate('/welcome/documents');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -605,4 +605,32 @@ router.get('/profile/:userId', verifyToken, async (req, res) => {
   }
 });
 
+// GET career pathways by userID
+router.get('/career-pathways/:userId', verifyToken, async (req, res) => {
+  try {
+    const [student] = await pool.execute(
+      'SELECT studentCareerPathways FROM students WHERE userID = ?',
+      [req.params.userId]
+    );
+
+    if (!student.length) {
+      return res.status(404).json({ error: 'Student career pathways not found' });
+    }
+
+    let pathways = [];
+    if (student[0].studentCareerPathways) {
+      try {
+        pathways = JSON.parse(student[0].studentCareerPathways);
+      } catch (parseError) {
+        console.error('Error parsing career pathways JSON:', parseError);
+      }
+    }
+
+    res.json({ pathways });
+  } catch (error) {
+    console.error('Error fetching career pathways:', error);
+    res.status(500).json({ error: 'Failed to fetch career pathways' });
+  }
+});
+
 module.exports = router;

@@ -5,24 +5,28 @@ import { useNavigate } from 'react-router-dom';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileSection } from '@/interfaces/Profile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRegistration } from '@/contexts/RegistrationContext';
 
 export function WelcomeEditStudentProfile() {
   const navigate = useNavigate();
   const { user, isVerifyingToken, updateUser } = useAuth();
   const token = localStorage.getItem('token');
-  const [isLoading, setIsLoading] = useState(false);
+  const { registrationData, updateRegistrationData, isLoading, fetchExistingData } = useRegistration();
   const [initialData, setInitialData] = useState<Record<string, any>>({});
   const [selectedStudyLevel, setSelectedStudyLevel] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
 
-  // Simulate loading delay
+  // Simulate loading delay and fetch existing data
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
+      if (user) {
+        await fetchExistingData();
+      }
       setPageLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]);
 
   // Verify authentication
   useEffect(() => {
@@ -31,6 +35,39 @@ export function WelcomeEditStudentProfile() {
       navigate('/auth/login');
     }
   }, [token, user, isVerifyingToken, navigate]);
+
+  // State to track if we need to fetch the profile image
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Update initialData from registration data and when study level changes
+  useEffect(() => {
+    // Populate form with existing registration data if available
+    if (registrationData) {
+      const initialFormData: Record<string, any> = {
+        studentNumber: registrationData.studentNumber || '',
+        studentName: registrationData.studentName || '',
+        title: registrationData.title || '',
+        contactNumber: registrationData.contactNumber || '',
+        studentMail: registrationData.studentMail || user?.email || '',
+        description: registrationData.description || '',
+        studyLevel: registrationData.studyLevel || selectedStudyLevel || '',
+        courseLevel: registrationData.courseLevel || ''
+      };
+
+      // If we have a profile image path, add it to the initial form data
+      if (registrationData.profileImagePath) {
+        setPreviewUrl(registrationData.profileImagePath);
+        initialFormData.profileImagePath = registrationData.profileImagePath;
+      }
+
+      setInitialData(initialFormData);
+
+      // Update selected study level if it exists in registration data
+      if (registrationData.studyLevel && !selectedStudyLevel) {
+        setSelectedStudyLevel(registrationData.studyLevel);
+      }
+    }
+  }, [registrationData, user]);
 
   // Update initialData when study level changes
   useEffect(() => {
@@ -190,7 +227,6 @@ export function WelcomeEditStudentProfile() {
     }
 
     try {
-      setIsLoading(true);
       let profileImagePath = null;
 
       if (formData.image instanceof File) {
@@ -214,6 +250,7 @@ export function WelcomeEditStudentProfile() {
         profileImagePath = uploadResult.imagePath; // Make sure this matches the backend response
       }
 
+      // Prepare profile data for API
       const profileData = {
         studentNumber: formData.studentNumber,
         studentName: formData.studentName,
@@ -227,8 +264,9 @@ export function WelcomeEditStudentProfile() {
         userID: user?.userID
       };
 
-      console.log('Submitting profile data:', { profileData, user });
+      console.log('Submitting profile data:', profileData);
 
+      // Send data directly to the API
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/profile`, {
         method: 'POST',
         headers: {
@@ -244,14 +282,29 @@ export function WelcomeEditStudentProfile() {
         throw new Error(errorData.error || errorData.details || 'Failed to update profile');
       }
 
-      const responseData = await response.json();
-      console.log('Profile update successful:', responseData);
+      // After successful API call, update the registration context
+      updateRegistrationData({
+        studentNumber: formData.studentNumber,
+        studentName: formData.studentName,
+        title: formData.title,
+        contactNumber: formData.contactNumber,
+        studentMail: formData.studentMail,
+        description: formData.description,
+        profileImagePath: profileImagePath,
+        studyLevel: formData.studyLevel,
+        courseLevel: formData.courseLevel,
+        image: formData.image,
+        steps: {
+          ...registrationData.steps,
+          profile: true
+        }
+      });
 
       // Update the user context to set hasProfile to true
       updateUser({ hasProfile: true });
       console.log('Updated user context with hasProfile: true');
 
-      toast.success(responseData.message || 'Profile created successfully!');
+      toast.success('Profile created successfully!');
       navigate('/welcome/career');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -262,8 +315,6 @@ export function WelcomeEditStudentProfile() {
         localStorage.removeItem('token');
         navigate('/auth/login');
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 

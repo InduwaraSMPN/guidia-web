@@ -17,6 +17,10 @@ export function ProfileInput({
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
 
+  // Check if we have a profile image path in the form state
+  // This is used when navigating back to the form
+  const profileImagePath = formState.profileImagePath as string | undefined;
+
   const handleFileUpload = (files: File[]) => {
     if (files.length > 0) {
       const file = files[0];
@@ -34,7 +38,7 @@ export function ProfileInput({
     onChange(field.name, null);
   };
 
-  const selectClassName = "flex h-[44px] w-full rounded-md border border-input bg-background px-4 pr-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Im02IDkgNiA2IDYtNiIvPjwvc3ZnPg==')] bg-no-repeat bg-[center_right_8px]";
+  // Removed unused selectClassName
 
   const renderInput = () => {
     switch (field.type) {
@@ -77,7 +81,15 @@ export function ProfileInput({
 
       case 'file': {
         const fileValue = value as (File | null);
+
+        // If we have a file object, show the file preview
         if (fileValue && fileValue instanceof File) {
+          // Create a preview URL if we don't have one yet
+          if (!previewUrl) {
+            const url = URL.createObjectURL(fileValue);
+            setPreviewUrl(url);
+          }
+
           return (
             <>
               <FilePreview
@@ -96,6 +108,36 @@ export function ProfileInput({
                 />
               )}
             </>
+          );
+        }
+
+        // If we have a profile image path but no file object, show the image from the path
+        // This happens when navigating back to the form
+        if (profileImagePath && field.name === 'image') {
+          return (
+            <div className="relative">
+              <div className="border border-border rounded-md p-2 flex items-center">
+                <img
+                  src={profileImagePath}
+                  alt="Profile"
+                  className="h-20 w-20 object-cover rounded-md mr-3"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Current Profile Image</p>
+                  <p className="text-xs text-muted-foreground">Upload a new image to replace</p>
+                </div>
+              </div>
+
+              <div className="mt-2">
+                <FileUploader
+                  acceptType="image"
+                  label="Replace Image"
+                  onUpload={handleFileUpload}
+                  selectedFile={null}
+                  multiple={false}
+                />
+              </div>
+            </div>
           );
         }
 
