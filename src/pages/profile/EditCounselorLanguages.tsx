@@ -235,13 +235,14 @@ export function EditCounselorLanguages() {
               <div className="h-20 flex items-center justify-center">
                 <div className="animate-pulse h-4 w-32 bg-secondary-dark rounded"></div>
               </div>
-            ) : languages.length === 0 ? (
-              <div className="py-8 text-center border border-dashed border-border rounded-lg bg-secondary">
-                <p className="text-muted-foreground">No languages selected yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below or add your own</p>
-              </div>
             ) : (
               <div className="mb-4">
+                {languages.length === 0 && (
+                  <div className="py-4 mb-4 text-center border border-dashed border-border rounded-lg bg-secondary">
+                    <p className="text-muted-foreground">No languages selected yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Choose from suggestions below or add your own</p>
+                  </div>
+                )}
                 <MultipleInput
                   items={languages}
                   onItemsChange={setLanguages}
