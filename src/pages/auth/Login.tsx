@@ -42,13 +42,15 @@ export function Login() {
     // Construct dynamic profile URLs based on user type and numeric ID
       const userTypeToPath: Record<string, string> = {
         Admin: '/admin',
-        Student: `/students/profile/${userData.userID}`,
+        Student: userData.hasProfile
+          ? `/students/profile/${userData.userID}`
+          : '/welcome/profile',  // Redirect to welcome profile for students without profiles
         Counselor: userData.hasProfile
           ? `/counselor/profile/${userData.userID}`
           : '/welcome/counselor',
         Company: userData.hasProfile
           ? `/company/profile/${userData.userID}`
-          : '/welcome/company'  // Add this condition for companies
+          : '/welcome/company'
       };
 
       const redirectPath = userTypeToPath[userData.userType];

@@ -714,6 +714,8 @@ app.post("/api/admin/users/:userType", requireAdmin, async (req, res) => {
       [email, username, hashedPassword, roleID]
     );
 
+    // Explicitly set hasProfile to false for admin-created users
+    // This ensures they go through the welcome profile edit flow
     res
       .status(201)
       .json({
@@ -722,6 +724,7 @@ app.post("/api/admin/users/:userType", requireAdmin, async (req, res) => {
         username,
         roleID,
         status: "active",
+        hasProfile: false
       });
   } catch (error) {
     console.error("Error creating user:", error);
@@ -918,9 +921,16 @@ app.post("/auth/login", authLimiter, async (req, res) => {
         });
     }
 
-    // Check if profile exists for both counselors and companies
+    // Check if profile exists for students, counselors, and companies
     let hasProfile = false;
-    if (user.roleID === 3) {
+    if (user.roleID === 2) {
+      // Student role
+      const [studentProfile] = await pool.query(
+        "SELECT * FROM students WHERE userID = ?",
+        [user.userID]
+      );
+      hasProfile = studentProfile.length > 0;
+    } else if (user.roleID === 3) {
       // Counselor role
       const [counselorProfile] = await pool.query(
         "SELECT * FROM counselors WHERE userID = ?",
@@ -1013,6 +1023,32 @@ app.get("/auth/verify", async (req, res) => {
       return res.status(401).json({ error: "User not found" });
 
     const user = users[0];
+
+    // Check if profile exists for students, counselors, and companies
+    let hasProfile = false;
+    if (user.roleID === 2) {
+      // Student role
+      const [studentProfile] = await pool.query(
+        "SELECT * FROM students WHERE userID = ?",
+        [user.userID]
+      );
+      hasProfile = studentProfile.length > 0;
+    } else if (user.roleID === 3) {
+      // Counselor role
+      const [counselorProfile] = await pool.query(
+        "SELECT * FROM counselors WHERE userID = ?",
+        [user.userID]
+      );
+      hasProfile = counselorProfile.length > 0;
+    } else if (user.roleID === 4) {
+      // Company role
+      const [companyProfile] = await pool.query(
+        "SELECT * FROM companies WHERE userID = ?",
+        [user.userID]
+      );
+      hasProfile = companyProfile.length > 0;
+    }
+
     res.json({
       id: user.userID.toString(),
       userID: user.userID.toString(),
@@ -1020,6 +1056,7 @@ app.get("/auth/verify", async (req, res) => {
       email: user.email,
       roleId: user.roleID,
       roleID: user.roleID,
+      hasProfile: hasProfile
     });
   } catch (error) {
     console.error("Token verification error:", error);

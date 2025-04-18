@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function WelcomeEditStudentProfile() {
   const navigate = useNavigate();
-  const { user, isVerifyingToken } = useAuth();
+  const { user, isVerifyingToken, updateUser } = useAuth();
   const token = localStorage.getItem('token');
   const [isLoading, setIsLoading] = useState(false);
   const [initialData, setInitialData] = useState<Record<string, any>>({});
@@ -227,6 +227,10 @@ export function WelcomeEditStudentProfile() {
 
       const responseData = await response.json();
       console.log('Profile update successful:', responseData);
+
+      // Update the user context to set hasProfile to true
+      updateUser({ hasProfile: true });
+      console.log('Updated user context with hasProfile: true');
 
       toast.success(responseData.message || 'Profile created successfully!');
       navigate('/welcome/career');
