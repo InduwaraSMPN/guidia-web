@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 interface MultipleInputProps {
   items: string[];
   onItemsChange: (items: string[]) => void;
@@ -25,9 +25,18 @@ export function MultipleInput({
     if (!inputValue.trim()) return;
     const newItem = inputValue.trim();
     if (!allowDuplicates && items.includes(newItem)) {
+      // Show error toast when duplicate item is detected
+      toast.error("Duplicate entry", {
+        description: `"${newItem}" is already in the list`,
+        duration: 3000,
+      });
       return;
     }
     if (maxItems && items.length >= maxItems) {
+      toast.error("Maximum limit reached", {
+        description: `You can only add up to ${maxItems} items`,
+        duration: 3000,
+      });
       return;
     }
     onItemsChange([...items, newItem]);
