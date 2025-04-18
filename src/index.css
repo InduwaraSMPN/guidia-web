@@ -331,6 +331,14 @@ html {
   word-break: break-word;
 }
 
+/* Profile dropdown styles */
+.profile-dropdown-name {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Rich Text Editor styles */
 .ql-container {
   font-family: inherit;

@@ -329,18 +329,6 @@ export function StudentProfilePage() {
                           <span>{studentData.studentContactNumber}</span>
                         </div>
                       )}
-
-                      {isCurrentUser && (
-                        <Button
-                          variant="outline"
-                          className="ml-auto border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2"
-                          onClick={() => navigate(`/students/profile/edit/${userID}`)}
-                          aria-label="Edit your profile"
-                        >
-                          <Pencil className="w-4 h-4 mr-2" aria-hidden="true" />
-                          Edit Profile
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>

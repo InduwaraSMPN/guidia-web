@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { FileUploader } from '@/components/FileUploader';
 import { ViewDocumentModal } from '@/components/ViewDocumentModal';
-import { FileText, Trash2, LoaderCircle, X, Plus } from 'lucide-react';
+import { FileText, LoaderCircle} from 'lucide-react';
 import { MultipleInput } from '@/components/ui/MultipleInput';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AzureImage } from '@/lib/imageUtils';
@@ -154,7 +154,6 @@ export function EditCounselorProfile() {
       return;
     }
 
-    const loadingToast = toast.loading('Updating your profile...');
     setIsLoading(true);
 
     try {
@@ -215,13 +214,11 @@ export function EditCounselorProfile() {
         URL.revokeObjectURL(previewUrl);
       }
 
-      toast.dismiss(loadingToast);
       toast.success('Profile updated successfully');
       navigate(getProfilePath(user));
 
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.dismiss(loadingToast);
       toast.error(error instanceof Error ? error.message : 'Failed to update profile');
     } finally {
       setIsLoading(false);

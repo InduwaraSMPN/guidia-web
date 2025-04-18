@@ -318,24 +318,6 @@ export function CounselorProfilePage() {
                           <span>{counselorData.counselorContactNumber}</span>
                         </motion.div>
                       )}
-
-                      {isCurrentUser && (
-                        <motion.div
-                          className="ml-auto"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button
-                            variant="outline"
-                            className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2 shadow-sm hover:shadow"
-                            onClick={() => navigate(`/counselor/profile/edit/${userID}`)}
-                            aria-label="Edit your profile"
-                          >
-                            <Pencil className="w-4 h-4 mr-2" aria-hidden="true" />
-                            Edit Profile
-                          </Button>
-                        </motion.div>
-                      )}
                     </motion.div>
                   </div>
                 </div>

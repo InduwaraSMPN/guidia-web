@@ -67,7 +67,6 @@ export function WelcomeEditCounselorProfile() {
       return;
     }
 
-    const loadingToast = toast.loading('Creating your profile...');
     setIsLoading(true);
 
     try {
@@ -153,8 +152,7 @@ export function WelcomeEditCounselorProfile() {
         console.log('Stored counselorID in localStorage:', responseData.counselorID);
       }
 
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
+      // Show success toast
       toast.success('Profile created successfully!', {
         description: 'Redirecting to the next step...',
         duration: 2000,
@@ -168,8 +166,7 @@ export function WelcomeEditCounselorProfile() {
     } catch (error) {
       console.error('Error creating profile:', error);
 
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToast);
+      // Show error toast
       toast.error('Failed to create profile', {
         description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });

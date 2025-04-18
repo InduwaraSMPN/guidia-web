@@ -426,7 +426,7 @@ export function ProfileDropdown() {
           initial={{ opacity: 0, scale: 0.85, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={transition}
-          className="absolute right-0 mt-2 w-64 z-50"
+          className="absolute right-0 mt-2 w-64 max-w-[90vw] z-50"
           data-dropdown-content="profile"
           onMouseEnter={handleDropdownMouseEnter}
           onMouseLeave={handleDropdownMouseLeave}
@@ -443,13 +443,13 @@ export function ProfileDropdown() {
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {getProfileImage("dropdown")}
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground truncate profile-dropdown-name">
                     {user?.userType === "Admin"
-                      ? adminUsername || user?.email.split("@")[0]
+                      ? (adminUsername || user?.email.split("@")[0])
                       : getUserName()}
                   </h3>
-                  <p className="text-xs text-muted-foreground dark:text-neutral-400">
+                  <p className="text-xs text-muted-foreground dark:text-neutral-400 truncate">
                     {user?.userType === "Admin"
                       ? "Admin"
                       : user?.userType || "User"}

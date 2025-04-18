@@ -102,8 +102,7 @@ export function Settings() {
   // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Show loading toast
-    const loadingToast = toast.loading('Updating profile...', { duration: Infinity });
+    setIsLoading(true);
     try {
       const headers = await createAuthHeaders();
       let endpoint = '/api/users/profile';
@@ -132,7 +131,6 @@ export function Settings() {
       if (!response.ok) {
         throw new Error(data.error || data.message || 'Failed to update profile');
       }
-      toast.dismiss(loadingToast);
       toast.success('Profile updated successfully', {
         description: 'Your changes have been saved'
       });
@@ -155,7 +153,6 @@ export function Settings() {
       setSuccess('Profile updated successfully');
       setError(null);
     } catch (error) {
-      toast.dismiss(loadingToast);
       toast.error('Failed to update profile', {
         description: error instanceof Error ? error.message : 'Please try again later'
       });
@@ -247,9 +244,9 @@ export function Settings() {
                   htmlFor="username"
                   className="block text-base font-medium text-foreground"
                 >
-                  {user?.userType === 'Student' ? 'Full Name' :
-                    user?.userType === 'Counselor' ? 'Counselor Name' :
-                      user?.userType === 'Company' ? 'Company Name' : 'Username'}
+                  {user?.userType === 'Student' ? 'Student Username' :
+                    user?.userType === 'Counselor' ? 'Counselor Username' :
+                      user?.userType === 'Company' ? 'Company Username' : 'Username'}
                 </label>
                 <Input
                   id="username"
