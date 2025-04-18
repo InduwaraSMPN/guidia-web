@@ -278,7 +278,7 @@ export function CalendarPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-3xl font-bold text-brand pb-2">Meetings Calendar</h1>
+            <h1 className="text-4xl font-bold text-brand pb-2">Meetings Calendar</h1>
             <p className="text-muted-foreground">View and manage all your scheduled meetings.</p>
           </div>
         </div>

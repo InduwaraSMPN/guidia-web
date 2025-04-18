@@ -178,8 +178,8 @@ export function GuidiaAiChat() {
             className="flex-1 flex flex-col h-full relative z-10"
           >
             {/* Chat header */}
-            <div className="flex justify-center items-center p-4">
-              <h2 className="text-xl font-bold text-brand">
+            <div className="flex justify-center items-center pt-32">
+              <h2 className="text-4xl font-bold text-brand">
                 <span className="font-grillmaster">Guidia</span> AI Assistant
               </h2>
             </div>
