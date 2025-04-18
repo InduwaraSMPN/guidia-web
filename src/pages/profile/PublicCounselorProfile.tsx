@@ -296,8 +296,10 @@ export function PublicCounselorProfile() {
               </CardHeader>
               <CardContent>
                 <div
-                  className="text-muted-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: profile.counselorDescription }}
+                  className="text-muted-foreground leading-relaxed overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: profile.counselorDescription.length > 500
+                    ? profile.counselorDescription.substring(0, 500) + '...'
+                    : profile.counselorDescription }}
                 />
               </CardContent>
             </Card>

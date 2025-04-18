@@ -280,8 +280,10 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
             </div>
 
             <div
-              className="mt-4 text-muted-foreground line-clamp-2 text-sm leading-relaxed prose prose-sm"
-              dangerouslySetInnerHTML={{ __html: job.description }}
+              className="mt-4 text-muted-foreground line-clamp-2 text-sm leading-relaxed prose prose-sm overflow-hidden"
+              dangerouslySetInnerHTML={{ __html: job.description.length > 300
+                ? job.description.substring(0, 300) + '...'
+                : job.description }}
             />
 
             {(job.startDate || job.endDate) && (

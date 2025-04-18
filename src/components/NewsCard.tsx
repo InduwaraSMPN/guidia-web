@@ -114,8 +114,10 @@ export function NewsCard({ news, onDelete }: NewsCardProps) {
           </h3>
 
           <div
-            className="prose max-w-none text-sm leading-relaxed line-clamp-3 mb-4 flex-1"
-            dangerouslySetInnerHTML={{ __html: news.description }}
+            className="prose max-w-none text-sm leading-relaxed line-clamp-3 mb-4 flex-1 overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: news.description.length > 300
+              ? news.description.substring(0, 300) + '...'
+              : news.description }}
           />
 
           <div className="mt-auto">

@@ -357,8 +357,10 @@ export function CounselorProfilePage() {
                   About Me
                 </h2>
                 <div
-                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: counselorData.counselorDescription }}
+                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: counselorData.counselorDescription.length > 500
+                    ? counselorData.counselorDescription.substring(0, 500) + '...'
+                    : counselorData.counselorDescription }}
                 />
               </motion.div>
             )}

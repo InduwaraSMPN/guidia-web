@@ -355,9 +355,11 @@ export function StudentProfilePage() {
                   About Me
                 </h2>
                 <div
-                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed"
+                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed overflow-hidden"
                   dangerouslySetInnerHTML={{
-                    __html: studentData.studentDescription,
+                    __html: studentData.studentDescription.length > 500
+                      ? studentData.studentDescription.substring(0, 500) + '...'
+                      : studentData.studentDescription,
                   }}
                 />
               </div>

@@ -298,7 +298,7 @@ export function JobDetailsPage() {
             Job Description
           </h2>
           <div
-            className="prose max-w-none text-muted-foreground leading-relaxed"
+            className="prose max-w-none text-muted-foreground leading-relaxed overflow-hidden"
             dangerouslySetInnerHTML={{ __html: job.description }}
           />
         </div>

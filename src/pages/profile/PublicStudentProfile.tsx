@@ -262,8 +262,10 @@ export function PublicStudentProfile() {
               </CardHeader>
               <CardContent>
                 <div
-                  className="text-muted-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: studentData.studentDescription }}
+                  className="text-muted-foreground leading-relaxed overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: studentData.studentDescription.length > 500
+                    ? studentData.studentDescription.substring(0, 500) + '...'
+                    : studentData.studentDescription }}
                 />
               </CardContent>
             </Card>
