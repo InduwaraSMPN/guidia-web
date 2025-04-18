@@ -320,6 +320,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                         setActive={setActive}
                         active={active === "Events" ? "Events" : null}
                         item="Events"
+                        isRouteActive={isEventsActive} // Pass the route active state
                       >
                         <EventsDropdown />
                       </MenuItem>
@@ -379,6 +380,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       setActive={setActive}
                       active={active === "Events" ? "Events" : null}
                       item="Events"
+                      isRouteActive={isEventsActive} // Pass the route active state
                     >
                       <EventsDropdown />
                     </MenuItem>
@@ -440,7 +442,12 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                        // Prevent click inside from closing the menu immediately if needed
                        onClick={(e) => e.stopPropagation()}
                     >
-                      <MenuItem setActive={setActive} active={active === "Meetings" ? "Meetings" : null} item="Meetings">
+                      <MenuItem
+                        setActive={setActive}
+                        active={active === "Meetings" ? "Meetings" : null}
+                        item="Meetings"
+                        isRouteActive={isMeetingsActive} // Pass the route active state
+                      >
                         <div className="flex flex-col space-y-4 text-sm p-4"> {/* Add padding to dropdown */}
                           {meetingDropdownItems.map((item) => (
                             <HoveredLink

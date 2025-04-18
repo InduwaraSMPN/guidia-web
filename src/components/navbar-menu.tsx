@@ -18,12 +18,14 @@ export const MenuItem = ({
   item,
   children,
   preview,
+  isRouteActive = false, // New prop to indicate if the route is active
 }: {
   setActive: (item: string | null) => void
   active: string | null
   item: string
   children?: React.ReactNode
   preview?: React.ReactNode
+  isRouteActive?: boolean // New prop to indicate if the route is active
 }) => {
   const menuItemRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -73,7 +75,7 @@ export const MenuItem = ({
 
   // Determine if this item is active for styling purposes
   // This handles both the dropdown being open (active === item) and the route being active
-  const isActiveItem = active === item;
+  const isActiveItem = active === item || isRouteActive;
 
   return (
     <div
@@ -84,7 +86,7 @@ export const MenuItem = ({
       <motion.p
         onClick={handleClick}
         transition={{ duration: 0.3 }}
-        className={`cursor-pointer px-0 py-1 flex items-center h-[28px] ${isActiveItem ? 'text-brand font-bold' : 'text-foreground hover:text-brand dark:text-white'}`}
+        className={`cursor-pointer px-0 py-1 flex items-center h-[28px] ${isActiveItem ? 'text-brand ' : 'text-foreground hover:text-brand dark:text-white'}`}
       >
         {item}
       </motion.p>
@@ -245,7 +247,7 @@ export const ProductItem = ({
         className="flex-shrink-0 rounded-md shadow-2xl"
       />
       <div>
-        <h4 className="text-xl font-bold mb-1 text-foreground dark:text-white">{title}</h4>
+        <h4 className="text-xl  mb-1 text-foreground dark:text-white">{title}</h4>
         <p className="text-muted-foreground text-sm max-w-[10rem] dark:text-neutral-300">{description}</p>
       </div>
     </RouterLink>
@@ -304,7 +306,7 @@ export const HoveredLink = ({ children, href, isActive, ...rest }: any) => {
     <RouterLink
       to={href}
       {...rest}
-      className={`block py-2 px-1 ${isActive ? 'text-brand font-bold' : 'text-muted-foreground dark:text-neutral-200'} hover:text-brand transition-colors rounded-md`}
+      className={`block py-2 px-1 ${isActive ? 'text-brand ' : 'text-muted-foreground dark:text-neutral-200'} hover:text-brand transition-colors rounded-md`}
       onClick={(e) => e.stopPropagation()} // Prevent the dropdown from closing when clicking a link
     >
       {children}
