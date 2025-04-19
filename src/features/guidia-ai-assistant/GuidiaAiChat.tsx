@@ -135,10 +135,14 @@ export function GuidiaAiChat() {
 
   // Scroll to bottom button handler
   const scrollToBottom = () => {
+    console.log('Scroll to bottom clicked');
     if (messagesEndRef.current) {
+      console.log('messagesEndRef found, scrolling...');
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
       setAutoScroll(true)
       userHasScrolledUp.current = false
+    } else {
+      console.log('messagesEndRef not found');
     }
   }
 
@@ -308,7 +312,7 @@ export function GuidiaAiChat() {
         setIsLoading(false)
       }
     },
-    [getFormattedTime]
+    [getFormattedTime] // Removed getAiResponse from dependencies as it's defined outside useCallback scope now
   )
 
   // Get AI response from OpenAI API with streaming support
@@ -349,7 +353,7 @@ export function GuidiaAiChat() {
         description: "Please try again in a moment",
         action: {
           label: "Retry",
-          onClick: () => getAiResponse(userQuery),
+          onClick: () => getAiResponse(userQuery), // Recursive call might be risky, consider alternatives
         },
       })
 
@@ -363,7 +367,11 @@ export function GuidiaAiChat() {
         isRichText: true, // Ensure rich text is enabled for AI responses
       }
 
-      setMessages((prev) => [...prev, fallbackMessage])
+      setMessages((prev) => {
+        // Remove placeholder before adding fallback
+        const filtered = prev.filter(msg => !msg.isStreaming);
+        return [...filtered, fallbackMessage]
+       });
       setIsLoading(false)
     }
   }
@@ -422,14 +430,18 @@ export function GuidiaAiChat() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Ctrl+Enter or Cmd+Enter to send message
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      handleSendMessage()
+      // Prevent default behavior if the editor handles Enter itself
+      if (!e.defaultPrevented) {
+        e.preventDefault(); // Ensure we handle it
+        handleSendMessage();
+      }
     }
   }
 
   return (
     <main
       className="h-screen w-full bg-background relative flex flex-col antialiased overflow-hidden"
-      onKeyDown={handleKeyDown}
+      // Removed onKeyDown from main - handle it within the editor or a specific container if needed
       style={{ touchAction: 'auto' }}
     >
       <BackgroundBeams className="z-0 fixed inset-0 pointer-events-none" />
@@ -454,64 +466,6 @@ export function GuidiaAiChat() {
               <p className="text-muted-foreground max-w-lg mx-auto my-2 text-sm md:text-base text-center">
                 Welcome to Guidia AI. Type a question below to start a conversation with your career guidance companion.
               </p>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        setMessages([
-                          {
-                            id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                            content: "give me sample rich text",
-                            timestamp: getFormattedTime(),
-                            isUser: true,
-                            isRichText: false,
-                          },
-                        ])
-                        setIsChatVisible(true)
-                        // Simulate AI response with rich text
-                        setTimeout(() => {
-                          const aiMessageId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-                          setMessages((prev) => [
-                            ...prev,
-                            {
-                              id: aiMessageId,
-                              content: `<h3>Rich Text Sample</h3>
-<p>Here's a <strong>rich text</strong> sample with various formatting:</p>
-<ul>
-  <li>This is a <em>bulleted</em> list item</li>
-  <li>This is <strong>another</strong> item with <span style="color: #800020;">brand color</span></li>
-</ul>
-<p>You can also include:</p>
-<ol>
-  <li>Numbered lists</li>
-  <li>With multiple items</li>
-</ol>
-<blockquote>This is a blockquote that can be used for important information.</blockquote>
-<p>The Guidia AI Assistant can help with:</p>
-<ul>
-  <li>Career guidance information</li>
-  <li>University resources</li>
-  <li>Job application tips</li>
-  <li>And much more!</li>
-</ul>`,
-                              timestamp: getFormattedTime(),
-                              isUser: false,
-                              isRichText: true,
-                            },
-                          ])
-                        }, 1000)
-                      }}
-                      className="text-sm text-brand hover:text-brand-light underline mt-2 transition-colors duration-200"
-                    >
-                      Show me a sample rich text response
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>See an example of AI capabilities</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
 
               {/* Use the PlaceholdersAndVanishInput component */}
               <PlaceholdersAndVanishInput
@@ -568,116 +522,111 @@ export function GuidiaAiChat() {
                 ))}
 
                 {/* Invisible element for scrolling to bottom */}
-                <div ref={messagesEndRef} aria-hidden="true" />
+                <div
+                  ref={messagesEndRef}
+                  aria-hidden="true"
+                  style={{ height: '1px', width: '100%' }}
+                />
               </div>
             </section>
 
-            {/* Scroll to bottom button - only visible when not at bottom */}
-            <AnimatePresence>
-              {!autoScroll && messages.length > 2 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute bottom-32 right-4 md:right-8 z-30"
-                >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={scrollToBottom}
-                          className="h-10 w-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
-                          aria-label="Scroll to bottom"
-                        >
-                          <ChevronDown className="h-5 w-5" />
-                          <VisuallyHidden>Scroll to latest messages</VisuallyHidden>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left">Scroll to latest messages</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Chat input container */}
+            <div className="fixed bottom-0 left-0 right-0 pb-4 z-30 bg-background pointer-events-none">
+              {/* Added a relative container to position button relative to card */}
+              <div className="relative max-w-3xl mx-auto pointer-events-auto">
+                 {/* Chat input card */}
+                <Card className="shadow-lg">
+                  <div className="p-2" onKeyDown={handleKeyDown}> {/* Moved keydown listener here */}
+                    <div className="flex-1 relative z-10 pointer-events-auto" style={{ touchAction: 'auto' }}>
+                      <div
+                        className="rich-text-editor-container"
+                        onClick={(e) => {
+                            // Prevent click from propagating if it's not on the editor itself maybe?
+                            // Or just focus the editor always
+                             const editorElement = e.currentTarget.querySelector('.ql-editor');
+                             if (editorElement && document.activeElement !== editorElement) {
+                                (editorElement as HTMLElement).focus();
+                             }
+                        }}
+                      >
+                        <RichTextEditor
+                          value={inputValue}
+                          onChange={handleInputChange}
+                          placeholder="Type your message..."
+                          className="border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
+                          readOnly={isLoading}
+                          onEnterPress={handleSendMessage} // Keep this if editor supports it, but Ctrl+Enter is handled above
+                          aria-label="Message input"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="text-xs text-muted-foreground px-2">
+                        <span>
+                          Press <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Ctrl</kbd>{" "}
+                          + <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Enter</kbd> to
+                          send
+                        </span>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handleSendMessage}
+                              disabled={!stripHtmlTags(inputValue).trim() || isLoading}
+                              className="flex h-10 px-4 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50 gap-2 shadow-md hover:bg-brand-light transition-colors"
+                              aria-label="Send message"
+                            >
+                              <>
+                                <span>Send</span>
+                                <ArrowUp className="h-4 w-4" />
+                              </>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            Send message
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                </Card>
 
-            {/* Chat input with rich text editor */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 mb-0 z-50 bg-background"> {/* Added bg-background */}
-              <Card className="max-w-3xl mx-auto shadow-lg">
-                <div className="p-2">
-                  <div className="flex-1 relative z-50 pointer-events-auto" style={{ touchAction: 'auto' }}>
-                    <div
-                      className="rich-text-editor-container"
-                      onClick={() => {
-                        console.log('Container clicked');
-                        // Try to force focus on the editor
-                        const editorElement = document.querySelector('.ql-editor');
-                        if (editorElement) {
-                          console.log('Editor found, focusing...');
-                          // Make sure the editor is editable
-                          (editorElement as HTMLElement).setAttribute('contenteditable', 'true');
-                          (editorElement as HTMLElement).style.pointerEvents = 'auto';
-                          (editorElement as HTMLElement).style.userSelect = 'text';
-                          (editorElement as HTMLElement).style.cursor = 'text';
-                          (editorElement as HTMLElement).focus();
-
-                          // Try to place cursor at the end
-                          const range = document.createRange();
-                          const selection = window.getSelection();
-                          range.selectNodeContents(editorElement);
-                          range.collapse(false); // false means collapse to end
-                          selection?.removeAllRanges();
-                          selection?.addRange(range);
-                        } else {
-                          console.log('Editor element not found');
-                        }
-                      }}
+                {/* Scroll to bottom button - only visible when not at bottom */}
+                <AnimatePresence>
+                  {!autoScroll && messages.length > 2 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      // Adjusted positioning for vertical centering
+                      className="absolute top-[2%] transform -translate-y-1/2 -right-12 md:-right-14 lg:-right-16 z-40 pointer-events-auto"
                     >
-                      <RichTextEditor
-                        value={inputValue}
-                        onChange={handleInputChange}
-                        placeholder="Type your message..."
-                        className="border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
-                        readOnly={isLoading}
-                        onEnterPress={handleSendMessage}
-                        aria-label="Message input"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="text-xs text-muted-foreground px-2">
-                      <span>
-                        Press <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Ctrl</kbd>{" "}
-                        + <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Enter</kbd> to
-                        send
-                      </span>
-                    </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={handleSendMessage}
-                            disabled={!stripHtmlTags(inputValue).trim() || isLoading}
-                            className="flex h-10 px-4 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50 gap-2 shadow-md hover:bg-brand-light transition-colors"
-                            aria-label="Send message"
-                          >
-                            <>
-                              <span>Send</span>
-                              <ArrowUp className="h-4 w-4" />
-                            </>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          Send message
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </Card>
-            </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="default"
+                              onClick={scrollToBottom}
+                              className="h-10 w-10 rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer bg-brand hover:bg-brand-light text-white"
+                              aria-label="Scroll to bottom"
+                              style={{ pointerEvents: 'auto' }} // Ensure it's clickable
+                            >
+                              <ChevronDown className="h-5 w-5" />
+                              <VisuallyHidden>Scroll to latest messages</VisuallyHidden>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">Scroll to latest messages</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+              </div> {/* End of relative wrapper */}
+            </div> {/* End of fixed container */}
           </motion.div>
         )}
       </AnimatePresence>
