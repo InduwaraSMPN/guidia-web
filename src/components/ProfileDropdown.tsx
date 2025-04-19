@@ -444,12 +444,12 @@ export function ProfileDropdown() {
                   {getProfileImage("dropdown")}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground truncate profile-dropdown-name">
+                  <h3 className="text-sm font-semibold text-foreground truncate profile-dropdown-name font-montserrat">
                     {user?.userType === "Admin"
                       ? (adminUsername || user?.email.split("@")[0])
                       : getUserName()}
                   </h3>
-                  <p className="text-xs text-muted-foreground dark:text-neutral-400 truncate">
+                  <p className="text-xs text-muted-foreground dark:text-neutral-400 truncate font-montserrat">
                     {user?.userType === "Admin"
                       ? "Admin"
                       : user?.userType || "User"}
@@ -466,11 +466,11 @@ export function ProfileDropdown() {
                 e.stopPropagation(); // Prevent event bubbling
                 setActiveDropdown(null);
               }}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
               data-dropdown-content="profile-item"
             >
               <User className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
-              <span className="group-hover:text-brand transition-colors">
+              <span className="group-hover:text-brand transition-colors font-montserrat">
                 {user?.userType === "Admin" ? "Dashboard" : "Profile"}
               </span>
             </Link>
@@ -482,11 +482,11 @@ export function ProfileDropdown() {
                   e.stopPropagation(); // Prevent event bubbling
                   setActiveDropdown(null);
                 }}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
                 data-dropdown-content="profile-item"
               >
                 <Edit className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
-                <span className="group-hover:text-brand transition-colors">
+                <span className="group-hover:text-brand transition-colors font-montserrat">
                   Edit Profile
                 </span>
               </Link>
@@ -499,11 +499,11 @@ export function ProfileDropdown() {
                   e.stopPropagation(); // Prevent event bubbling
                   setActiveDropdown(null);
                 }}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
                 data-dropdown-content="profile-item"
               >
                 <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
-                <span className="group-hover:text-brand transition-colors">
+                <span className="group-hover:text-brand transition-colors font-montserrat">
                   Admin Settings
                 </span>
               </Link>
@@ -516,11 +516,11 @@ export function ProfileDropdown() {
                   e.stopPropagation(); // Prevent event bubbling
                   setActiveDropdown(null);
                 }}
-                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+                className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
                 data-dropdown-content="profile-item"
               >
                 <Settings className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
-                <span className="group-hover:text-brand transition-colors">
+                <span className="group-hover:text-brand transition-colors font-montserrat">
                   Settings
                 </span>
               </Link>
@@ -532,11 +532,11 @@ export function ProfileDropdown() {
                 setActiveDropdown(null);
                 handleLogout();
               }}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
               data-dropdown-content="profile-item"
             >
               <LogOut className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
-              <span className="group-hover:text-brand transition-colors">
+              <span className="group-hover:text-brand transition-colors font-montserrat">
                 Logout
               </span>
             </button>
@@ -552,10 +552,10 @@ export function ProfileDropdown() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <div>
-                <div className="text-xs font-medium">
+                <div className="text-xs font-medium font-montserrat">
                   {format(currentDateTime, "d MMMM yyyy")}
                 </div>
-                <div className="text-xs">
+                <div className="text-xs font-montserrat">
                   {format(currentDateTime, "h:mm a")}
                 </div>
               </div>

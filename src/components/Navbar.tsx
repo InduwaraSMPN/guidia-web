@@ -279,7 +279,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   ]
 
   // Common class string for top-level nav items (links and dropdown triggers)
-  const navItemBaseClasses = "relative px-3 py-2 text-sm font-medium hover:text-brand transition-colors duration-200 flex items-center cursor-pointer" // Use px-3 for slightly more space
+  const navItemBaseClasses = "relative px-2 py-1 text-sm font-medium hover:text-brand transition-colors duration-200 flex items-center cursor-pointer font-montserrat"
   const activeNavItemClasses = "text-brand font-bold"
   const inactiveNavItemClasses = "text-foreground"
 
@@ -312,7 +312,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               {/* News and Events next to logo when no user */}
               {!user && !logoOnly && !isVerifyingToken && (
                 <div className="ml-8 relative" ref={navRef}>
-                  <div className="flex items-center space-x-6">
+                  <div className="flex items-center space-x-4">
                     {/* News Link */}
                     <Link
                       key="/news"
@@ -574,14 +574,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                   <>
                     <Link
                       to="/auth/login"
-                      className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200"
+                      className="px-4 py-2 text-sm text-foreground hover:text-brand font-medium transition-colors duration-200 font-montserrat"
                       onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       Login
                     </Link>
                     <Link
                       to="/auth/register"
-                      className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center"
+                      className="px-5 py-2 bg-brand text-white text-sm rounded-md hover:bg-brand-light font-medium transition-all duration-200 shadow-sm hover:shadow flex items-center font-montserrat"
                       onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
                     >
                       Register
@@ -621,7 +621,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             <Link
               to="/news"
               onClick={() => setIsMenuOpen(false)}
-              className={`block text-sm hover:text-brand py-3 transition-colors ${
+              className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                 location.pathname === "/news" ? "text-brand font-bold" : "text-foreground font-medium"
               }`}
             >
@@ -633,7 +633,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               <Link
                 to="/events"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm py-2 ${isEventsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}
+                className={`block text-sm py-2 font-montserrat ${isEventsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}
               >
                 Events
               </Link>
@@ -641,7 +641,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 <Link
                   to="/events?tab=upcoming"
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block py-2 text-sm transition-colors ${
+                  className={`block py-2 text-sm transition-colors font-montserrat ${
                     location.pathname === "/events" && (!location.search || location.search.includes("tab=upcoming")) ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                   }`}
                 >
@@ -650,7 +650,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 <Link
                   to="/events?tab=past"
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block py-2 text-sm transition-colors ${
+                  className={`block py-2 text-sm transition-colors font-montserrat ${
                     location.pathname === "/events" && location.search.includes("tab=past") ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                   }`}
                 >
@@ -664,7 +664,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             <Link
               to="/guidia-ai"
               onClick={() => setIsMenuOpen(false)}
-              className={`block text-sm hover:text-brand py-3 transition-colors ${
+              className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                 location.pathname === "/guidia-ai" || location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
               }`}
             >
@@ -676,7 +676,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               <Link
                 to="/jobs"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                   location.pathname === "/jobs" ? "text-brand font-bold" : "text-foreground font-medium"
                 }`}
               >
@@ -690,7 +690,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 key="/students"
                 to="/students"
                  onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                   location.pathname === "/students" ? "text-brand font-bold" : "text-foreground font-medium"
                 }`}
               >
@@ -704,7 +704,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 key="/counselors"
                 to="/counselors"
                  onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                   location.pathname === "/counselors" ? "text-brand font-bold" : "text-foreground font-medium"
                 }`}
               >
@@ -718,7 +718,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 key="/companies"
                 to="/companies"
                  onClick={() => setIsMenuOpen(false)}
-                className={`block text-sm hover:text-brand py-3 transition-colors ${
+                className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
                   location.pathname === "/companies" ? "text-brand font-bold" : "text-foreground font-medium"
                 }`}
               >
@@ -729,14 +729,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
             {/* Mobile Meetings Section - Highlight parent based on child route */}
             {user && user.userType !== "Admin" && (
               <div className="py-2">
-                 <div className={`text-sm py-2 ${isMeetingsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}>Meetings</div>
+                 <div className={`text-sm py-2 font-montserrat ${isMeetingsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}>Meetings</div>
                  <div className="pl-4 space-y-2 border-l border-border">
                   {meetingDropdownItems.map((item) => (
                     <Link
                       key={item.path}
                       to={item.path}
                       onClick={() => setIsMenuOpen(false)}
-                      className={`block py-2 text-sm transition-colors ${
+                      className={`block py-2 text-sm transition-colors font-montserrat ${
                         location.pathname === item.path ? "text-brand font-bold" : "text-muted-foreground hover:text-brand font-medium" // Use muted for inactive sub-items
                       }`}
                     >
@@ -763,14 +763,14 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                     <Link
                       to="/auth/login"
                       onClick={() => setIsMenuOpen(false)}
-                      className="w-full py-2.5 text-center text-sm font-medium text-brand border border-brand/20 rounded-md hover:bg-brand hover:text-white transition-colors"
+                      className="w-full py-2.5 text-center text-sm font-medium text-brand border border-brand/20 rounded-md hover:bg-brand hover:text-white transition-colors font-montserrat"
                     >
                       Login
                     </Link>
                     <Link
                       to="/auth/register"
                       onClick={() => setIsMenuOpen(false)}
-                      className="w-full py-2.5 text-center text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-light transition-colors"
+                      className="w-full py-2.5 text-center text-sm font-medium text-white bg-brand rounded-md hover:bg-brand-light transition-colors font-montserrat"
                     >
                       Register
                     </Link>
