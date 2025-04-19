@@ -7,8 +7,8 @@ const { verifyToken } = require('../middleware/auth');
 const azureStorageUtils = require('../utils/azureStorageUtils');
 
 // Azure Blob Storage configuration
-const connectionString = "DefaultEndpointsProtocol=https;AccountName=guidiacloudstorage;AccountKey=O1AMjCDj5kqvF7CdRPo+UUED/DgYeKAUdZRdjnQPMLIgcipbOqLl1e0vB660vG8F3B2KDEtHbH2s+AStRlTpQA==;EndpointSuffix=core.windows.net";
-const containerName = "guidiacloudstorage-blob1";
+const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
 
 // GET /api/jobs
 router.get('/', async (req, res) => {

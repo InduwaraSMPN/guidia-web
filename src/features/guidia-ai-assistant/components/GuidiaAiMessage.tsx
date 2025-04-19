@@ -1,10 +1,13 @@
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import { useThemeContext } from "@/contexts/ThemeContext";
 
 interface GuidiaAiMessageProps {
   content: string;
   timestamp: string;
   isUser: boolean;
   aiName?: string;
+  isStreaming?: boolean;
 }
 
 export function GuidiaAiMessage({
@@ -12,7 +15,9 @@ export function GuidiaAiMessage({
   timestamp,
   isUser,
   aiName = "Guidia AI",
+  isStreaming = false,
 }: GuidiaAiMessageProps) {
+  const { isDark } = useThemeContext();
   return (
     <div
       className={cn(
@@ -23,7 +28,11 @@ export function GuidiaAiMessage({
       {/* Avatar for AI messages only */}
       {!isUser && (
         <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-brand mr-1.5">
-          <span className="text-white font-grillmaster text-sm">G</span>
+          {isDark ? (
+            <img src="/images/small-logo-light.svg" alt="Guidia AI" className="h-6 w-6" />
+          ) : (
+            <img src="/images/small-logo-light.svg" alt="Guidia AI" className="h-6 w-6" />
+          )}
         </div>
       )}
 
@@ -47,7 +56,15 @@ export function GuidiaAiMessage({
             {aiName}
           </p>
         )}
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
+        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+          {content}
+          {isStreaming && (
+            <span className="inline-flex items-center ml-1">
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <span className="text-xs text-muted-foreground">typing</span>
+            </span>
+          )}
+        </div>
         <p
           className={cn(
             "text-xs mt-1 opacity-80",
@@ -57,24 +74,6 @@ export function GuidiaAiMessage({
           {timestamp}
         </p>
       </div>
-
-      {/* Triangle for chat bubble */}
-      <div
-        className="absolute bottom-0 w-0 h-0 transition-all duration-200"
-        style={{
-          borderTopWidth: "8px",
-          borderTopStyle: "solid",
-          borderTopColor: "transparent",
-          borderRightWidth: isUser ? "8px" : 0,
-          borderRightStyle: "solid",
-          borderRightColor: isUser ? "#800020" : "transparent",
-          borderLeftWidth: isUser ? 0 : "8px",
-          borderLeftStyle: "solid",
-          borderLeftColor: isUser ? "transparent" : "#f3f4f6",
-          right: isUser ? "-8px" : "auto",
-          left: isUser ? "auto" : "-8px",
-        }}
-      />
     </div>
   );
 }

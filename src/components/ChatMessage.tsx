@@ -60,8 +60,8 @@ export function ChatMessage({
       <div
         className={`max-w-[70%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200 ${
           isSender
-            ? "bg-brand text-white hover:bg-[#8a0024]"
-            : "bg-secondary-light text-adaptive-dark hover:bg-secondary-dark"
+            ? "bg-brand text-white"
+            : "bg-secondary-light text-adaptive-dark"
         }`}
         style={{
           borderBottomRightRadius: isSender ? 0 : undefined,
@@ -84,24 +84,6 @@ export function ChatMessage({
           {timestamp}
         </p>
       </div>
-
-      {/* Enhanced triangle for chat bubble */}
-      <div
-        className="absolute bottom-0 w-0 h-0 transition-all duration-200"
-        style={{
-          borderTopWidth: "8px",
-          borderTopStyle: "solid",
-          borderTopColor: "transparent",
-          borderRightWidth: isSender ? "8px" : 0,
-          borderRightStyle: "solid",
-          borderRightColor: isSender ? "#800020" : "transparent",
-          borderLeftWidth: isSender ? 0 : "8px",
-          borderLeftStyle: "solid",
-          borderLeftColor: isSender ? "transparent" : "#f3f4f6",
-          right: isSender ? "-8px" : "auto",
-          left: isSender ? "auto" : "-8px",
-        }}
-      />
     </div>
   );
 }

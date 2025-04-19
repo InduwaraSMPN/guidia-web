@@ -6,7 +6,6 @@ import { GuidiaAiMessage } from "./components/GuidiaAiMessage";
 import { DateDivider } from "./components/DateDivider";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import { API_URL } from "@/config";
 
@@ -15,6 +14,7 @@ interface Message {
   content: string;
   timestamp: string;
   isUser: boolean;
+  isStreaming?: boolean;
 }
 
 export function GuidiaAiChat() {
@@ -62,7 +62,7 @@ export function GuidiaAiChat() {
     setInputValue(e.target.value);
   };
 
-  // Get AI response from OpenAI API
+  // Get AI response from OpenAI API with streaming support
   const getAiResponse = async (userQuery: string) => {
     setIsLoading(true);
 
@@ -73,23 +73,281 @@ export function GuidiaAiChat() {
         isUser: msg.isUser
       }));
 
-      // Call the OpenAI API
-      const response = await axios.post(`${API_URL}/api/openai/chat`, {
-        message: userQuery,
-        history: history
-      });
-
-      // Add the AI response to messages
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        content: response.data.data.response,
+      // Create a placeholder message for streaming response
+      const aiMessageId = Date.now().toString();
+      const placeholderMessage: Message = {
+        id: aiMessageId,
+        content: "",
         timestamp: getFormattedTime(),
         isUser: false,
+        isStreaming: true,
       };
 
-      setMessages(prev => [...prev, newMessage]);
+      // Add the placeholder message
+      setMessages(prev => [...prev, placeholderMessage]);
+
+      // For now, we'll use the fetch approach instead of EventSource
+      // as it's more reliable across different environments
+      if (false && typeof EventSource !== 'undefined') { // EventSource approach disabled
+        try {
+          // Use EventSource for streaming response
+          const eventSource = new EventSource(`${API_URL}/api/openai/stream`, {
+            withCredentials: true,
+          });
+
+          let fullContent = "";
+
+          eventSource.onmessage = (event) => {
+            if (event.data === "[DONE]") {
+              // Stream completed
+              eventSource.close();
+              setIsLoading(false);
+
+              // Update the message to remove streaming flag
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === aiMessageId
+                    ? { ...msg, isStreaming: false }
+                    : msg
+                )
+              );
+              return;
+            }
+
+            try {
+              const data = JSON.parse(event.data);
+
+              if (data.error) {
+                console.error('Streaming error:', data.error);
+                toast.error('Error in AI response stream');
+                eventSource.close();
+                setIsLoading(false);
+                return;
+              }
+
+              if (data.content) {
+                // Append the new content
+                fullContent += data.content;
+
+                // Update the message with the new content
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === aiMessageId
+                      ? { ...msg, content: fullContent }
+                      : msg
+                  )
+                );
+              }
+            } catch (parseError) {
+              console.error('Error parsing stream data:', parseError);
+            }
+          };
+
+          eventSource.onerror = (error) => {
+            console.error('EventSource error:', error);
+            eventSource.close();
+            setIsLoading(false);
+
+            // Update the message to show error
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === aiMessageId
+                  ? {
+                      ...msg,
+                      content: "I'm sorry, I encountered an error while generating a response. Please try again.",
+                      isStreaming: false
+                    }
+                  : msg
+              )
+            );
+
+            toast.error('Connection to AI service was interrupted');
+          };
+
+          // Send the message to start streaming
+          fetch(`${API_URL}/api/openai/stream`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: userQuery,
+              history: history
+            }),
+            credentials: 'include'
+          }).catch(fetchError => {
+            console.error('Error initiating stream:', fetchError);
+            eventSource.close();
+            setIsLoading(false);
+            toast.error('Failed to connect to AI service');
+          });
+        } catch (streamError) {
+          console.error('Error setting up EventSource:', streamError);
+          // Fall back to non-streaming approach
+          useNonStreamingApproach();
+        }
+      } else {
+        // Use non-streaming approach as fallback
+        useNonStreamingApproach();
+      }
+
+      // Function to use non-streaming approach
+      async function useNonStreamingApproach() {
+        try {
+          // Use fetch with stream parameter
+          const response = await fetch(`${API_URL}/api/openai/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: userQuery,
+              history: history,
+              stream: true
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          // Set up a reader for the response body stream
+          const reader = response.body?.getReader();
+          let fullContent = "";
+
+          if (reader) {
+            // Read the stream
+            while (true) {
+              const { done, value } = await reader.read();
+
+              if (done) {
+                break;
+              }
+
+              // Convert the chunk to text
+              const chunk = new TextDecoder().decode(value);
+
+              // Process each line (each SSE message is separated by double newlines)
+              const lines = chunk.split('\n\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.substring(6);
+
+                  if (data === '[DONE]') {
+                    continue;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+
+                    if (parsed.content) {
+                      fullContent += parsed.content;
+
+                      // Update the message with the new content
+                      setMessages(prev =>
+                        prev.map(msg =>
+                          msg.id === aiMessageId
+                            ? { ...msg, content: fullContent }
+                            : msg
+                        )
+                      );
+                    }
+                  } catch (parseError) {
+                    console.error('Error parsing chunk:', parseError);
+                  }
+                }
+              }
+            }
+
+            // Update the message to remove streaming flag
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === aiMessageId
+                  ? { ...msg, isStreaming: false }
+                  : msg
+              )
+            );
+          } else {
+            // Fallback to regular request if streaming fails
+            const jsonResponse = await response.json();
+
+            if (jsonResponse.success && jsonResponse.data?.response) {
+              // Update the message with the complete response
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === aiMessageId
+                    ? {
+                        ...msg,
+                        content: jsonResponse.data.response,
+                        isStreaming: false
+                      }
+                    : msg
+                )
+              );
+            } else {
+              throw new Error('Invalid response format');
+            }
+          }
+        } catch (fetchError) {
+          console.error('Error with fetch approach:', fetchError);
+
+          // Try one more time with regular non-streaming request
+          try {
+            const regularResponse = await fetch(`${API_URL}/api/openai/chat`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                message: userQuery,
+                history: history,
+                stream: false
+              })
+            });
+
+            const jsonResponse = await regularResponse.json();
+
+            if (jsonResponse.success && jsonResponse.data?.response) {
+              // Update the message with the complete response
+              setMessages(prev =>
+                prev.map(msg =>
+                  msg.id === aiMessageId
+                    ? {
+                        ...msg,
+                        content: jsonResponse.data.response,
+                        isStreaming: false
+                      }
+                    : msg
+                )
+              );
+            } else {
+              throw new Error('Invalid response format');
+            }
+          } catch (finalError) {
+            console.error('All approaches failed:', finalError);
+
+            // Update the message to show error
+            setMessages(prev =>
+              prev.map(msg =>
+                msg.id === aiMessageId
+                  ? {
+                      ...msg,
+                      content: "I'm sorry, I encountered an error while generating a response. Please try again.",
+                      isStreaming: false
+                    }
+                  : msg
+              )
+            );
+
+            toast.error('Failed to get AI response');
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      }
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error('Error setting up AI response:', error);
       toast.error('Failed to get AI response. Please try again.');
 
       // Fallback response in case of error
@@ -101,7 +359,6 @@ export function GuidiaAiChat() {
       };
 
       setMessages(prev => [...prev, fallbackMessage]);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -221,6 +478,7 @@ export function GuidiaAiChat() {
                     content={message.content}
                     timestamp={message.timestamp}
                     isUser={message.isUser}
+                    isStreaming={message.isStreaming}
                   />
                 ))}
 
