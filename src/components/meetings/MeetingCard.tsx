@@ -112,9 +112,10 @@ export function MeetingCard({
       </div>
 
       {meeting.meetingDescription && (
-        <p className="text-muted-foreground mb-4 line-clamp-2">
-          {meeting.meetingDescription}
-        </p>
+        <div
+          className="text-muted-foreground mb-4 line-clamp-2 prose max-w-none text-sm leading-relaxed overflow-hidden"
+          dangerouslySetInnerHTML={{ __html: meeting.meetingDescription }}
+        />
       )}
 
       <div className="flex justify-end gap-2">

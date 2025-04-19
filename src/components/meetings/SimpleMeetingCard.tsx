@@ -72,7 +72,10 @@ export function SimpleMeetingCard({
       </div>
 
       {meeting.meetingDescription && (
-        <p className="text-gray-600 mb-4">{meeting.meetingDescription}</p>
+        <div
+          className="text-gray-600 mb-4 prose max-w-none text-sm leading-relaxed overflow-hidden"
+          dangerouslySetInnerHTML={{ __html: meeting.meetingDescription }}
+        />
       )}
 
       <div className="flex justify-end gap-2">

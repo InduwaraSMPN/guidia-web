@@ -330,9 +330,10 @@ export function MeetingDetailsDialog({
                   <div className="text-right text-sm font-medium text-muted-foreground">
                     Description:
                   </div>
-                  <div className="col-span-3">
-                    {meeting.meetingDescription}
-                  </div>
+                  <div
+                    className="col-span-3 prose max-w-none text-sm leading-relaxed overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: meeting.meetingDescription }}
+                  />
                 </div>
               )}
               {meeting.status === 'declined' && meeting.declineReason && (

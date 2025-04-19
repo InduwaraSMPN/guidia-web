@@ -1,5 +1,9 @@
 const { sendNotification } = require('../services/notificationService');
 const { sendEmail } = require('../utils/emailHelper');
+const getMeetingRequestTemplate = require('../email-templates/meeting-request-template');
+const getMeetingAcceptedTemplate = require('../email-templates/meeting-accepted-template');
+const getMeetingDeclinedTemplate = require('../email-templates/meeting-declined-template');
+const getMeetingCancelledTemplate = require('../email-templates/meeting-cancelled-template');
 
 // Controller for meeting scheduling functionality
 const meetingController = {
@@ -433,19 +437,17 @@ const meetingController = {
 
       // Send email to recipient if email helper is available
       if (typeof sendEmail === 'function') {
-        await sendEmail({
-          to: recipientInfo[0].email,
-          subject: `New Meeting Request from ${requestorInfo[0].username}`,
-          html: `
-            <h2>New Meeting Request</h2>
-            <p>${requestorInfo[0].username} has requested a meeting with you.</p>
-            <p><strong>Date:</strong> ${formattedDate}</p>
-            <p><strong>Time:</strong> ${formattedTime}</p>
-            <p><strong>Title:</strong> ${meetingTitle}</p>
-            <p><strong>Description:</strong> ${meetingDescription || 'No description provided'}</p>
-            <p>Please log in to your account to accept or decline this meeting request.</p>
-          `
-        });
+        await sendEmail(
+          getMeetingRequestTemplate(
+            recipientInfo[0].email,
+            requestorInfo[0].username,
+            meetingDate,
+            startTime,
+            endTime,
+            meetingTitle,
+            meetingDescription
+          )
+        );
       }
 
       return res.status(201).json({
@@ -668,19 +670,17 @@ const meetingController = {
 
       // Send email to requestor if email helper is available
       if (typeof sendEmail === 'function') {
-        await sendEmail({
-          to: requestorInfo[0].email,
-          subject: `Meeting Accepted by ${recipientInfo[0].username}`,
-          html: `
-            <h2>Meeting Accepted</h2>
-            <p>${recipientInfo[0].username} has accepted your meeting request.</p>
-            <p><strong>Date:</strong> ${formattedDate}</p>
-            <p><strong>Time:</strong> ${formattedTime}</p>
-            <p><strong>Title:</strong> ${meeting.meetingTitle}</p>
-            <p><strong>Description:</strong> ${meeting.meetingDescription || 'No description provided'}</p>
-            <p>Please log in to your account to view the meeting details.</p>
-          `
-        });
+        await sendEmail(
+          getMeetingAcceptedTemplate(
+            requestorInfo[0].email,
+            recipientInfo[0].username,
+            meeting.meetingDate,
+            meeting.startTime,
+            meeting.endTime,
+            meeting.meetingTitle,
+            meeting.meetingDescription
+          )
+        );
       }
 
       return res.status(200).json({
@@ -779,19 +779,17 @@ const meetingController = {
 
       // Send email to requestor if email helper is available
       if (typeof sendEmail === 'function') {
-        await sendEmail({
-          to: requestorInfo[0].email,
-          subject: `Meeting Declined by ${recipientInfo[0].username}`,
-          html: `
-            <h2>Meeting Declined</h2>
-            <p>${recipientInfo[0].username} has declined your meeting request.</p>
-            <p><strong>Date:</strong> ${formattedDate}</p>
-            <p><strong>Time:</strong> ${formattedTime}</p>
-            <p><strong>Title:</strong> ${meeting.meetingTitle}</p>
-            ${declineReason ? `<p><strong>Reason:</strong> ${declineReason}</p>` : ''}
-            <p>Please log in to your account to view the meeting details or request a new meeting.</p>
-          `
-        });
+        await sendEmail(
+          getMeetingDeclinedTemplate(
+            requestorInfo[0].email,
+            recipientInfo[0].username,
+            meeting.meetingDate,
+            meeting.startTime,
+            meeting.endTime,
+            meeting.meetingTitle,
+            declineReason
+          )
+        );
       }
 
       return res.status(200).json({
@@ -890,16 +888,16 @@ const meetingController = {
 
       // Send email to the other party if email helper is available
       if (typeof sendEmail === 'function') {
-        await sendEmail({
-          to: otherPartyInfo[0].email,
-          subject: `Meeting Cancelled by ${currentUserInfo[0].username}`,
-          html: `
-            <h2>Meeting Cancelled</h2>
-            <p>${currentUserInfo[0].username} has cancelled the meeting scheduled for ${formattedDate} at ${formattedTime}.</p>
-            <p><strong>Title:</strong> ${meeting.meetingTitle}</p>
-            <p>Please log in to your account to view the meeting details or schedule a new meeting.</p>
-          `
-        });
+        await sendEmail(
+          getMeetingCancelledTemplate(
+            otherPartyInfo[0].email,
+            currentUserInfo[0].username,
+            meeting.meetingDate,
+            meeting.startTime,
+            meeting.endTime,
+            meeting.meetingTitle
+          )
+        );
       }
 
       return res.status(200).json({

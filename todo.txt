@@ -49,3 +49,9 @@ remove thing slike this
     }
   };
   */
+
+
+
+dangerouslySetInnerHTML inherently a security flaw?
+The Danger (Cross-Site Scripting - XSS):
+The primary risk is Cross-Site Scripting (XSS).
