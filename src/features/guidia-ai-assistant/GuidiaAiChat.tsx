@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, ArrowUp, ChevronDown } from "lucide-react"
+import { ArrowUp, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 import { API_URL } from "@/config"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
@@ -86,6 +86,24 @@ export function GuidiaAiChat() {
     }
   }, [handleScroll])
 
+  // Ensure editor is properly initialized when chat becomes visible
+  useEffect(() => {
+    if (isChatVisible) {
+      // Wait for the editor to be rendered
+      setTimeout(() => {
+        const editorElement = document.querySelector('.ql-editor');
+        if (editorElement) {
+          console.log('Initializing editor after chat becomes visible');
+          (editorElement as HTMLElement).setAttribute('contenteditable', 'true');
+          (editorElement as HTMLElement).style.pointerEvents = 'auto';
+          (editorElement as HTMLElement).style.userSelect = 'text';
+          (editorElement as HTMLElement).style.cursor = 'text';
+          (editorElement as HTMLElement).focus();
+        }
+      }, 500); // Longer delay to ensure the editor is fully rendered
+    }
+  }, [isChatVisible])
+
   // Format current time for message timestamp
   const getFormattedTime = () => {
     const now = new Date()
@@ -100,7 +118,19 @@ export function GuidiaAiChat() {
 
   // Handle input changes in chat view
   const handleInputChange = (value: string) => {
-    setInputValue(value)
+    console.log("Input changed:", value);
+    setInputValue(value);
+
+    // Try to ensure the editor is focused and editable
+    setTimeout(() => {
+      const editorElement = document.querySelector('.ql-editor');
+      if (editorElement) {
+        (editorElement as HTMLElement).setAttribute('contenteditable', 'true');
+        (editorElement as HTMLElement).style.pointerEvents = 'auto';
+        (editorElement as HTMLElement).style.userSelect = 'text';
+        (editorElement as HTMLElement).style.cursor = 'text';
+      }
+    }, 0);
   }
 
   // Scroll to bottom button handler
@@ -578,7 +608,33 @@ export function GuidiaAiChat() {
               <Card className="max-w-3xl mx-auto shadow-lg">
                 <div className="p-2">
                   <div className="flex-1 relative z-50 pointer-events-auto" style={{ touchAction: 'auto' }}>
-                    <div className="rich-text-editor-container" onClick={() => console.log('Container clicked')}>
+                    <div
+                      className="rich-text-editor-container"
+                      onClick={() => {
+                        console.log('Container clicked');
+                        // Try to force focus on the editor
+                        const editorElement = document.querySelector('.ql-editor');
+                        if (editorElement) {
+                          console.log('Editor found, focusing...');
+                          // Make sure the editor is editable
+                          (editorElement as HTMLElement).setAttribute('contenteditable', 'true');
+                          (editorElement as HTMLElement).style.pointerEvents = 'auto';
+                          (editorElement as HTMLElement).style.userSelect = 'text';
+                          (editorElement as HTMLElement).style.cursor = 'text';
+                          (editorElement as HTMLElement).focus();
+
+                          // Try to place cursor at the end
+                          const range = document.createRange();
+                          const selection = window.getSelection();
+                          range.selectNodeContents(editorElement);
+                          range.collapse(false); // false means collapse to end
+                          selection?.removeAllRanges();
+                          selection?.addRange(range);
+                        } else {
+                          console.log('Editor element not found');
+                        }
+                      }}
+                    >
                       <RichTextEditor
                         value={inputValue}
                         onChange={handleInputChange}
@@ -592,18 +648,11 @@ export function GuidiaAiChat() {
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <div className="text-xs text-muted-foreground px-2">
-                      {isLoading ? (
-                        <span className="flex items-center">
-                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          Guidia is thinking...
-                        </span>
-                      ) : (
-                        <span>
-                          Press <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Ctrl</kbd>{" "}
-                          + <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Enter</kbd> to
-                          send
-                        </span>
-                      )}
+                      <span>
+                        Press <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Ctrl</kbd>{" "}
+                        + <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border text-xs">Enter</kbd> to
+                        send
+                      </span>
                     </div>
                     <TooltipProvider>
                       <Tooltip>
@@ -614,18 +663,14 @@ export function GuidiaAiChat() {
                             className="flex h-10 px-4 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50 gap-2 shadow-md hover:bg-brand-light transition-colors"
                             aria-label="Send message"
                           >
-                            {isLoading ? (
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <>
-                                <span>Send</span>
-                                <ArrowUp className="h-4 w-4" />
-                              </>
-                            )}
+                            <>
+                              <span>Send</span>
+                              <ArrowUp className="h-4 w-4" />
+                            </>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
-                          {isLoading ? "Processing your request" : "Send message"}
+                          Send message
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

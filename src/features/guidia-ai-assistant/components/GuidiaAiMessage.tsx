@@ -75,8 +75,8 @@ export function GuidiaAiMessage({
         className={cn(
           "max-w-[85%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200",
           isUser
-            ? "bg-brand text-white hover:bg-brand-dark focus-within:ring-2 focus-within:ring-brand-light focus-within:ring-opacity-50"
-            : "bg-secondary-light text-adaptive-dark hover:bg-secondary-dark focus-within:ring-2 focus-within:ring-brand focus-within:ring-opacity-30",
+            ? "bg-brand text-white focus-within:ring-2 focus-within:ring-brand-light focus-within:ring-opacity-50"
+            : "bg-secondary-light text-adaptive-dark focus-within:ring-2 focus-within:ring-brand focus-within:ring-opacity-30",
           isFirstInSequence && !isUser ? "rounded-tl-sm" : "",
           isFirstInSequence && isUser ? "rounded-tr-sm" : "",
           !isLastInSequence && !isUser ? "rounded-bl-sm" : "",

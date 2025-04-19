@@ -10,12 +10,15 @@ export interface RichTextEditorProps {
   placeholder?: string;
   readOnly?: boolean;
   onEnterPress?: () => void;
+  // Removed showTypingIndicator prop as it's no longer needed
 }
 
 const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
   ({ className, value, onChange, placeholder, readOnly, onEnterPress }, ref) => {
     // Track if the editor has been initialized
     const [isInitialized, setIsInitialized] = React.useState(false);
+    // Track if the editor is focused
+    const [isFocused, setIsFocused] = React.useState(false);
 
     const { quill, quillRef } = useQuill({
       theme: "snow",
@@ -65,14 +68,32 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           }
         };
 
+        // Handle focus and blur events
+        const handleFocus = () => {
+          console.log("Editor focused via focus event");
+          setIsFocused(true);
+        };
+
+        const handleBlur = () => {
+          console.log("Editor blurred via blur event");
+          setIsFocused(false);
+        };
+
+        // Log initial focus state
+        console.log("Initial focus state:", document.activeElement === quill.root);
+
         // Add event listeners
         quill.on("text-change", handleChange);
         quill.root.addEventListener('keydown', handleKeyDown);
+        quill.root.addEventListener('focus', handleFocus);
+        quill.root.addEventListener('blur', handleBlur);
 
         // Cleanup function to remove the event listeners
         return () => {
           quill.off("text-change", handleChange);
           quill.root.removeEventListener('keydown', handleKeyDown);
+          quill.root.removeEventListener('focus', handleFocus);
+          quill.root.removeEventListener('blur', handleBlur);
         };
       }
     }, [quill, memoizedOnChange, onEnterPress, value]);
@@ -93,22 +114,52 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       if (quill && !isInitialized && !readOnly) {
         // Mark as initialized
         setIsInitialized(true);
+
         // Set focus after a short delay to ensure the editor is fully rendered
         setTimeout(() => {
           try {
+            // Make sure the editor is enabled and ready
+            quill.enable();
             quill.focus();
-            console.log("Editor focused");
+            setIsFocused(true); // Also set the focus state
+            console.log("Editor focused and enabled on initialization");
+
+            // Force the editor to be interactive
+            if (quill.root) {
+              quill.root.setAttribute('contenteditable', 'true');
+              quill.root.style.pointerEvents = 'auto';
+              quill.root.style.userSelect = 'text';
+              quill.root.style.cursor = 'text';
+              console.log("Editor root element made explicitly editable");
+            }
           } catch (error) {
             console.error("Error focusing editor:", error);
           }
-        }, 100);
+        }, 300); // Increased delay to ensure DOM is ready
       }
     }, [quill, isInitialized, readOnly]);
 
     // Force focus on click
     const handleContainerClick = React.useCallback(() => {
       if (quill && !readOnly) {
+        // Make sure the editor is enabled
+        quill.enable();
         quill.focus();
+        setIsFocused(true);
+
+        // Force the editor to be interactive
+        if (quill.root) {
+          quill.root.setAttribute('contenteditable', 'true');
+          quill.root.style.pointerEvents = 'auto';
+          quill.root.style.userSelect = 'text';
+          quill.root.style.cursor = 'text';
+
+          // Try to position the cursor at the end of any content
+          const length = quill.getLength();
+          quill.setSelection(length, 0);
+        }
+
+        console.log("Editor focused and enabled via container click");
       }
     }, [quill, readOnly]);
 
@@ -117,7 +168,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     return (
       <div
         className={cn(
-          "relative border border-border focus-within:ring-2 focus-within:ring-[#800020] focus-within:border-brand",
+          "relative border border-border",
           className
         )}
         onClick={handleContainerClick}
@@ -125,6 +176,8 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       >
         <div ref={quillRef} style={{ pointerEvents: 'auto' }} />
         {/* Rich Text Editor styles are defined in index.css */}
+
+        {/* Typing indicator removed */}
       </div>
     );
   }
