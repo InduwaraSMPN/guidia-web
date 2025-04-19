@@ -320,6 +320,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       ref={(el) => (itemRefs.current[0] = el)}
                       className={`${navItemBaseClasses} ${location.pathname === '/news' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       News
                     </Link>
@@ -329,12 +330,20 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       ref={(el) => (itemRefs.current[1] = el)}
                       className={`${navItemBaseClasses} ${isEventsActive ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={(e) => e.stopPropagation()}
+                      data-dropdown-trigger="events"
+                      onMouseEnter={() => {
+                        // If another dropdown is open, close it
+                        if (activeDropdown && !activeDropdown.includes('Events')) {
+                          setActiveDropdown(null);
+                        }
+                      }}
                     >
                       <MenuItem
                         setActive={(item) => setActiveDropdown(item ? `navbar-${item}` : null)}
                         active={activeDropdown === "navbar-Events" ? "Events" : null}
                         item="Events"
                         isRouteActive={isEventsActive} // Pass the route active state
+                        directLink="http://localhost:1030/events" // Add direct link to Events page
                       >
                         <EventsDropdown />
                       </MenuItem>
@@ -347,6 +356,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       ref={(el) => (itemRefs.current[2] = el)}
                       className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
                       onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
+                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
                     >
                       Guidia AI
                     </Link>
@@ -415,6 +425,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       active={activeDropdown === "navbar-Events" ? "Events" : null}
                       item="Events"
                       isRouteActive={isEventsActive} // Pass the route active state
+                      directLink="http://localhost:1030/events" // Add direct link to Events page
                     >
                       <EventsDropdown />
                     </MenuItem>
@@ -619,7 +630,13 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
 
             {/* Mobile Events Section - Highlight parent based on child route */}
             <div className="py-2">
-              <div className={`text-sm py-2 ${isEventsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}>Events</div>
+              <Link
+                to="/events"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm py-2 ${isEventsActive ? "text-brand font-bold" : "text-foreground font-medium"}`}
+              >
+                Events
+              </Link>
               <div className="pl-4 space-y-2 border-l border-border">
                 <Link
                   to="/events?tab=upcoming"

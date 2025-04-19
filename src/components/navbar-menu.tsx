@@ -20,6 +20,7 @@ export const MenuItem = ({
   children,
   preview,
   isRouteActive = false, // New prop to indicate if the route is active
+  directLink = null, // New prop to add direct navigation link
 }: {
   setActive: (item: string | null) => void
   active: string | null
@@ -27,6 +28,7 @@ export const MenuItem = ({
   children?: React.ReactNode
   preview?: React.ReactNode
   isRouteActive?: boolean // New prop to indicate if the route is active
+  directLink?: string | null // New prop to add direct navigation link
 }) => {
   const menuItemRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,6 +48,13 @@ export const MenuItem = ({
 
   // Handle click on the menu item
   const handleClick = (e: React.MouseEvent) => {
+    // If directLink is provided, navigate to that link
+    if (directLink) {
+      e.stopPropagation(); // Prevent event from bubbling up
+      window.location.href = directLink;
+      return;
+    }
+
     // Toggle dropdown on click
     if (active === item) {
       e.stopPropagation(); // Prevent event from bubbling up

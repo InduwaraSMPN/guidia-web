@@ -28,6 +28,8 @@ export function GuidiaAiChat() {
   const [inputValue, setInputValue] = useState("");
   // Ref for scrolling to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // State to track if the welcome message has been shown
+  const [welcomeMessageShown, setWelcomeMessageShown] = useState(false);
 
   // Define placeholders for the AI chat input
   const placeholders = [
@@ -383,6 +385,7 @@ export function GuidiaAiChat() {
     // Add the message and show chat view
     setMessages([newMessage]);
     setIsChatVisible(true);
+    setWelcomeMessageShown(true);
 
     // Get AI response
     getAiResponse(question);
@@ -403,6 +406,7 @@ export function GuidiaAiChat() {
     // Add the message and clear input
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
+    setWelcomeMessageShown(true);
 
     // Get AI response
     getAiResponse(inputValue.trim());
@@ -435,9 +439,7 @@ export function GuidiaAiChat() {
                 <span className="font-grillmaster">Guidia</span> AI Assistant
               </h1>
               <p className="text-muted-foreground max-w-lg mx-auto my-2 text-sm text-center">
-                Welcome to Guidia AI, your career guidance companion. Ask me about
-                career paths, job opportunities, or educational resources. I'm here to
-                help you navigate your professional journey with confidence.
+                Welcome to Guidia AI, your career guidance companion. Type a question below to start a conversation.
               </p>
 
               {/* Use the PlaceholdersAndVanishInput component */}
@@ -482,13 +484,7 @@ export function GuidiaAiChat() {
                   />
                 ))}
 
-                {/* Loading indicator */}
-                {isLoading && (
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Guidia is thinking...</span>
-                  </div>
-                )}
+                {/* Loading indicator removed as we have streaming */}
 
                 {/* Invisible element for scrolling to bottom */}
                 <div ref={messagesEndRef} />
