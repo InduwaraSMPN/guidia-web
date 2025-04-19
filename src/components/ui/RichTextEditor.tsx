@@ -41,17 +41,21 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     React.useEffect(() => {
       if (quill) {
+        console.log("Quill initialized");
+
         // Set initial value when quill is initialized
         if (value && quill.getText().trim() === '') {
           quill.clipboard.dangerouslyPasteHTML(value);
         }
 
         const handleChange = () => {
+          console.log("Text changed");
           memoizedOnChange(quill.root.innerHTML);
         };
 
         // Handle Enter key press to submit the form
         const handleKeyDown = (event: KeyboardEvent) => {
+          console.log("Key pressed:", event.key);
           // Check if Enter is pressed without Shift (Shift+Enter creates a new line)
           if (event.key === 'Enter' && !event.shiftKey && onEnterPress) {
             // Prevent the default behavior (new line)
@@ -71,7 +75,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           quill.root.removeEventListener('keydown', handleKeyDown);
         };
       }
-    }, [quill, memoizedOnChange, onEnterPress]);
+    }, [quill, memoizedOnChange, onEnterPress, value]);
 
     // Handle external value changes
     React.useEffect(() => {
@@ -91,21 +95,35 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         setIsInitialized(true);
         // Set focus after a short delay to ensure the editor is fully rendered
         setTimeout(() => {
-          quill.focus();
+          try {
+            quill.focus();
+            console.log("Editor focused");
+          } catch (error) {
+            console.error("Error focusing editor:", error);
+          }
         }, 100);
       }
     }, [quill, isInitialized, readOnly]);
+
+    // Force focus on click
+    const handleContainerClick = React.useCallback(() => {
+      if (quill && !readOnly) {
+        quill.focus();
+      }
+    }, [quill, readOnly]);
 
     React.useImperativeHandle(ref, () => quillRef.current!, [quillRef]);
 
     return (
       <div
         className={cn(
-          "relative rounded-md border border-border focus-within:ring-2 focus-within:ring-[#800020] focus-within:border-brand",
+          "relative border border-border focus-within:ring-2 focus-within:ring-[#800020] focus-within:border-brand",
           className
         )}
+        onClick={handleContainerClick}
+        style={{ zIndex: 1000 }}
       >
-        <div ref={quillRef} />
+        <div ref={quillRef} style={{ pointerEvents: 'auto' }} />
         {/* Rich Text Editor styles are defined in index.css */}
       </div>
     );

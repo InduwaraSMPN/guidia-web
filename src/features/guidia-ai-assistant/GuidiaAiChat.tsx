@@ -400,8 +400,9 @@ export function GuidiaAiChat() {
     <main
       className="h-screen w-full bg-background relative flex flex-col antialiased overflow-hidden"
       onKeyDown={handleKeyDown}
+      style={{ touchAction: 'auto' }}
     >
-      <BackgroundBeams className="z-0 fixed inset-0" />
+      <BackgroundBeams className="z-0 fixed inset-0 pointer-events-none" />
 
       <AnimatePresence mode="wait">
         {!isChatVisible ? (
@@ -573,16 +574,16 @@ export function GuidiaAiChat() {
             </AnimatePresence>
 
             {/* Chat input with rich text editor */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 mb-0 z-20">
+            <div className="absolute bottom-0 left-0 right-0 p-4 mb-0 z-50">
               <Card className="max-w-3xl mx-auto shadow-lg">
                 <div className="p-2">
-                  <div className="flex-1 relative z-30 pointer-events-auto">
-                    <div className="rich-text-editor-container">
+                  <div className="flex-1 relative z-50 pointer-events-auto" style={{ touchAction: 'auto' }}>
+                    <div className="rich-text-editor-container" onClick={() => console.log('Container clicked')}>
                       <RichTextEditor
                         value={inputValue}
                         onChange={handleInputChange}
                         placeholder="Type your message..."
-                        className="rounded-lg border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
+                        className="border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
                         readOnly={isLoading}
                         onEnterPress={handleSendMessage}
                         aria-label="Message input"

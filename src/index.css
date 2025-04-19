@@ -344,9 +344,10 @@ html {
   font-family: inherit;
   font-size: inherit;
   border: none !important;
-  z-index: 40 !important;
+  z-index: 100 !important;
   position: relative !important;
   background-color: white !important;
+  border-radius: 6px;
 }
 
 .dark .ql-container {
@@ -357,7 +358,7 @@ html {
   border: none !important;
   border-bottom: 1px solid #e5e7eb !important;
   background-color: rgba(255, 255, 255, 0.95) !important;
-  z-index: 40 !important;
+  z-index: 101 !important;
   position: relative !important;
 }
 
@@ -372,7 +373,7 @@ html {
   max-height: 200px;
   overflow-y: auto;
   background-color: transparent !important;
-  z-index: 40 !important;
+  z-index: 100 !important;
   position: relative !important;
   cursor: text !important;
 }
@@ -405,14 +406,17 @@ html {
 .ql-container.ql-snow,
 .ql-editor {
   pointer-events: auto !important;
+  touch-action: auto !important;
+  cursor: text !important;
 }
 
 /* Rich text editor container */
 .rich-text-editor-container {
   position: relative;
-  z-index: 50;
-  pointer-events: auto;
+  z-index: 1000;
+  pointer-events: auto !important;
   isolation: isolate;
+  touch-action: auto !important;
 }
 
 /* Chat message content styling */

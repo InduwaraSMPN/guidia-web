@@ -101,10 +101,15 @@ export function GuidiaAiMessage({
             <div className="whitespace-pre-wrap">{sanitizedContent}</div>
           )}
           {isStreaming && (
-            <span className="inline-flex items-center ml-1" aria-label="AI is typing">
-              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-              <span className="text-xs text-muted-foreground">typing</span>
-            </span>
+            <span className="inline-flex items-center ml-1 text-xs text-muted-foreground" aria-label="AI is typing">
+  <span className="flex ml-1 space-x-1">
+    <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+    <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+    <span className="h-1.5 w-1.5 bg-muted-foreground rounded-full animate-bounce" />
+  </span>
+</span>
+
+
           )}
         </div>
         <p className={cn("text-xs mt-1 opacity-80", isUser ? "text-white/80" : "text-muted-foreground")}>{timestamp}</p>
