@@ -28,8 +28,6 @@ export function GuidiaAiChat() {
   const [inputValue, setInputValue] = useState("");
   // Ref for scrolling to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // State to track if the welcome message has been shown
-  const [welcomeMessageShown, setWelcomeMessageShown] = useState(false);
 
   // Define placeholders for the AI chat input
   const placeholders = [
@@ -88,110 +86,8 @@ export function GuidiaAiChat() {
       // Add the placeholder message
       setMessages(prev => [...prev, placeholderMessage]);
 
-      // For now, we'll use the fetch approach instead of EventSource
-      // as it's more reliable across different environments
-      if (false && typeof EventSource !== 'undefined') { // EventSource approach disabled
-        try {
-          // Use EventSource for streaming response
-          const eventSource = new EventSource(`${API_URL}/api/openai/stream`, {
-            withCredentials: true,
-          });
-
-          let fullContent = "";
-
-          eventSource.onmessage = (event) => {
-            if (event.data === "[DONE]") {
-              // Stream completed
-              eventSource.close();
-              setIsLoading(false);
-
-              // Update the message to remove streaming flag
-              setMessages(prev =>
-                prev.map(msg =>
-                  msg.id === aiMessageId
-                    ? { ...msg, isStreaming: false }
-                    : msg
-                )
-              );
-              return;
-            }
-
-            try {
-              const data = JSON.parse(event.data);
-
-              if (data.error) {
-                console.error('Streaming error:', data.error);
-                toast.error('Error in AI response stream');
-                eventSource.close();
-                setIsLoading(false);
-                return;
-              }
-
-              if (data.content) {
-                // Append the new content
-                fullContent += data.content;
-
-                // Update the message with the new content
-                setMessages(prev =>
-                  prev.map(msg =>
-                    msg.id === aiMessageId
-                      ? { ...msg, content: fullContent }
-                      : msg
-                  )
-                );
-              }
-            } catch (parseError) {
-              console.error('Error parsing stream data:', parseError);
-            }
-          };
-
-          eventSource.onerror = (error) => {
-            console.error('EventSource error:', error);
-            eventSource.close();
-            setIsLoading(false);
-
-            // Update the message to show error
-            setMessages(prev =>
-              prev.map(msg =>
-                msg.id === aiMessageId
-                  ? {
-                      ...msg,
-                      content: "I'm sorry, I encountered an error while generating a response. Please try again.",
-                      isStreaming: false
-                    }
-                  : msg
-              )
-            );
-
-            toast.error('Connection to AI service was interrupted');
-          };
-
-          // Send the message to start streaming
-          fetch(`${API_URL}/api/openai/stream`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: userQuery,
-              history: history
-            }),
-            credentials: 'include'
-          }).catch(fetchError => {
-            console.error('Error initiating stream:', fetchError);
-            eventSource.close();
-            setIsLoading(false);
-            toast.error('Failed to connect to AI service');
-          });
-        } catch (streamError) {
-          console.error('Error setting up EventSource:', streamError);
-          // Fall back to non-streaming approach
-          useNonStreamingApproach();
-        }
-      } else {
-        // Use non-streaming approach as fallback
-        useNonStreamingApproach();
-      }
+      // Use non-streaming approach
+      useNonStreamingApproach();
 
       // Function to use non-streaming approach
       async function useNonStreamingApproach() {
@@ -385,7 +281,6 @@ export function GuidiaAiChat() {
     // Add the message and show chat view
     setMessages([newMessage]);
     setIsChatVisible(true);
-    setWelcomeMessageShown(true);
 
     // Get AI response
     getAiResponse(question);
@@ -406,7 +301,6 @@ export function GuidiaAiChat() {
     // Add the message and clear input
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
-    setWelcomeMessageShown(true);
 
     // Get AI response
     getAiResponse(inputValue.trim());
@@ -439,7 +333,7 @@ export function GuidiaAiChat() {
                 <span className="font-grillmaster">Guidia</span> AI Assistant
               </h1>
               <p className="text-muted-foreground max-w-lg mx-auto my-2 text-sm text-center">
-                Welcome to Guidia AI, your career guidance companion. Type a question below to start a conversation.
+                Welcome to Guidia AI. Type a question below to start a conversation with your career guidance companion.
               </p>
 
               {/* Use the PlaceholdersAndVanishInput component */}

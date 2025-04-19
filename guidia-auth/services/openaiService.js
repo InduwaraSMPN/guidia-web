@@ -11,7 +11,7 @@ class OpenAIService {
     this.apiKey = process.env.SAMBANOVA_API_KEY;
 
     // Debug logging
-    console.log('Loading SambaNova API key from environment variables');
+    console.log('Loading API key from environment variables');
     console.log('API key available:', !!this.apiKey);
     console.log('API key first 5 chars:', this.apiKey ? this.apiKey.substring(0, 5) : 'none');
     console.log('Environment variables loaded from:', path.resolve(__dirname, '../.env'));
@@ -26,14 +26,14 @@ class OpenAIService {
 
       // Log the status for debugging
       if (!this.apiKey) {
-        console.warn('SambaNova API key is not set. Using fallback responses.');
+        console.warn('API key is not set. Using fallback responses.');
         this.useAI = false;
       } else {
-        console.log('SambaNova API key is configured:', this.apiKey.substring(0, 5) + '...');
+        console.log('API key is configured:', this.apiKey.substring(0, 5) + '...');
         this.useAI = true;
       }
     } catch (error) {
-      console.error('Error initializing SambaNova client:', error);
+      console.error('Error initializing AI client:', error);
       this.useAI = false;
     }
   }
@@ -47,7 +47,7 @@ class OpenAIService {
    */
   async sendMessage(message, history = [], stream = false) {
     try {
-      console.log('Sending message to SambaNova:', { messageLength: message.length, historyLength: history.length, stream });
+      console.log('Sending message to AI:', { messageLength: message.length, historyLength: history.length, stream });
       console.log('API key available:', !!this.apiKey);
       console.log('useAI flag:', this.useAI);
 
@@ -57,11 +57,11 @@ class OpenAIService {
         return this.getFallbackResponse(message);
       }
 
-      // Format the conversation history for SambaNova
+      // Format the conversation history
       const messages = [
         {
           role: "system",
-          content: "You are Guidia AI, powered by Meta-Llama-3.1-405B-Instruct on SambaNova, a helpful career guidance assistant. You provide advice on career paths, job opportunities, educational resources, and professional development. Be concise, friendly, and supportive. When asked about your model, identify yourself as Meta-Llama-3.1-405B-Instruct on SambaNova."
+          content: "You are Guidia AI, the official AI assistant for 'Guidia', the web-based platform streamlining career guidance at the University of Kelaniya's Career Guidance Unit (CGU). Your purpose is to support University of Kelaniya students, counselors, and potentially companies interacting with the platform.\nYour Core Functions:\nAnswer FAQs: Address common questions about CGU services, using the Guidia platform features (job applications, profile management, finding resources), career paths, and professional development.\nSurface Platform Content: Provide information about specific job postings, upcoming events, and news articles published on the Guidia platform when asked.\nNavigation Assistance: Help users find specific sections or information within the Guidia platform.\nReferral: Recognize when a question requires detailed, personalized counseling. In such cases, explain that you are an AI assistant for initial guidance and direct the user (especially students) to the process for scheduling an appointment with a human Career Counselor through the platform.\nYour Tone: Be helpful, friendly, supportive, professional, and concise. Ensure your responses are relevant to the University of Kelaniya context and the features described in the Guidia platform."
         },
         ...history.map(msg => ({
           role: msg.isUser ? "user" : "assistant",
@@ -72,21 +72,21 @@ class OpenAIService {
 
       // Common request parameters
       const requestParams = {
-        model: "Meta-Llama-3.1-405B-Instruct", // Using Meta-Llama-3.1-405B-Instruct model
+        model: "Meta-Llama-3.1-405B-Instruct", // Using SambaNova's Llama 3.1 model
         messages: messages,
         max_tokens: 500,
         temperature: 0.7
       };
 
-      // Make the API request to SambaNova using the OpenAI SDK
-      console.log('Making API request to SambaNova with client:', !!this.client);
+      // Make the API request using the OpenAI SDK
+      console.log('Making API request to AI with client:', !!this.client);
       console.log('Request parameters:', {
         ...requestParams,
         stream
       });
 
       try {
-        console.log('About to call SambaNova API with model:', "Meta-Llama-3.1-405B-Instruct");
+        console.log('About to call AI API with model:', "Meta-Llama-3.1-405B-Instruct");
 
         if (stream) {
           // Return a streaming response
@@ -101,7 +101,7 @@ class OpenAIService {
           // Return a regular response
           const completion = await this.client.chat.completions.create(requestParams);
 
-          console.log('SambaNova API response received:', {
+          console.log('AI API response received:', {
             status: 'success',
             choicesLength: completion.choices?.length || 0
           });
@@ -109,7 +109,7 @@ class OpenAIService {
           return completion.choices[0].message.content.trim();
         }
       } catch (apiError) {
-        console.error('SambaNova API call failed:', apiError);
+        console.error('AI API call failed:', apiError);
         console.error('Error details:', apiError.message);
 
         // Return a fallback response instead of throwing the error
@@ -117,7 +117,7 @@ class OpenAIService {
         return this.getFallbackResponse(message);
       }
     } catch (error) {
-      console.error('Error in SambaNova service:', error);
+      console.error('Error in AI service:', error);
       throw error;
     }
   }
