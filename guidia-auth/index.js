@@ -73,6 +73,7 @@ const adminRouter = require("./routes/admin");
 const usersRouter = require("./routes/users");
 const azureRouter = require("./routes/azure");
 const openaiRouter = require("./routes/openai");
+const chatHistoryRouter = require("./routes/chatHistory");
 const NotificationSocketService = require("./services/notificationSocketService");
 const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
@@ -149,6 +150,8 @@ app.use("/api/users", usersRouter);
 app.use("/api/azure", azureRouter);
 app.use("/api/openai", openaiRouter);
 console.log("OpenAI routes registered.");
+app.use("/api/chat-history", chatHistoryRouter);
+console.log("Chat history routes registered.");
 
 // Initialize notification service with socket service
 app.use(
