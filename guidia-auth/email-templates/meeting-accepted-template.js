@@ -8,145 +8,94 @@ const getMeetingAcceptedTemplate = (recipientEmail, acceptorName, meetingDate, s
     to: recipientEmail,
     subject: `Meeting Accepted by ${acceptorName}`,
     text: `${acceptorName} has accepted your meeting request for ${formattedDate} at ${formattedTime}. Title: ${meetingTitle}. Description: ${meetingDescription || 'No description provided'}. Please log in to your account to view the meeting details.`,
-    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:500,600,700|Open+Sans:400,600">
-    <style type="text/css">
-      @media screen {
-        @font-face {
-          font-family: 'Montserrat';
-          font-style: normal;
-          font-weight: 600;
-          src: url(https://fonts.gstatic.com/s/montserrat/v15/JTURjIg1_i6t8kCHKm45_bZF3gnD-w.woff) format('woff');
-        }
-        @font-face {
-          font-family: 'Open Sans';
-          font-style: normal;
-          font-weight: 400;
-          src: url(https://fonts.gstatic.com/s/opensans/v18/mem8YaGs126MiZpBA-UFVZ0d.woff) format('woff');
-        }
-      }
-      /* A simple css reset */
-      @media only screen and (max-width: 620px) {
-        .wrapper .section {
-          width: 100%;
-        }
-        .wrapper .column {
-          width: 100%;
-          display: block;
-        }
-      }
-    </style>
-  </head>
-  <body style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;font-family:'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;">
-    <table width="100%" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-      <tbody>
-        <tr>
-          <td class="wrapper" width="600" align="center" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;padding-left:10px;padding-right:10px;">
-            <table class="section header" cellpadding="0" cellspacing="0" width="600" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:initial;vertical-align:top;">
-              <tr>
-                <td class="column" style="padding:0;margin:0;border: 1px solid #c3cdc9;border-radius:8px;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                  <table style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                    <tbody>
-                      <tr>
-                        <td align="center" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;padding-top: 64px;">
-                          <img src="https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/public/logos/logo-dark.svg" style="width: 161px;">
-                          <h2 style="font-family:'Montserrat';color:#000000;font-weight:600;text-align: center; padding-top: 32px; padding-bottom: 3px;">Meeting Accepted</h2>
-                          <table style="margin-bottom: 48px;">
-                            <tbody>
-                              <tr>
-                                <td style="padding: 32px;">
-                                  <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#000000;font-weight: 600;text-align: left;">
-                                    Hello!
-                                  </p>
-                                  <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#000000;text-align: left;">
-                                    ${acceptorName} has accepted your meeting request.
-                                  </p>
-                                  <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-                                    <tr>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';"><strong>Date:</strong></td>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';">${formattedDate}</td>
-                                    </tr>
-                                    <tr>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';"><strong>Time:</strong></td>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';">${formattedTime}</td>
-                                    </tr>
-                                    <tr>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';"><strong>Title:</strong></td>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';">${meetingTitle}</td>
-                                    </tr>
-                                    <tr>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';"><strong>Description:</strong></td>
-                                      <td style="padding:10px; border-bottom:1px solid #eee; font-family:'Open Sans';">${meetingDescription || 'No description provided'}</td>
-                                    </tr>
-                                  </table>
-                                  <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#000000;text-align: left;">
-                                    Please log in to your account to view the meeting details.
-                                  </p>
-                                  <div style="text-align:center; margin-top:30px;">
-                                    <a href="${process.env.FRONTEND_URL || 'http://localhost:1030'}/meetings/my-meetings" style="background-color:#800020; color:white; padding:12px 24px; text-decoration:none; border-radius:4px; font-family:'Montserrat'; font-weight:600;">View Meeting Details</a>
-                                  </div>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-              <tr>
-                <td class="column" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                  <table style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;width: 100%; border-bottom: 1px solid #c3cdc9;">
-                    <tbody>
-                      <tr>
-                        <td align="center" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                          <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#666666;font-size: 14px; padding-top: 32px;">This message was sent to <span style="font-family:'Open Sans';color:#000000;">${recipientEmail}</span></p>
-                          <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#666666;font-size: 14px; padding-bottom: 32px;">
-                            For any concerns, please contact <a href="mailto:support@example.com" style="color:#000000;text-decoration:underline;">support</a>.
-                          </p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-              <tr>
-                <td class="column" style="padding: 0 135px;;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                  <table style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;width: 100%; margin-top: 32px; margin-bottom: 14px;" align="center">
-                    <tbody>
-                      <tr>
-                        <td width="100%" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;text-align: center;">
-                          <a href="#" target="_blank"><img src="https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/public/logos/logo-dark.svg" style="width: 122px; margin:auto;"/></a>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-              <tr>
-                <td class="column" style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;">
-                  <table style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;width: 100%;">
-                    <tbody>
-                      <tr>
-                        <td style="padding:0;margin:0;border:none;border-spacing:0px;border-collapse:collapse;vertical-align:top;text-align: center; font-size: 14px; padding-bottom: 32px;">
-                          <p style="margin:0;padding:0;padding-bottom:20px;line-height:1.6;font-family:'Open Sans';color:#000000;">© ${new Date().getFullYear()} Guidia. All rights reserved.</p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </body>
+    html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Accepted</title>
+  <style type="text/css">
+    /* Basic Reset */
+    body, table, td, a { margin: 0; padding: 0; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; }
+    table { border-collapse: collapse !important; }
+    body { width: 100% !important; font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+
+    /* Responsive Styles */
+    @media only screen and (max-width: 620px) {
+      .wrapper { padding: 12px !important; }
+      .content { padding: 24px !important; }
+      .details-table td { padding: 12px !important; }
+      .footer-logo-container { padding: 0 16px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; width: 100%; font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+  <table width="100%" style="background-color: #f8fafc; border-collapse: collapse;" role="presentation">
+    <tr>
+      <td align="center" style="padding: 24px 16px;">
+        <!-- Main Content Section -->
+        <table width="100%" style="max-width: 640px; background-color: #ffffff; border-radius: 12px; border-collapse: collapse;" role="presentation">
+          <tr>
+            <td style="padding: 48px;" class="content">
+              <img src="https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/public/logos/logo-dark.svg" alt="Guidia Logo" style="width: 161px; display: block; margin: 0 auto 24px;">
+              <h1 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 32px; color: #000000; margin: 0 0 24px; text-align: center;">Meeting Accepted</h1>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px; font-weight: 600;">Hello!</p>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px;">${acceptorName} has accepted your meeting request. Please review the details below:</p>
+              <h2 style="font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 22px; color: #000000; margin: 0 0 20px;">Meeting Details</h2>
+              <table width="100%" style="margin-bottom: 32px; border-collapse: collapse;" class="details-table" role="presentation">
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 16px; width: 30%; font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; color: #374151; vertical-align: top; border-bottom: 1px solid #e5e7eb;">Date:</td>
+                  <td style="padding: 16px; font-family: 'Open Sans', sans-serif; font-size: 15px; color: #1f2937; border-bottom: 1px solid #e5e7eb;">${formattedDate}</td>
+                </tr>
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 16px; width: 30%; font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; color: #374151; vertical-align: top; border-bottom: 1px solid #e5e7eb;">Time:</td>
+                  <td style="padding: 16px; font-family: 'Open Sans', sans-serif; font-size: 15px; color: #1f2937; border-bottom: 1px solid #e5e7eb;">${formattedTime}</td>
+                </tr>
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 16px; width: 30%; font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; color: #374151; vertical-align: top; border-bottom: 1px solid #e5e7eb;">Title:</td>
+                  <td style="padding: 16px; font-family: 'Open Sans', sans-serif; font-size: 15px; color: #1f2937; border-bottom: 1px solid #e5e7eb;">${meetingTitle}</td>
+                </tr>
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 16px; width: 30%; font-family: 'Open Sans', sans-serif; font-size: 15px; font-weight: 600; color: #374151; vertical-align: top; border-bottom: 1px solid #e5e7eb;">Description:</td>
+                  <td style="padding: 16px; font-family: 'Open Sans', sans-serif; font-size: 15px; color: #1f2937; border-bottom: 1px solid #e5e7eb;">${meetingDescription || 'No description provided'}</td>
+                </tr>
+              </table>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px;">Please log in to your account to view the meeting details.</p>
+              <table width="100%" style="border-collapse: collapse;" role="presentation">
+                <tr>
+                  <td align="center" style="padding: 32px 0 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://example.com'}/meetings/my-meetings" target="_blank" style="background-color: #800020; color: white; padding: 16px 32px; text-decoration: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 16px; display: inline-block;">View Meeting Details</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <!-- Footer Section -->
+        <table width="100%" style="max-width: 640px; border-collapse: collapse; padding: 24px 0; border-top: 1px solid #e5e7eb;" role="presentation">
+          <tr>
+            <td align="center" style="padding: 24px 16px;">
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; color: #6b7280; margin: 0 0 8px;">This message was sent to <span style="color: #000000;">${recipientEmail}</span>.</p>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; color: #6b7280; margin: 0 0 8px;">For any concerns, please contact <a href="mailto:support@example.com" style="color: #000000; text-decoration: none; border-bottom: 1px solid #000000;">support</a>.</p>
+              <table width="100%" style="border-collapse: collapse; padding: 24px 0;" role="presentation">
+                <tr>
+                  <td align="center" class="footer-logo-container">
+                    <a href="https://example.com" target="_blank">
+                      <img src="https://guidiacloudstorage.blob.core.windows.net/guidiacloudstorage-blob1/public/logos/logo-dark.svg" alt="Guidia Logo" style="width: 122px; display: block; margin: 12px auto;">
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; color: #6b7280; margin: 0;">Guidia Inc. Anuradhapura, Sri Lanka.</p>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; color: #6b7280; margin: 0;">© ${new Date().getFullYear()} Guidia. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>`
   };
 };
