@@ -17,6 +17,7 @@ const firebaseMessageUtils = require("./utils/firebaseMessageUtils");
 const { database } = require("./firebase-admin");
 const getRegistrationDeclinedTemplate = require("./email-templates/registration-declined-template");
 const getPasswordResetTemplate = require("./email-templates/password-reset-template");
+const getWelcomeTemplate = require("./email-templates/welcome-template");
 const azureStorageUtils = require("./utils/azureStorageUtils");
 
 // Import key rotation scheduler
@@ -1264,19 +1265,21 @@ app.post("/auth/forgot-password", async (req, res) => {
     // Store reset token in database
     await pool.query(
       "UPDATE users SET resetToken = ?, resetTokenExpiry = ? WHERE email = ?",
-      [resetToken, resetTokenExpiry, email]
+      [resetToken, resetTokenExpiry.toISOString(), email]
     );
 
     // Update the frontend URL to match your Vite application
     const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:1030";
+    const resetUrl = `${FRONTEND_URL}/auth/reset-password/${resetToken}`;
 
-    // Send reset email with correct frontend URL
-    await transporter.sendMail(
-      getPasswordResetTemplate(
-        email,
-        `${FRONTEND_URL}/auth/reset-password/${resetToken}`
-      )
-    );
+    // Get email template and send reset email
+    const emailOptions = getPasswordResetTemplate(email, resetUrl);
+    try {
+      await transporter.sendMail(emailOptions);
+    } catch (emailError) {
+      console.error("Error sending password reset email:", emailError);
+      // Continue with the response even if email fails
+    }
 
     res.json({
       message:
@@ -1292,13 +1295,20 @@ app.post("/auth/reset-password/verify-token", async (req, res) => {
   try {
     const { token } = req.body;
 
-    // Verify token exists and hasn't expired
-    const [users] = await pool.query(
-      "SELECT userID FROM users WHERE resetToken = ? AND resetTokenExpiry > NOW()",
+    // First check if the token exists in the database at all
+    const [tokenCheck] = await pool.query(
+      "SELECT userID, resetToken, resetTokenExpiry FROM users WHERE resetToken = ?",
       [token]
     );
 
-    if (users.length === 0) {
+    if (tokenCheck.length === 0) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    // Check if the token is still valid (not expired) using JavaScript date comparison
+    const isExpired = new Date(tokenCheck[0].resetTokenExpiry) < new Date();
+
+    if (isExpired) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
@@ -1313,13 +1323,20 @@ app.post("/auth/reset-password", async (req, res) => {
   try {
     const { token, password } = req.body;
 
-    // Verify token and check expiry
-    const [users] = await pool.query(
-      "SELECT userID FROM users WHERE resetToken = ? AND resetTokenExpiry > NOW()",
+    // First check if the token exists in the database at all
+    const [tokenCheck] = await pool.query(
+      "SELECT userID, resetToken, resetTokenExpiry FROM users WHERE resetToken = ?",
       [token]
     );
 
-    if (users.length === 0) {
+    if (tokenCheck.length === 0) {
+      return res.status(400).json({ error: "Invalid or expired reset token" });
+    }
+
+    // Check if the token is still valid (not expired) using JavaScript date comparison
+    const isExpired = new Date(tokenCheck[0].resetTokenExpiry) < new Date();
+
+    if (isExpired) {
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 

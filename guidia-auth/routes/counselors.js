@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const nodemailer = require('nodemailer');
+const getWelcomeTemplate = require('../email-templates/welcome-template');
 const { verifyToken, verifyCounselor, verifyOwnership } = require('../middleware/auth');
 
 // Using standardized auth middleware from middleware/auth.js
@@ -174,9 +176,51 @@ router.post('/profile', verifyToken, async (req, res) => {
         await connection.commit();
         console.log('Transaction committed successfully');
 
+        // Get user email for welcome email
+        const [userResult] = await connection.execute(
+          'SELECT email, username, welcomeEmailSent FROM users WHERE userID = ?',
+          [userID]
+        );
+
         // Release the connection back to the pool
         if (connection) connection.release();
         console.log('Database connection released');
+
+        // Send welcome email only if it hasn't been sent before
+        if (userResult.length > 0 && !userResult[0].welcomeEmailSent) {
+          // Create email transporter
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASSWORD,
+            },
+          });
+
+          try {
+            const userName = profileData.counselorName || userResult[0].username;
+            const userEmail = userResult[0].email;
+            const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:1030'}/auth/login`;
+
+            await transporter.sendMail(
+              getWelcomeTemplate(userEmail, userName, 'Counselor', loginUrl)
+            );
+
+            // Update the welcomeEmailSent flag
+            const pool = req.app.locals.pool;
+            await pool.execute(
+              'UPDATE users SET welcomeEmailSent = TRUE WHERE userID = ?',
+              [userID]
+            );
+
+            console.log(`Welcome email sent to counselor: ${userEmail}`);
+          } catch (emailError) {
+            console.error('Error sending welcome email:', emailError);
+            // Continue with the response even if email fails
+          }
+        } else if (userResult.length > 0 && userResult[0].welcomeEmailSent) {
+          console.log(`Welcome email already sent to counselor with userID: ${userID}`);
+        }
 
         res.json({
           success: true,

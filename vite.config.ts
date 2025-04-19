@@ -43,10 +43,15 @@ export default defineConfig({
           });
         },
         bypass: (req) => {
-          // Bypass proxy for frontend routes
-          if (req.url.startsWith('/auth/reset-password/') && req.method === 'GET') {
+          // Bypass proxy for frontend routes that should be handled by React Router
+          // Only bypass GET requests to the reset password page with a token
+          // Do NOT bypass API requests to verify the token
+          if (req.url.startsWith('/auth/reset-password/') &&
+              req.method === 'GET' &&
+              !req.url.includes('/verify-token')) {
             return req.url;
           }
+          return false;
         }
       },
       '/api': {

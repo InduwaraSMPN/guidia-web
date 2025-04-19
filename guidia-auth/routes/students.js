@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const nodemailer = require('nodemailer');
+const getWelcomeTemplate = require('../email-templates/welcome-template');
 const { verifyToken, verifyStudent, verifyOwnership } = require('../middleware/auth');
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -373,6 +375,47 @@ router.post('/profile', verifyToken, async (req, res) => {
          WHERE userID = ?`,
         values
       );
+    }
+
+    // Get user email and name for welcome email
+    const [userResult] = await pool.execute(
+      'SELECT email, username, welcomeEmailSent FROM users WHERE userID = ?',
+      [userID]
+    );
+
+    if (userResult.length > 0 && !userResult[0].welcomeEmailSent) {
+      // Create email transporter
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      // Send welcome email
+      try {
+        const userName = updates.studentName || userResult[0].username;
+        const userEmail = userResult[0].email;
+        const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:1030'}/auth/login`;
+
+        await transporter.sendMail(
+          getWelcomeTemplate(userEmail, userName, 'Student', loginUrl)
+        );
+
+        // Update the welcomeEmailSent flag
+        await pool.execute(
+          'UPDATE users SET welcomeEmailSent = TRUE WHERE userID = ?',
+          [userID]
+        );
+
+        console.log(`Welcome email sent to student: ${userEmail}`);
+      } catch (emailError) {
+        console.error('Error sending welcome email:', emailError);
+        // Continue with the response even if email fails
+      }
+    } else if (userResult.length > 0 && userResult[0].welcomeEmailSent) {
+      console.log(`Welcome email already sent to student with userID: ${userID}`);
     }
 
     res.json({ message: 'Profile updated successfully' });
