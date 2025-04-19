@@ -1,0 +1,17 @@
+{
+  "name": "email-template-tools",
+  "version": "1.0.0",
+  "description": "Tools to check and preview email templates",
+  "main": "run-email-tools.js",
+  "scripts": {
+    "start": "node run-email-tools.js",
+    "check": "node email-template-checker.js",
+    "preview": "node email-template-previewer.js",
+    "all": "npm run check && npm run preview"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "jsdom": "^22.1.0",
+    "node-fetch": "^2.7.0"
+  }
+}
