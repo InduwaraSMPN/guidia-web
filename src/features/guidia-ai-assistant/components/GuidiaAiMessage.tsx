@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
+import { cn, sanitizeHtml } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useThemeContext } from "@/contexts/ThemeContext";
+import { useEffect, useState } from "react";
 
 interface GuidiaAiMessageProps {
   content: string;
@@ -8,6 +9,7 @@ interface GuidiaAiMessageProps {
   isUser: boolean;
   aiName?: string;
   isStreaming?: boolean;
+  isRichText?: boolean;
 }
 
 export function GuidiaAiMessage({
@@ -16,13 +18,27 @@ export function GuidiaAiMessage({
   isUser,
   aiName = "Guidia AI",
   isStreaming = false,
+  isRichText = true, // Default to true to handle rich text content
 }: GuidiaAiMessageProps) {
   const { isDark } = useThemeContext();
+  const [sanitizedContent, setSanitizedContent] = useState("");
+
+  // Sanitize content when it changes
+  useEffect(() => {
+    if (content) {
+      // Always sanitize content to ensure safety
+      // For AI responses that contain emojis and formatting, we need to ensure they're preserved
+      const sanitized = isRichText ? sanitizeHtml(content) : content;
+      setSanitizedContent(sanitized);
+    } else {
+      setSanitizedContent('');
+    }
+  }, [content, isRichText]);
   return (
     <div
       className={cn(
         "flex w-full mb-3 relative group items-end",
-        isUser ? "justify-end" : "justify-start"
+        isUser ? "justify-end" : "justify-start guidia-ai-message"
       )}
     >
       {/* Avatar for AI messages only */}
@@ -56,8 +72,15 @@ export function GuidiaAiMessage({
             {aiName}
           </p>
         )}
-        <div className="text-sm leading-relaxed whitespace-pre-wrap">
-          {content}
+        <div className="text-sm leading-relaxed">
+          {isRichText ? (
+            <div
+              className="prose prose-sm max-w-none dark:prose-invert overflow-hidden chat-message-content"
+              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+            />
+          ) : (
+            <div className="whitespace-pre-wrap">{sanitizedContent}</div>
+          )}
           {isStreaming && (
             <span className="inline-flex items-center ml-1">
               <Loader2 className="h-3 w-3 animate-spin mr-1" />

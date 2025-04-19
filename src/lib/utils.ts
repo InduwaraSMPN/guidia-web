@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import DOMPurify from "dompurify";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -27,6 +28,44 @@ export function getFileExtension(filename: string): string {
 export function stripHtmlTags(html: string): string {
   if (!html) return '';
   return html.replace(/<\/?[^>]+(>|$)/g, '');
+}
+
+/**
+ * Sanitizes HTML content to prevent XSS attacks
+ * @param html HTML content to sanitize
+ * @returns Sanitized HTML string
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return '';
+
+  // Special handling for content with emojis
+  // First, check if the content is just plain text with emojis
+  const hasHtmlTags = /<[a-z][\s\S]*>/i.test(html);
+
+  if (!hasHtmlTags) {
+    // If it's just plain text with emojis, wrap it in a paragraph
+    return `<p>${html}</p>`;
+  }
+
+  // Otherwise, sanitize the HTML
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'span',
+      'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
+      'img', 'figure', 'figcaption', 'hr', 'section', 'article', 'aside', 'details',
+      'summary', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'target', 'rel', 'class', 'style', 'src', 'alt', 'title', 'width', 'height',
+      'id', 'name', 'align', 'valign', 'border', 'cellpadding', 'cellspacing'
+    ],
+    FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'button'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['target'], // Allow target attribute for links
+    RETURN_DOM_FRAGMENT: false,
+    RETURN_DOM: false
+  });
 }
 
 /**

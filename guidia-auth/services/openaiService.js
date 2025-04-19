@@ -72,7 +72,7 @@ class OpenAIService {
 
       // Common request parameters
       const requestParams = {
-        model: "Meta-Llama-3.1-405B-Instruct", // Using SambaNova's Llama 3.1 model
+        model: "DeepSeek-V3-0324", // Using SambaNova's Llama 3.1 model
         messages: messages,
         max_tokens: 500,
         temperature: 0.7
@@ -86,7 +86,7 @@ class OpenAIService {
       });
 
       try {
-        console.log('About to call AI API with model:', "Meta-Llama-3.1-405B-Instruct");
+        console.log('About to call AI API with model:', "DeepSeek-V3-0324");
 
         if (stream) {
           // Return a streaming response

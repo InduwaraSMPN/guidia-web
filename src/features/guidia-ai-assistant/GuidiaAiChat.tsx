@@ -8,6 +8,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "@/config";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { stripHtmlTags } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -15,6 +17,7 @@ interface Message {
   timestamp: string;
   isUser: boolean;
   isStreaming?: boolean;
+  isRichText?: boolean;
 }
 
 export function GuidiaAiChat() {
@@ -58,8 +61,8 @@ export function GuidiaAiChat() {
   };
 
   // Handle input changes in chat view
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setInputValue(e.target.value);
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
   };
 
   // Get AI response from OpenAI API with streaming support
@@ -68,19 +71,21 @@ export function GuidiaAiChat() {
 
     try {
       // Format the conversation history for the API
+      // Strip HTML tags for API requests to ensure clean text
       const history = messages.map(msg => ({
-        content: msg.content,
+        content: msg.isRichText ? stripHtmlTags(msg.content) : msg.content,
         isUser: msg.isUser
       }));
 
       // Create a placeholder message for streaming response
-      const aiMessageId = Date.now().toString();
+      const aiMessageId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const placeholderMessage: Message = {
         id: aiMessageId,
         content: "",
         timestamp: getFormattedTime(),
         isUser: false,
         isStreaming: true,
+        isRichText: true, // Ensure rich text is enabled for AI responses
       };
 
       // Add the placeholder message
@@ -250,10 +255,11 @@ export function GuidiaAiChat() {
 
       // Fallback response in case of error
       const fallbackMessage: Message = {
-        id: Date.now().toString(),
+        id: `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         content: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
         timestamp: getFormattedTime(),
         isUser: false,
+        isRichText: true, // Ensure rich text is enabled for AI responses
       };
 
       setMessages(prev => [...prev, fallbackMessage]);
@@ -272,10 +278,11 @@ export function GuidiaAiChat() {
 
     // Create a new user message
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       content: question,
       timestamp: getFormattedTime(),
       isUser: true,
+      isRichText: false, // Plain text for initial input
     };
 
     // Add the message and show chat view
@@ -288,31 +295,30 @@ export function GuidiaAiChat() {
 
   // Handle sending message in chat view
   const handleSendMessage = () => {
-    if (!inputValue.trim() || isLoading) return;
+    // Check if there's actual content after stripping HTML tags
+    const plainTextContent = stripHtmlTags(inputValue).trim();
+    if (!plainTextContent || isLoading) return;
 
     // Create a new user message
     const newMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue.trim(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      content: inputValue, // Keep the HTML content
       timestamp: getFormattedTime(),
       isUser: true,
+      isRichText: true, // Rich text for chat view input
     };
+
+    // We'll use the inputValue directly
 
     // Add the message and clear input
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
 
-    // Get AI response
-    getAiResponse(inputValue.trim());
+    // Get AI response using plain text version
+    getAiResponse(plainTextContent);
   };
 
-  // Handle key press in chat input
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  // We don't need the handleKeyDown function anymore as RichTextEditor handles this internally
 
   return (
     <div className="h-screen w-full bg-background relative flex flex-col antialiased overflow-hidden">
@@ -370,11 +376,12 @@ export function GuidiaAiChat() {
                 {/* Messages */}
                 {messages.map((message) => (
                   <GuidiaAiMessage
-                    key={message.id}
+                    key={`message-${message.id}`}
                     content={message.content}
                     timestamp={message.timestamp}
                     isUser={message.isUser}
                     isStreaming={message.isStreaming}
+                    isRichText={message.isRichText !== false} // Default to true if not specified
                   />
                 ))}
 
@@ -385,28 +392,37 @@ export function GuidiaAiChat() {
               </div>
             </div>
 
-            {/* Chat input */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 mb-4">
-              <div className="max-w-3xl mx-auto flex gap-2">
-                <textarea
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="flex-1 resize-none rounded-lg border bg-secondary px-4 py-2.5 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
-                  rows={1}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
-                </button>
+            {/* Chat input with rich text editor */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 mb-4 bg-background/80 backdrop-blur-sm z-20">
+              <div className="max-w-3xl mx-auto flex flex-col gap-2">
+                <div className="flex-1 relative z-30 pointer-events-auto">
+                  <div className="rich-text-editor-container">
+                    <RichTextEditor
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      placeholder="Type your message..."
+                      className="rounded-lg border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200 shadow-lg"
+                      readOnly={isLoading}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!stripHtmlTags(inputValue).trim() || isLoading}
+                    className="flex h-10 px-4 items-center justify-center rounded-full bg-brand text-white disabled:opacity-50 gap-2 shadow-md hover:bg-brand-light transition-colors"
+                    aria-label="Send message"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <span>Send</span>
+                        <Send className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

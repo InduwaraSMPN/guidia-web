@@ -13,6 +13,9 @@ export interface RichTextEditorProps {
 
 const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
   ({ className, value, onChange, placeholder, readOnly }, ref) => {
+    // Track if the editor has been initialized
+    const [isInitialized, setIsInitialized] = React.useState(false);
+
     const { quill, quillRef } = useQuill({
       theme: "snow",
       placeholder,
@@ -27,6 +30,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           ['clean']
         ]
       },
+      bounds: document.body,
     });
 
     // Ensure we always have a function for onChange, even if it's a no-op
@@ -36,7 +40,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     React.useEffect(() => {
       if (quill) {
-        // Set initial value only once when quill is initialized and the editor is empty
+        // Set initial value when quill is initialized
         if (value && quill.getText().trim() === '') {
           quill.clipboard.dangerouslyPasteHTML(value);
         }
@@ -52,7 +56,30 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           quill.off("text-change", handleChange);
         };
       }
-    }, [quill, value, memoizedOnChange]);
+    }, [quill, memoizedOnChange]);
+
+    // Handle external value changes
+    React.useEffect(() => {
+      if (quill && value !== undefined) {
+        const currentContent = quill.root.innerHTML;
+        if (value !== currentContent) {
+          // Only update if the value has actually changed
+          quill.clipboard.dangerouslyPasteHTML(value);
+        }
+      }
+    }, [quill, value]);
+
+    // Set focus on the editor when it's initialized
+    React.useEffect(() => {
+      if (quill && !isInitialized && !readOnly) {
+        // Mark as initialized
+        setIsInitialized(true);
+        // Set focus after a short delay to ensure the editor is fully rendered
+        setTimeout(() => {
+          quill.focus();
+        }, 100);
+      }
+    }, [quill, isInitialized, readOnly]);
 
     React.useImperativeHandle(ref, () => quillRef.current!, [quillRef]);
 
