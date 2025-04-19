@@ -9,7 +9,7 @@ import { Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "@/config";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
-import { stripHtmlTags } from "@/lib/utils";
+import { stripHtmlTags, containsHtmlTags, formatTextAsHtml } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -147,11 +147,14 @@ export function GuidiaAiChat() {
                     if (parsed.content) {
                       fullContent += parsed.content;
 
+                      // Format content as HTML if it doesn't already contain HTML tags
+                      const formattedContent = containsHtmlTags(fullContent) ? fullContent : formatTextAsHtml(fullContent);
+
                       // Update the message with the new content
                       setMessages(prev =>
                         prev.map(msg =>
                           msg.id === aiMessageId
-                            ? { ...msg, content: fullContent }
+                            ? { ...msg, content: formattedContent, isRichText: true }
                             : msg
                         )
                       );
@@ -182,8 +185,9 @@ export function GuidiaAiChat() {
                   msg.id === aiMessageId
                     ? {
                         ...msg,
-                        content: jsonResponse.data.response,
-                        isStreaming: false
+                        content: containsHtmlTags(jsonResponse.data.response) ? jsonResponse.data.response : formatTextAsHtml(jsonResponse.data.response),
+                        isStreaming: false,
+                        isRichText: true
                       }
                     : msg
                 )
@@ -218,8 +222,9 @@ export function GuidiaAiChat() {
                   msg.id === aiMessageId
                     ? {
                         ...msg,
-                        content: jsonResponse.data.response,
-                        isStreaming: false
+                        content: containsHtmlTags(jsonResponse.data.response) ? jsonResponse.data.response : formatTextAsHtml(jsonResponse.data.response),
+                        isStreaming: false,
+                        isRichText: true
                       }
                     : msg
                 )
@@ -236,8 +241,9 @@ export function GuidiaAiChat() {
                 msg.id === aiMessageId
                   ? {
                       ...msg,
-                      content: "I'm sorry, I encountered an error while generating a response. Please try again.",
-                      isStreaming: false
+                      content: "<p>I'm sorry, I encountered an error while generating a response. Please try again.</p>",
+                      isStreaming: false,
+                      isRichText: true
                     }
                   : msg
               )
@@ -256,10 +262,10 @@ export function GuidiaAiChat() {
       // Fallback response in case of error
       const fallbackMessage: Message = {
         id: `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        content: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
+        content: "<p>I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.</p>",
         timestamp: getFormattedTime(),
         isUser: false,
-        isRichText: true, // Ensure rich text is enabled for AI responses
+        isRichText: true // Ensure rich text is enabled for AI responses
       };
 
       setMessages(prev => [...prev, fallbackMessage]);
@@ -308,8 +314,6 @@ export function GuidiaAiChat() {
       isRichText: true, // Rich text for chat view input
     };
 
-    // We'll use the inputValue directly
-
     // Add the message and clear input
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
@@ -335,12 +339,57 @@ export function GuidiaAiChat() {
             className="flex-1 flex flex-col items-center justify-center p-4 relative z-10"
           >
             <div className="max-w-2xl mx-auto flex flex-col items-center">
-              <h1 className="text-4xl md:text-7xl text-brand text-center font-sans font-bold mb-4 whitespace-nowrap">
-                <span className="font-grillmaster">Guidia</span> AI Assistant
+              <h1 className="text-4xl md:text-7xl text-center font-sans font-bold mb-4 whitespace-nowrap">
+                <span className="font-grillmaster bg-gradient-to-r from-brand-dark via-brand to-brand-light text-transparent bg-clip-text">Guidia</span>
+                <span className="text-brand"> AI Assistant</span>
               </h1>
               <p className="text-muted-foreground max-w-lg mx-auto my-2 text-sm text-center">
                 Welcome to Guidia AI. Type a question below to start a conversation with your career guidance companion.
               </p>
+              <button
+                onClick={() => {
+                  setMessages([{
+                    id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    content: "give me sample rich text",
+                    timestamp: getFormattedTime(),
+                    isUser: true,
+                    isRichText: false,
+                  }]);
+                  setIsChatVisible(true);
+                  // Simulate AI response with rich text
+                  setTimeout(() => {
+                    const aiMessageId = `ai-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                    setMessages(prev => [...prev, {
+                      id: aiMessageId,
+                      content: `<h3>Rich Text Sample</h3>
+<p>Here's a <strong>rich text</strong> sample with various formatting:</p>
+<ul>
+  <li>This is a <em>bulleted</em> list item</li>
+  <li>This is <strong>another</strong> item with <span style="color: #800020;">brand color</span></li>
+</ul>
+<p>You can also include:</p>
+<ol>
+  <li>Numbered lists</li>
+  <li>With multiple items</li>
+</ol>
+<blockquote>This is a blockquote that can be used for important information.</blockquote>
+<p>The Guidia AI Assistant can help with:</p>
+<ul>
+  <li>Career guidance information</li>
+  <li>University resources</li>
+  <li>Job application tips</li>
+  <li>And much more!</li>
+</ul>`,
+                      timestamp: getFormattedTime(),
+                      isUser: false,
+                      isRichText: true,
+                    }]);
+                  }, 1000);
+                }}
+                className="text-sm text-brand hover:text-brand-light underline mt-2"
+              >
+                Show me a sample rich text response
+              </button>
 
               {/* Use the PlaceholdersAndVanishInput component */}
               <PlaceholdersAndVanishInput
@@ -362,14 +411,15 @@ export function GuidiaAiChat() {
           >
             {/* Chat header */}
             <div className="flex justify-center items-center pt-32">
-              <h2 className="text-4xl font-bold text-brand">
-                <span className="font-grillmaster">Guidia</span> AI Assistant
+              <h2 className="text-4xl font-bold">
+                <span className="font-grillmaster bg-gradient-to-r from-brand-dark via-brand to-brand-light text-transparent bg-clip-text">Guidia</span>
+                <span className="text-brand"> AI Assistant</span>
               </h2>
             </div>
 
             {/* Chat messages */}
             <div className="flex-1 overflow-y-auto p-4 pb-20">
-              <div className="max-w-3xl mx-auto space-y-6">
+              <div className="max-w-3xl mx-auto space-y-6 overflow-visible">
                 {/* Date divider */}
                 <DateDivider date={getTodayDate()} />
 
@@ -403,6 +453,7 @@ export function GuidiaAiChat() {
                       placeholder="Type your message..."
                       className="rounded-lg border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200 shadow-lg"
                       readOnly={isLoading}
+                      onEnterPress={handleSendMessage}
                     />
                   </div>
                 </div>

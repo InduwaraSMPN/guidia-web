@@ -9,10 +9,11 @@ export interface RichTextEditorProps {
   className?: string;
   placeholder?: string;
   readOnly?: boolean;
+  onEnterPress?: () => void;
 }
 
 const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
-  ({ className, value, onChange, placeholder, readOnly }, ref) => {
+  ({ className, value, onChange, placeholder, readOnly, onEnterPress }, ref) => {
     // Track if the editor has been initialized
     const [isInitialized, setIsInitialized] = React.useState(false);
 
@@ -49,14 +50,28 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           memoizedOnChange(quill.root.innerHTML);
         };
 
-        quill.on("text-change", handleChange);
+        // Handle Enter key press to submit the form
+        const handleKeyDown = (event: KeyboardEvent) => {
+          // Check if Enter is pressed without Shift (Shift+Enter creates a new line)
+          if (event.key === 'Enter' && !event.shiftKey && onEnterPress) {
+            // Prevent the default behavior (new line)
+            event.preventDefault();
+            // Call the onEnterPress callback
+            onEnterPress();
+          }
+        };
 
-        // Cleanup function to remove the event listener
+        // Add event listeners
+        quill.on("text-change", handleChange);
+        quill.root.addEventListener('keydown', handleKeyDown);
+
+        // Cleanup function to remove the event listeners
         return () => {
           quill.off("text-change", handleChange);
+          quill.root.removeEventListener('keydown', handleKeyDown);
         };
       }
-    }, [quill, memoizedOnChange]);
+    }, [quill, memoizedOnChange, onEnterPress]);
 
     // Handle external value changes
     React.useEffect(() => {

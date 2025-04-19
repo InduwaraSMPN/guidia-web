@@ -31,6 +31,36 @@ export function stripHtmlTags(html: string): string {
 }
 
 /**
+ * Formats plain text as HTML by converting line breaks to <br> tags
+ * and wrapping paragraphs in <p> tags
+ * @param text Plain text to format as HTML
+ * @returns Formatted HTML string
+ */
+export function formatTextAsHtml(text: string): string {
+  if (!text) return '';
+
+  // Split text by double line breaks (paragraphs)
+  const paragraphs = text.split(/\n\s*\n/);
+
+  // Process each paragraph
+  return paragraphs.map(para => {
+    // Replace single line breaks with <br>
+    const withLineBreaks = para.replace(/\n/g, '<br>');
+    return `<p>${withLineBreaks}</p>`;
+  }).join('');
+}
+
+/**
+ * Checks if a string contains HTML tags
+ * @param text Text to check
+ * @returns Boolean indicating if the text contains HTML tags
+ */
+export function containsHtmlTags(text: string): boolean {
+  if (!text) return false;
+  return /<[a-z][\s\S]*>/i.test(text);
+}
+
+/**
  * Sanitizes HTML content to prevent XSS attacks
  * @param html HTML content to sanitize
  * @returns Sanitized HTML string
@@ -40,11 +70,11 @@ export function sanitizeHtml(html: string): string {
 
   // Special handling for content with emojis
   // First, check if the content is just plain text with emojis
-  const hasHtmlTags = /<[a-z][\s\S]*>/i.test(html);
+  const hasHtmlTags = containsHtmlTags(html);
 
   if (!hasHtmlTags) {
-    // If it's just plain text with emojis, wrap it in a paragraph
-    return `<p>${html}</p>`;
+    // If it's just plain text with emojis, format it as HTML
+    return formatTextAsHtml(html);
   }
 
   // Otherwise, sanitize the HTML

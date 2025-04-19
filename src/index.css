@@ -420,6 +420,9 @@ html {
   line-height: 1.5;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .chat-message-content p {
@@ -480,6 +483,9 @@ html {
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   word-break: break-word !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: visible !important;
 }
 
 /* Dark mode support */
@@ -488,6 +494,9 @@ html {
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   word-break: break-word !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow: visible !important;
 }
 
 /* Chat message rich text styles */

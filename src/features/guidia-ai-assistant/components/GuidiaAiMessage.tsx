@@ -43,11 +43,11 @@ export function GuidiaAiMessage({
     >
       {/* Avatar for AI messages only */}
       {!isUser && (
-        <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-brand mr-1.5">
+        <div className="h-8 w-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center bg-white mr-1.5">
           {isDark ? (
             <img src="/images/small-logo-light.svg" alt="Guidia AI" className="h-6 w-6" />
           ) : (
-            <img src="/images/small-logo-light.svg" alt="Guidia AI" className="h-6 w-6" />
+            <img src="/images/small-logo-dark.svg" alt="Guidia AI" className="h-6 w-6" />
           )}
         </div>
       )}
@@ -55,16 +55,19 @@ export function GuidiaAiMessage({
       {/* Message bubble */}
       <div
         className={cn(
-          "max-w-[70%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200",
+          "max-w-[85%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200",
           isUser
-            ? "bg-brand text-white hover:bg-[#8a0024]"
-            : "bg-secondary-light text-adaptive-dark hover:bg-secondary-dark"
+            ? "bg-brand text-white hover:bg-[#8a0024] hover:text-white"
+            : "bg-secondary-light text-adaptive-dark hover:bg-secondary-dark hover:text-adaptive-dark"
         )}
         style={{
           borderBottomRightRadius: isUser ? 0 : undefined,
           borderBottomLeftRadius: isUser ? undefined : 0,
           transform: "scale(1)",
           transition: "transform 0.2s ease, background-color 0.2s ease",
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word'
         }}
       >
         {!isUser && (
@@ -75,7 +78,7 @@ export function GuidiaAiMessage({
         <div className="text-sm leading-relaxed">
           {isRichText ? (
             <div
-              className="prose prose-sm max-w-none dark:prose-invert overflow-hidden chat-message-content"
+              className="prose prose-sm max-w-none dark:prose-invert chat-message-content"
               dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             />
           ) : (
