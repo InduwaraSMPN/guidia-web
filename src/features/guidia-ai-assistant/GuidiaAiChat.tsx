@@ -544,12 +544,12 @@ export function GuidiaAiChat() {
             {/* Chat messages */}
             <section
               ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto p-4 pb-32 scroll-smooth"
+              className="flex-1 overflow-y-auto p-4 pb-[180px] md:pb-[140px] scroll-smooth" // Increased bottom padding
               aria-live="polite"
               aria-atomic="false"
               aria-relevant="additions"
             >
-              <div className="max-w-3xl mx-auto space-y-6 overflow-visible pb-32">
+              <div className="max-w-3xl mx-auto space-y-6 overflow-visible mb-32">
                 {/* Date divider */}
                 <DateDivider date={getTodayDate()} />
 
@@ -604,7 +604,7 @@ export function GuidiaAiChat() {
             </AnimatePresence>
 
             {/* Chat input with rich text editor */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 mb-0 z-50">
+            <div className="fixed bottom-0 left-0 right-0 p-4 mb-0 z-50 bg-background"> {/* Added bg-background */}
               <Card className="max-w-3xl mx-auto shadow-lg">
                 <div className="p-2">
                   <div className="flex-1 relative z-50 pointer-events-auto" style={{ touchAction: 'auto' }}>

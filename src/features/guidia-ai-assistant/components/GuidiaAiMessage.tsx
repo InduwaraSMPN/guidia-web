@@ -73,7 +73,7 @@ export function GuidiaAiMessage({
       {/* Message bubble */}
       <div
         className={cn(
-          "max-w-[85%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200",
+          "max-w-[90%] rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200",
           isUser
             ? "bg-brand text-white focus-within:ring-2 focus-within:ring-brand-light focus-within:ring-opacity-50"
             : "bg-secondary-light text-adaptive-dark focus-within:ring-2 focus-within:ring-brand focus-within:ring-opacity-30",
