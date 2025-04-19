@@ -1,15 +1,15 @@
 /**
- * Controller for handling AI API interactions with SambaNova
+ * Controller for handling AI API interactions with multiple providers (SambaNova, DeepSeek)
  */
 const OpenAIService = require('../services/openaiService');
 
 const aiController = {
   /**
-   * Send a message to the SambaNova API and get a response
+   * Send a message to the AI API and get a response
    */
   sendMessage: async (req, res) => {
     try {
-      const { message, history, stream = false } = req.body;
+      const { message, history, stream = false, provider = null } = req.body;
 
       if (!message) {
         return res.status(400).json({
@@ -26,7 +26,13 @@ const aiController = {
 
       // Initialize AI service with API key from environment
       const aiService = new OpenAIService();
-      console.log('AI service initialized');
+
+      // Set the provider if specified
+      if (provider) {
+        aiService.setProvider(provider);
+      }
+
+      console.log('AI service initialized with provider:', provider || aiService.provider);
 
       // Handle streaming response
       if (stream) {
@@ -105,12 +111,12 @@ const aiController = {
   },
 
   /**
-   * Stream a message to the SambaNova API and get a streaming response
+   * Stream a message to the AI API and get a streaming response
    * This is an alternative endpoint specifically for streaming
    */
   streamMessage: async (req, res) => {
     try {
-      const { message, history } = req.body;
+      const { message, history, provider = null } = req.body;
 
       if (!message) {
         return res.status(400).json({
@@ -133,7 +139,13 @@ const aiController = {
 
         // Initialize AI service
         const aiService = new OpenAIService();
-        console.log('AI service initialized for streaming');
+
+        // Set the provider if specified
+        if (provider) {
+          aiService.setProvider(provider);
+        }
+
+        console.log('AI service initialized for streaming with provider:', provider || aiService.provider);
 
         // Get streaming response from SambaNova
         const streamResponse = await aiService.sendMessage(message, history || [], true);

@@ -1,5 +1,5 @@
 /**
- * Service for handling AI API interactions using SambaNova.ai
+ * Service for handling AI API interactions using SambaNova.ai and DeepSeek
  */
 const { OpenAI } = require('openai');
 const path = require('path');
@@ -7,34 +7,72 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 class OpenAIService {
   constructor() {
-    // Get the SambaNova API key from environment variables
-    this.apiKey = process.env.SAMBANOVA_API_KEY;
+    // Get the API keys from environment variables
+    this.sambanovaApiKey = process.env.SAMBANOVA_API_KEY;
+    this.deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+
+    // Set default provider based on available API keys
+    if (this.sambanovaApiKey) {
+      this.provider = 'sambanova';
+    } else if (this.deepseekApiKey) {
+      this.provider = 'deepseek';
+    } else {
+      this.provider = 'sambanova'; // Default fallback
+    }
 
     // Debug logging
-    console.log('Loading API key from environment variables');
-    console.log('API key available:', !!this.apiKey);
-    console.log('API key first 5 chars:', this.apiKey ? this.apiKey.substring(0, 5) : 'none');
+    console.log('Loading API keys from environment variables');
+    console.log('SambaNova API key available:', !!this.sambanovaApiKey);
+    console.log('SambaNova API key first 5 chars:', this.sambanovaApiKey ? this.sambanovaApiKey.substring(0, 5) : 'none');
+    console.log('DeepSeek API key available:', !!this.deepseekApiKey);
+    console.log('DeepSeek API key first 5 chars:', this.deepseekApiKey ? this.deepseekApiKey.substring(0, 5) : 'none');
     console.log('Environment variables loaded from:', path.resolve(__dirname, '../.env'));
 
     try {
-      // Initialize the OpenAI client with SambaNova base URL
-      this.client = new OpenAI({
-        baseURL: 'https://api.sambanova.ai/v1',
-        apiKey: this.apiKey, // Use the API key from environment variables
-        dangerouslyAllowBrowser: true // Allow browser usage
-      });
+      // Initialize the SambaNova client
+      if (this.sambanovaApiKey) {
+        this.sambanovaClient = new OpenAI({
+          baseURL: 'https://api.sambanova.ai/v1',
+          apiKey: this.sambanovaApiKey,
+          dangerouslyAllowBrowser: true // Allow browser usage
+        });
+        console.log('SambaNova client initialized');
+      }
+
+      // Initialize the DeepSeek client
+      if (this.deepseekApiKey) {
+        this.deepseekClient = new OpenAI({
+          baseURL: 'https://api.deepseek.com',
+          apiKey: this.deepseekApiKey,
+          dangerouslyAllowBrowser: true // Allow browser usage
+        });
+        console.log('DeepSeek client initialized');
+      }
 
       // Log the status for debugging
-      if (!this.apiKey) {
-        console.warn('API key is not set. Using fallback responses.');
+      if (!this.sambanovaApiKey && !this.deepseekApiKey) {
+        console.warn('No API keys are set. Using fallback responses.');
         this.useAI = false;
       } else {
-        console.log('API key is configured:', this.apiKey.substring(0, 5) + '...');
+        console.log('At least one API key is configured');
         this.useAI = true;
       }
     } catch (error) {
-      console.error('Error initializing AI client:', error);
+      console.error('Error initializing AI clients:', error);
       this.useAI = false;
+    }
+  }
+
+  /**
+   * Set the AI provider to use
+   * @param {string} provider - The provider to use ('sambanova' or 'deepseek')
+   */
+  setProvider(provider) {
+    if (provider === 'sambanova' || provider === 'deepseek') {
+      this.provider = provider;
+      console.log(`Provider set to ${provider}`);
+    } else {
+      console.warn(`Invalid provider: ${provider}. Using default provider: ${this.provider}`);
     }
   }
 
@@ -43,17 +81,49 @@ class OpenAIService {
    * @param {string} message - The user's message
    * @param {Array} history - Previous conversation history
    * @param {boolean} stream - Whether to stream the response
+   * @param {string} provider - Optional provider override ('sambanova' or 'deepseek')
    * @returns {Promise<string|ReadableStream>} - The AI response or a stream
    */
-  async sendMessage(message, history = [], stream = false) {
+  async sendMessage(message, history = [], stream = false, provider = null) {
     try {
-      console.log('Sending message to AI:', { messageLength: message.length, historyLength: history.length, stream });
-      console.log('API key available:', !!this.apiKey);
+      // Use provided provider or default to the class property
+      let activeProvider = provider || this.provider;
+
+      // If the requested provider doesn't have an API key, try the other one
+      if (activeProvider === 'sambanova' && !this.sambanovaApiKey && this.deepseekApiKey) {
+        console.log('SambaNova API key not available, switching to DeepSeek');
+        activeProvider = 'deepseek';
+      } else if (activeProvider === 'deepseek' && !this.deepseekApiKey && this.sambanovaApiKey) {
+        console.log('DeepSeek API key not available, switching to SambaNova');
+        activeProvider = 'sambanova';
+      }
+
+      console.log('Sending message to AI using provider:', activeProvider);
+      console.log('Message details:', { messageLength: message.length, historyLength: history.length, stream });
+
+      // Determine which client and API key to use
+      let client, apiKey, model;
+
+      if (activeProvider === 'sambanova') {
+        client = this.sambanovaClient;
+        apiKey = this.sambanovaApiKey;
+        model = "Meta-Llama-3.1-405B-Instruct"; // SambaNova's Llama 3.1 model
+      } else if (activeProvider === 'deepseek') {
+        client = this.deepseekClient;
+        apiKey = this.deepseekApiKey;
+        model = "deepseek-chat"; // DeepSeek's model
+      }
+
+      console.log(`${activeProvider} API key available:`, !!apiKey);
       console.log('useAI flag:', this.useAI);
 
       // If API key is not available or we're not using AI, use fallback responses
-      if (!this.apiKey || !this.useAI) {
-        console.log('Using fallback response due to:', { noApiKey: !this.apiKey, useAIDisabled: !this.useAI });
+      if (!apiKey || !this.useAI || !client) {
+        console.log('Using fallback response due to:', {
+          noApiKey: !apiKey,
+          useAIDisabled: !this.useAI,
+          noClient: !client
+        });
         return this.getFallbackResponse(message);
       }
 
@@ -72,26 +142,26 @@ class OpenAIService {
 
       // Common request parameters
       const requestParams = {
-        model: "DeepSeek-V3-0324", // Using SambaNova's Llama 3.1 model
+        model: model,
         messages: messages,
         max_tokens: 500,
         temperature: 0.7
       };
 
       // Make the API request using the OpenAI SDK
-      console.log('Making API request to AI with client:', !!this.client);
+      console.log(`Making API request to ${activeProvider} with client:`, !!client);
       console.log('Request parameters:', {
         ...requestParams,
         stream
       });
 
       try {
-        console.log('About to call AI API with model:', "DeepSeek-V3-0324");
+        console.log(`About to call ${activeProvider} API with model:`, model);
 
         if (stream) {
           // Return a streaming response
           console.log('Creating streaming response');
-          const streamResponse = await this.client.chat.completions.create({
+          const streamResponse = await client.chat.completions.create({
             ...requestParams,
             stream: true
           });
@@ -99,7 +169,7 @@ class OpenAIService {
           return streamResponse;
         } else {
           // Return a regular response
-          const completion = await this.client.chat.completions.create(requestParams);
+          const completion = await client.chat.completions.create(requestParams);
 
           console.log('AI API response received:', {
             status: 'success',
@@ -109,12 +179,28 @@ class OpenAIService {
           return completion.choices[0].message.content.trim();
         }
       } catch (apiError) {
-        console.error('AI API call failed:', apiError);
+        console.error(`${activeProvider} API call failed:`, apiError);
         console.error('Error details:', apiError.message);
 
-        // Return a fallback response instead of throwing the error
-        console.log('Using fallback response due to API error');
-        return this.getFallbackResponse(message);
+        // Try the other provider if available
+        const alternateProvider = activeProvider === 'sambanova' ? 'deepseek' : 'sambanova';
+        const alternateClient = activeProvider === 'sambanova' ? this.deepseekClient : this.sambanovaClient;
+        const alternateApiKey = activeProvider === 'sambanova' ? this.deepseekApiKey : this.sambanovaApiKey;
+
+        if (alternateClient && alternateApiKey) {
+          console.log(`Trying alternate provider: ${alternateProvider}`);
+          try {
+            return await this.sendMessage(message, history, stream, alternateProvider);
+          } catch (alternateError) {
+            console.error(`Alternate provider ${alternateProvider} also failed:`, alternateError);
+            // Fall back to the fallback response
+            return this.getFallbackResponse(message);
+          }
+        } else {
+          // Return a fallback response instead of throwing the error
+          console.log('Using fallback response due to API error');
+          return this.getFallbackResponse(message);
+        }
       }
     } catch (error) {
       console.error('Error in AI service:', error);
