@@ -73,6 +73,7 @@ const notificationsRouter = require("./routes/notifications");
 const adminRouter = require("./routes/admin");
 const usersRouter = require("./routes/users");
 const azureRouter = require("./routes/azure");
+const openaiRouter = require("./routes/openai");
 const NotificationSocketService = require("./services/notificationSocketService");
 const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
@@ -147,6 +148,8 @@ console.log("Meeting routes registered.");
 app.use("/api/admin", adminRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/azure", azureRouter);
+app.use("/api/openai", openaiRouter);
+console.log("OpenAI routes registered.");
 
 // Initialize notification service with socket service
 app.use(

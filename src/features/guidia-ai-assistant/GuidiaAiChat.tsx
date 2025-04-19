@@ -6,7 +6,9 @@ import { GuidiaAiMessage } from "./components/GuidiaAiMessage";
 import { DateDivider } from "./components/DateDivider";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
-// import { cn } from "@/lib/utils";
+import axios from "axios";
+import { toast } from "sonner";
+import { API_URL } from "@/config";
 
 interface Message {
   id: string;
@@ -60,26 +62,48 @@ export function GuidiaAiChat() {
     setInputValue(e.target.value);
   };
 
-  // Simulate AI response
-  const simulateAiResponse = (_userQuery: string) => {
+  // Get AI response from OpenAI API
+  const getAiResponse = async (userQuery: string) => {
     setIsLoading(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      // Generate a simple response based on the query
-      let response = "Could you please clarify or provide the specific query you'd like me to answer? I'm here to help with any information or questions you have!";
+    try {
+      // Format the conversation history for the API
+      const history = messages.map(msg => ({
+        content: msg.content,
+        isUser: msg.isUser
+      }));
+
+      // Call the OpenAI API
+      const response = await axios.post(`${API_URL}/api/openai/chat`, {
+        message: userQuery,
+        history: history
+      });
 
       // Add the AI response to messages
       const newMessage: Message = {
         id: Date.now().toString(),
-        content: response,
+        content: response.data.data.response,
         timestamp: getFormattedTime(),
         isUser: false,
       };
 
       setMessages(prev => [...prev, newMessage]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      toast.error('Failed to get AI response. Please try again.');
+
+      // Fallback response in case of error
+      const fallbackMessage: Message = {
+        id: Date.now().toString(),
+        content: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment.",
+        timestamp: getFormattedTime(),
+        isUser: false,
+      };
+
+      setMessages(prev => [...prev, fallbackMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500); // 1.5 second delay to simulate thinking
+    }
   };
 
   // Handle form submission from initial input
@@ -103,8 +127,8 @@ export function GuidiaAiChat() {
     setMessages([newMessage]);
     setIsChatVisible(true);
 
-    // Simulate AI response
-    simulateAiResponse(question);
+    // Get AI response
+    getAiResponse(question);
   };
 
   // Handle sending message in chat view
@@ -123,8 +147,8 @@ export function GuidiaAiChat() {
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
 
-    // Simulate AI response
-    simulateAiResponse(inputValue.trim());
+    // Get AI response
+    getAiResponse(inputValue.trim());
   };
 
   // Handle key press in chat input
