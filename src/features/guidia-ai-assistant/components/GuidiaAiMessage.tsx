@@ -10,6 +10,10 @@ import { useThemeContext } from "@/contexts/ThemeContext" // Assuming this conte
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar" // Assuming Avatar exists
 import { Button } from "@/components/ui/button" // Assuming Button exists
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip" // Assuming Tooltip exists
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import TurndownService from "turndown"
+import type { Node as TurndownNode } from "turndown"
 
 interface GuidiaAiMessageProps {
   id: string // Add ID for unique keys and aria attributes
@@ -37,8 +41,88 @@ export function GuidiaAiMessage({
   const { isDark } = useThemeContext()
   const [isHovered, setIsHovered] = useState(false) // State for hover
 
-  // Sanitize only if it's rich text
-  const sanitizedContent = isRichText && content ? sanitizeHtml(content) : content;
+  // Initialize turndown service with enhanced configuration for converting HTML to Markdown
+  const turndownService = new TurndownService({
+    headingStyle: 'atx',
+    codeBlockStyle: 'fenced',
+    emDelimiter: '*',
+    bulletListMarker: '-',
+    strongDelimiter: '**',
+    linkStyle: 'inlined'
+  })
+
+  // Configure turndown to better handle Quill's HTML output
+  // Handle Quill's list formatting
+  turndownService.addRule('quillLists', {
+    filter: ['ul', 'ol'],
+    replacement: function(content: string, node: TurndownNode) {
+      // Check if this is a Quill list
+      const htmlElement = node as HTMLElement;
+      const className = htmlElement.getAttribute?.('class') || '';
+      const isQuillList =
+        (node.nodeName === 'UL' && className.includes('ql-bullet')) ||
+        (node.nodeName === 'OL' && className.includes('ql-numbered'));
+
+      // If it's a Quill list, add extra spacing
+      if (isQuillList) {
+        return '\n\n' + content + '\n\n';
+      }
+
+      // Otherwise, just return the content
+      return '\n' + content + '\n';
+    }
+  })
+
+  // Handle list items with better indentation
+  turndownService.addRule('listItems', {
+    filter: ['li'],
+    replacement: function(content: string, node: TurndownNode) {
+      const parent = node.parentNode
+      const isOrdered = parent && parent.nodeName === 'OL'
+      const prefix = isOrdered ? '1. ' : '- '
+
+      // Handle nested lists by adding proper indentation
+      let indent = '';
+      let listParent = parent;
+      while (listParent && (listParent.nodeName === 'UL' || listParent.nodeName === 'OL')) {
+        if (listParent.parentNode && (listParent.parentNode.nodeName === 'LI')) {
+          indent += '  ';
+          listParent = listParent.parentNode.parentNode;
+        } else {
+          break;
+        }
+      }
+
+      return indent + prefix + content.trim() + '\n';
+    }
+  })
+
+  // Special rule for Quill's paragraph handling
+  turndownService.addRule('quillParagraphs', {
+    filter: 'p',
+    replacement: function(content: string) {
+      return '\n' + content + '\n';
+    }
+  })
+
+  // Convert HTML to Markdown for user messages with improved handling
+  let markdownContent = content;
+  if (isRichText && isUser && content) {
+    const sanitized = sanitizeHtml(content);
+    try {
+      markdownContent = turndownService.turndown(sanitized);
+      // Clean up extra newlines that might be introduced
+      markdownContent = markdownContent.replace(/\n{3,}/g, '\n\n');
+      console.log('Converted HTML to Markdown:', { original: content, sanitized, markdown: markdownContent });
+    } catch (error) {
+      console.error('Error converting HTML to Markdown:', error);
+      // Fallback to sanitized HTML if conversion fails
+      markdownContent = sanitized;
+    }
+  }
+
+  // Keep sanitized content for non-markdown rendering
+  const sanitizedContent = isRichText && isUser && content ? sanitizeHtml(content) : content;
 
   // Handle copy action
   const handleCopy = useCallback(async () => {
@@ -142,22 +226,70 @@ export function GuidiaAiMessage({
         {/* Message content */}
         <div className="text-sm leading-relaxed">
           {isRichText ? (
-            // Render HTML content
+            // Render Markdown for both user and AI messages
             <div
-              id={`message-content-${id}`} // Use ID
+              id={`message-content-${id}`}
               className={cn("prose prose-sm max-w-none dark:prose-invert chat-message-content focus:outline-none", {
-                   "prose-neutral": !isUser, // Use neutral prose styles for AI if needed
-                   "prose-invert": isUser, // Use inverted prose styles for user if needed
-               })}
-              dangerouslySetInnerHTML={{ __html: sanitizedContent || '' }} // Handle empty content
-            />
+                "prose-invert": isUser,
+                "user-message-content": isUser,
+                "prose-neutral": !isUser,
+              })}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  // Custom styling for ordered lists
+                  ol: ({...props}) => (
+                    <ol className="list-decimal pl-6 my-2 space-y-1" {...props} />
+                  ),
+                  // Custom styling for unordered lists
+                  ul: ({...props}) => (
+                    <ul className="list-disc pl-6 my-2 space-y-1" {...props} />
+                  ),
+                  // Custom styling for list items
+                  li: ({...props}) => (
+                    <li className="my-1" {...props} />
+                  ),
+                  // Custom styling for headings
+                  h1: ({...props}) => (
+                    <h1 className="text-xl font-bold my-3" {...props} />
+                  ),
+                  h2: ({...props}) => (
+                    <h2 className="text-lg font-bold my-2" {...props} />
+                  ),
+                  h3: ({...props}) => (
+                    <h3 className="text-base font-bold my-2" {...props} />
+                  ),
+                  // Custom styling for paragraphs
+                  p: ({...props}) => (
+                    <p className="my-2" {...props} />
+                  ),
+                  // Custom styling for code blocks
+                  code: ({inline, className, children, ...props}: any) => {
+                    return inline ? (
+                      <code className="bg-secondary/50 px-1 py-0.5 rounded text-sm font-mono" {...props}>{children}</code>
+                    ) : (
+                      <pre className="bg-secondary/50 p-3 rounded-md overflow-auto my-3">
+                        <code className="text-sm font-mono" {...props}>{children}</code>
+                      </pre>
+                    );
+                  },
+                  // Custom styling for links
+                  a: ({...props}) => (
+                    <a className="text-brand hover:underline" {...props} />
+                  ),
+                }}
+              >
+                {isUser ? markdownContent : content || ''}
+              </ReactMarkdown>
+            </div>
           ) : (
             // Render plain text preserving white space
             <div
-               id={`message-content-${id}`} // Use ID
-               className="whitespace-pre-wrap"
+              id={`message-content-${id}`}
+              className="whitespace-pre-wrap"
             >
-              {sanitizedContent || ''} {/* Handle empty content */}
+              {sanitizedContent || ''}
             </div>
           )}
 
@@ -237,10 +369,84 @@ export function GuidiaAiMessage({
         .chat-message-content :where(p, ul, ol, pre, blockquote):not(:last-child) {
            margin-bottom: 0.5em; /* Reduced bottom margin */
         }
-         .chat-message-content :where(li):not(:where([class~="not-prose"] *)) {
-             margin-top: 0.25em; /* Adjust top margin for list items */
-             margin-bottom: 0.25em; /* Adjust bottom margin for list items */
-          }
+        .chat-message-content :where(li):not(:where([class~="not-prose"] *)) {
+           margin-top: 0.25em; /* Adjust top margin for list items */
+           margin-bottom: 0.25em; /* Adjust bottom margin for list items */
+        }
+        /* Markdown specific styles */
+        .chat-message-content h1 {
+          font-size: 1.5em;
+          margin-bottom: 0.5em;
+          font-weight: bold;
+        }
+        .chat-message-content h2 {
+          font-size: 1.3em;
+          margin-bottom: 0.5em;
+          font-weight: bold;
+        }
+        .chat-message-content h3 {
+          font-size: 1.2em;
+          margin-bottom: 0.5em;
+          font-weight: bold;
+        }
+        .chat-message-content hr {
+          border: none;
+          border-top: 1px solid #ccc;
+          margin: 1em 0;
+        }
+        .chat-message-content code {
+          background-color: rgba(0, 0, 0, 0.05);
+          padding: 0.2em 0.4em;
+          border-radius: 3px;
+          font-family: monospace;
+        }
+        .chat-message-content pre {
+          background-color: rgba(0, 0, 0, 0.05);
+          padding: 1em;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
+        .chat-message-content pre code {
+          background-color: transparent;
+          padding: 0;
+        }
+        /* Styles for user message content */
+        .user-message-content ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+          margin: 0.5rem 0 !important;
+        }
+        .user-message-content ol {
+          list-style-type: decimal !important;
+          padding-left: 1.5rem !important;
+          margin: 0.5rem 0 !important;
+        }
+        .user-message-content li {
+          margin: 0.25rem 0 !important;
+          display: list-item !important;
+        }
+        .user-message-content li p {
+          margin: 0 !important;
+        }
+        /* Quill specific list styles */
+        .user-message-content .ql-editor ul {
+          list-style-type: disc !important;
+          padding-left: 1.5rem !important;
+          margin: 0.5rem 0 !important;
+        }
+        .user-message-content .ql-editor ol {
+          list-style-type: decimal !important;
+          padding-left: 1.5rem !important;
+          margin: 0.5rem 0 !important;
+        }
+        .user-message-content .ql-editor li {
+          margin: 0.25rem 0 !important;
+          display: list-item !important;
+          padding-left: 0 !important;
+        }
+        .user-message-content .ql-editor li::before {
+          display: none !important;
+        }
       `}} />
     </motion.div>
   )

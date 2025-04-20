@@ -107,7 +107,7 @@ class OpenAIService {
       if (activeProvider === 'sambanova') {
         client = this.sambanovaClient;
         apiKey = this.sambanovaApiKey;
-        model = "Meta-Llama-3.1-405B-Instruct"; // SambaNova's Llama 3.1 model
+        model = "DeepSeek-V3-0324"; // SambaNova's DeepSeek-V3-0324
       } else if (activeProvider === 'deepseek') {
         client = this.deepseekClient;
         apiKey = this.deepseekApiKey;
@@ -144,8 +144,8 @@ class OpenAIService {
       const requestParams = {
         model: model,
         messages: messages,
-        max_tokens: 500,
-        temperature: 0.7
+        max_tokens: 4000,
+        temperature: 1
       };
 
       // Make the API request using the OpenAI SDK

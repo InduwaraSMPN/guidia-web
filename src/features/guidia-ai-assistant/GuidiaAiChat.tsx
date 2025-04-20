@@ -7,7 +7,7 @@ import { ArrowUp, ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 import { API_URL } from "@/config"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
-import { stripHtmlTags, containsHtmlTags, formatTextAsHtml } from "@/lib/utils"
+import { stripHtmlTags } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -209,9 +209,7 @@ export function GuidiaAiChat() {
                           msg.id === aiMessageId
                             ? {
                                 ...msg,
-                                content: containsHtmlTags(fullContent)
-                                  ? fullContent
-                                  : formatTextAsHtml(fullContent),
+                                content: fullContent,
                                 isRichText: true,
                               }
                             : msg,
@@ -242,9 +240,7 @@ export function GuidiaAiChat() {
                 msg.id === aiMessageId
                   ? {
                       ...msg,
-                      content: containsHtmlTags(jsonResponse.data.response)
-                        ? jsonResponse.data.response
-                        : formatTextAsHtml(jsonResponse.data.response),
+                      content: jsonResponse.data.response,
                       isStreaming: false,
                       isRichText: true,
                     }
@@ -283,9 +279,7 @@ export function GuidiaAiChat() {
                 msg.id === aiMessageId
                   ? {
                       ...msg,
-                      content: containsHtmlTags(jsonResponse.data.response)
-                        ? jsonResponse.data.response
-                        : formatTextAsHtml(jsonResponse.data.response),
+                      content: jsonResponse.data.response,
                       isStreaming: false,
                       isRichText: true,
                     }
@@ -607,7 +601,7 @@ export function GuidiaAiChat() {
                   aria-atomic="false"
                   aria-relevant="additions"
                 >
-                  <div className="max-w-3xl mx-auto space-y-6 overflow-visible mb-32">
+                  <div className="max-w-4xl mx-auto space-y-6 overflow-visible mb-32">
                     {/* Date divider */}
                     <DateDivider date={getTodayDate()} />
 
@@ -658,7 +652,7 @@ export function GuidiaAiChat() {
                               value={inputValue}
                               onChange={handleInputChange}
                               placeholder="Type your message..."
-                              className="border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200"
+                              className="border bg-secondary/80 focus:outline-none focus:ring-1 focus:ring-brand transition-all duration-200 guidia-chat-editor"
                               readOnly={isLoading}
                               onEnterPress={handleSendMessage} // Keep this if editor supports it, but Ctrl+Enter is handled above
                               aria-label="Message input"

@@ -384,6 +384,129 @@ html {
   caret-color: #800020 !important; /* Brand color for cursor */
 }
 
+/* Quill list styles */
+.ql-editor ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.ql-editor ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.ql-editor li {
+  margin: 0.25rem 0 !important;
+  display: list-item !important;
+  padding-left: 0 !important;
+}
+
+.ql-editor li::before {
+  display: none !important;
+}
+
+/* Fix for Quill list rendering in messages */
+.prose ul > li, .prose ol > li {
+  padding-left: 0 !important;
+  margin-left: 1.5rem !important;
+}
+
+.prose ul > li::before, .prose ol > li::before {
+  display: none !important;
+}
+
+.prose ul {
+  list-style-type: disc !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
+}
+
+.prose ol {
+  list-style-type: decimal !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
+}
+
+/* Fix for user message content */
+.user-message-content ul, .user-message-content ol {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  padding-left: 1.5rem !important;
+  list-style-position: outside !important;
+}
+
+.user-message-content ul li, .user-message-content ol li {
+  display: list-item !important;
+  margin-left: 0 !important;
+  padding-left: 0.5rem !important;
+}
+
+.user-message-content ul {
+  list-style-type: disc !important;
+}
+
+.user-message-content ol {
+  list-style-type: decimal !important;
+}
+
+/* Override Tailwind prose styles for user messages */
+.prose .user-message-content ul > li::before,
+.prose .user-message-content ol > li::before {
+  display: none !important;
+}
+
+.prose .user-message-content ul > li,
+.prose .user-message-content ol > li {
+  padding-left: 0 !important;
+}
+
+/* Direct overrides for Tailwind prose variables */
+.prose.user-message-content {
+  --tw-prose-bullets: currentColor !important;
+  --tw-prose-counters: currentColor !important;
+}
+
+/* Quill specific overrides */
+.user-message-content .ql-editor ul,
+.user-message-content ul.ql-bullet,
+.user-message-content ul.ql-list {
+  padding-left: 1.5rem !important;
+  list-style-type: disc !important;
+}
+
+.user-message-content .ql-editor ol,
+.user-message-content ol.ql-numbered,
+.user-message-content ol.ql-list {
+  padding-left: 1.5rem !important;
+  list-style-type: decimal !important;
+}
+
+.user-message-content .ql-editor li,
+.user-message-content li.ql-list-item {
+  display: list-item !important;
+  padding-left: 0 !important;
+}
+
+/* Force list styles for Quill content */
+.user-message-content ul,
+.user-message-content ol {
+  list-style-position: outside !important;
+}
+
+.user-message-content li {
+  display: list-item !important;
+}
+
+.user-message-content ul li {
+  list-style-type: disc !important;
+}
+
+.user-message-content ol li {
+  list-style-type: decimal !important;
+}
+
 .ql-editor.ql-blank::before {
   color: #9ca3af;
   font-style: normal;
@@ -420,6 +543,29 @@ html {
   -webkit-user-select: text !important;
   -moz-user-select: text !important;
   -ms-user-select: text !important;
+}
+
+/* Specific styles for Guidia chat editor */
+.guidia-chat-editor .ql-editor ul {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.guidia-chat-editor .ql-editor ol {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.guidia-chat-editor .ql-editor li {
+  display: list-item !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+.guidia-chat-editor .ql-editor li::before {
+  display: none !important;
 }
 
 /* Rich text editor container */

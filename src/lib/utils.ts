@@ -77,8 +77,29 @@ export function sanitizeHtml(html: string): string {
     return formatTextAsHtml(html);
   }
 
-  // Otherwise, sanitize the HTML
-  return DOMPurify.sanitize(html, {
+  // Configure DOMPurify to preserve list structure
+  DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+    // Ensure list items have proper display
+    if (node.tagName === 'LI') {
+      node.setAttribute('style', 'display: list-item !important; margin-left: 0 !important;');
+      // Add a class to help with styling
+      node.setAttribute('class', (node.getAttribute('class') || '') + ' ql-list-item');
+    }
+    // Ensure lists have proper styling
+    if (node.tagName === 'UL') {
+      node.setAttribute('style', 'list-style-type: disc !important; padding-left: 1.5rem !important; margin: 0.5rem 0 !important;');
+      // Add a class to help with styling
+      node.setAttribute('class', (node.getAttribute('class') || '') + ' ql-list ql-bullet');
+    }
+    if (node.tagName === 'OL') {
+      node.setAttribute('style', 'list-style-type: decimal !important; padding-left: 1.5rem !important; margin: 0.5rem 0 !important;');
+      // Add a class to help with styling
+      node.setAttribute('class', (node.getAttribute('class') || '') + ' ql-list ql-numbered');
+    }
+  });
+
+  // Sanitize the HTML
+  const sanitized = DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
       'b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'span',
       'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
@@ -92,10 +113,15 @@ export function sanitizeHtml(html: string): string {
     FORBID_TAGS: ['script', 'style', 'iframe', 'form', 'input', 'button'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
     ALLOW_DATA_ATTR: false,
-    ADD_ATTR: ['target'], // Allow target attribute for links
+    ADD_ATTR: ['target', 'style'], // Allow target and style attributes
     RETURN_DOM_FRAGMENT: false,
     RETURN_DOM: false
   });
+
+  // Remove the hook after sanitization
+  DOMPurify.removeHook('afterSanitizeAttributes');
+
+  return sanitized;
 }
 
 /**

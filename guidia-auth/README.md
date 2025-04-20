@@ -35,7 +35,7 @@ The Guidia AI assistant supports multiple AI providers:
 
 ### SambaNova (Default)
 
-The default AI provider is SambaNova, which uses the Meta-Llama-3.1-405B-Instruct model.
+The default AI provider is SambaNova, which uses the DeepSeek-V3-0324 model.
 
 To configure SambaNova:
 1. Get an API key from SambaNova

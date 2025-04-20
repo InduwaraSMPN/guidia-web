@@ -46,7 +46,7 @@ export function HistoryFloatingButton({ onClick, isVisible }: HistoryFloatingBut
             <Button
               onClick={onClick}
               variant="secondary" // Use secondary for better visibility
-              className="h-auto px-3 py-2 rounded-md text-brand hover:bg-accent hover:text-brand-dark focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center gap-2 shadow-sm" // Use flex to align icon and text with a gap
+              className="h-auto px-3 py-2 rounded-md text-brand bg- transparent hover:bg-accent hover:text-brand-dark focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center gap-2 shadow-sm" // Use flex to align icon and text with a gap
             >
               {/* Use the History icon - adjust size if needed */}
               <History className="h-5 w-5" /> {/* Match icon size from image */}
