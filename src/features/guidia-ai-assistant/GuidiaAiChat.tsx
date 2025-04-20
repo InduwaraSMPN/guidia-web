@@ -159,6 +159,10 @@ export function GuidiaAiChat() {
   const useNonStreamingApproach = useCallback(
     async (userQuery: string, history: { content: string; isUser: boolean }[], aiMessageId: string) => {
       try {
+        console.log('Sending message to API with token:', token ? `${token.substring(0, 10)}...` : 'none');
+        console.log('User ID from context:', user?.id);
+        console.log('Current conversation ID:', currentConversationId);
+
         // Use fetch with stream parameter
         const response = await fetch(`${API_URL}/api/openai/chat`, {
           method: "POST",
@@ -256,6 +260,10 @@ export function GuidiaAiChat() {
 
         // Try one more time with regular non-streaming request
         try {
+          console.log('Fallback: Sending non-streaming request with token:', token ? `${token.substring(0, 10)}...` : 'none');
+          console.log('Fallback: User ID from context:', user?.id);
+          console.log('Fallback: Current conversation ID:', currentConversationId);
+
           const regularResponse = await fetch(`${API_URL}/api/openai/chat`, {
             method: "POST",
             headers: {
@@ -449,18 +457,30 @@ export function GuidiaAiChat() {
   const handleSelectConversation = async (conversationId: number) => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/api/chat-history/conversations/${conversationId}`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      })
+
+      // Import the secure API request function
+      const { secureApiRequest } = await import('@/lib/tokenHelper');
+
+      const response = await secureApiRequest(`${API_URL}/api/chat-history/conversations/${conversationId}`)
 
       if (!response.ok) {
-        throw new Error("Failed to fetch conversation")
+        throw new Error(`Failed to fetch conversation: ${response.status}`)
       }
 
       const data = await response.json()
 
+      // Process the conversation data
+      processConversationData(data, conversationId);
+    } catch (error) {
+      console.error("Error fetching conversation:", error)
+      toast.error("Failed to load conversation")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Helper function to process conversation data
+  const processConversationData = (data: any, conversationId: number) => {
       // Format messages for the chat interface
       const formattedMessages = data.data.messages.map((msg: any) => ({
         id: `${msg.isUserMessage ? 'user' : 'ai'}-${msg.messageID}`,
@@ -478,12 +498,6 @@ export function GuidiaAiChat() {
       if (window.innerWidth < 768) {
         setIsHistoryPanelVisible(false)
       }
-    } catch (error) {
-      console.error("Error fetching conversation:", error)
-      toast.error("Failed to load conversation")
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   // Handle starting a new conversation
@@ -521,6 +535,8 @@ export function GuidiaAiChat() {
           onClick={() => setIsHistoryPanelVisible(true)}
           isVisible={!isHistoryPanelVisible}
         />
+
+
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -583,15 +599,6 @@ export function GuidiaAiChat() {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="flex-1 flex flex-col h-full relative z-10"
               >
-                {/* Chat header */}
-                <header className="flex justify-center items-center pt-32 md:pt-16 lg:pt-24 pb-4 sticky top-0 z-20">
-                  <h1 className="text-2xl md:text-3xl font-bold">
-                    <span className="font-['Grillmaster_Extended'] text-brand bg-clip-text">
-                      Guidia
-                    </span>
-                    <span className="font-montserrat text-brand"> AI Assistant</span>
-                  </h1>
-                </header>
 
                 {/* Chat messages */}
                 <section
@@ -630,9 +637,8 @@ export function GuidiaAiChat() {
                 </section>
 
                 {/* Chat input container */}
-                <div className="fixed bottom-0 left-0 right-0 pb-4 z-30 bg-background pointer-events-none">
-                  {/* Added a relative container to position button relative to card */}
-                  <div className="relative max-w-3xl mx-auto pointer-events-auto">
+                <div className="fixed bottom-0 left-0 right-0 pb-4 z-30 bg-background pointer-events-none max-w-4xl mx-auto">                  {/* Added a relative container to position button relative to card */}
+                  <div className="relative max-w-4xl mx-auto pointer-events-auto">
                     {/* Chat input card */}
                     <Card className="shadow-lg">
                       <div className="p-2" onKeyDown={handleKeyDown}> {/* Moved keydown listener here */}

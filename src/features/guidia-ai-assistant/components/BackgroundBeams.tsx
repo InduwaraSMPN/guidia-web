@@ -130,7 +130,7 @@ export const BackgroundBeams = React.memo(({ className }: { className?: string }
           >
             <stop offset="0.07" stopColor="var(--neutral-300)"></stop>
             <stop offset="0.25" stopColor="var(--neutral-300)"></stop>
-            <stop offset="0.725" stopColor="white" stopOpacity="0"></stop>
+            <stop offset="0.9" stopColor="white" stopOpacity="0"></stop>
           </radialGradient>
         </defs>
       </svg>

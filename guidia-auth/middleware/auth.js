@@ -39,6 +39,11 @@ const verifyToken = async (req, res, next) => {
       origin: req.headers.origin
     });
 
+    // Log the full request body for debugging
+    if (req.path.includes('/openai')) {
+      console.log('OpenAI request body:', req.body);
+    }
+
     // Check if header exists and has correct format
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log('Auth middleware - No valid token provided');
@@ -77,8 +82,15 @@ const verifyToken = async (req, res, next) => {
       }
 
       // Enhance user object with additional info from database
+      req.user.userID = users[0].userID; // Add userID from database
       req.user.roleId = users[0].roleID;
       req.user.exists = true;
+
+      console.log('Auth middleware - Enhanced user object:', {
+        id: req.user.id,
+        userID: req.user.userID,
+        roleId: req.user.roleId
+      });
     }
 
     // Continue to next middleware/route handler

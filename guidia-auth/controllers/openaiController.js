@@ -11,7 +11,15 @@ const aiController = {
   sendMessage: async (req, res) => {
     try {
       const { message, history, stream = false, provider = null, conversationID = null } = req.body;
-      const userID = req.user?.id; // User ID may be null for non-authenticated users
+      // Fix user ID inconsistency by checking all possible fields
+      const userID = req.user?.userID || req.user?.userId || req.user?.id; // User ID may be null for non-authenticated users
+
+      console.log('User ID from request:', {
+        userID,
+        'req.user.userID': req.user?.userID,
+        'req.user.userId': req.user?.userId,
+        'req.user.id': req.user?.id
+      });
 
       if (!message) {
         return res.status(400).json({
@@ -127,17 +135,36 @@ const aiController = {
 
         // Save the conversation and messages if user is authenticated
         if (userID) {
+          console.log('Attempting to save conversation for user:', userID);
           try {
-            await saveConversationAndMessages(
+            const savedConversationID = await saveConversationAndMessages(
               userID,
               verifiedConversationID,
               message,
               response,
               history
             );
+            console.log('Successfully saved conversation with ID:', savedConversationID);
+
+            // Verify the conversation was saved
+            const [conversations] = await pool.query(
+              'SELECT * FROM ai_chat_conversations WHERE conversationID = ?',
+              [savedConversationID]
+            );
+            console.log(`Verification after save: Found ${conversations.length} conversations with ID ${savedConversationID}`);
+
+            // Verify messages were saved
+            const [messages] = await pool.query(
+              'SELECT COUNT(*) as count FROM ai_chat_messages WHERE conversationID = ?',
+              [savedConversationID]
+            );
+            console.log(`Verification after save: Found ${messages[0].count} messages for conversation ${savedConversationID}`);
           } catch (saveError) {
             console.error('Error saving conversation:', saveError);
+            console.error('Error details:', saveError.message, saveError.stack);
           }
+        } else {
+          console.log('No user ID available, skipping conversation save');
         }
 
         return res.status(200).json({
@@ -174,7 +201,15 @@ const aiController = {
   streamMessage: async (req, res) => {
     try {
       const { message, history, provider = null, conversationID = null } = req.body;
-      const userID = req.user?.id; // User ID may be null for non-authenticated users
+      // Fix user ID inconsistency by checking all possible fields
+      const userID = req.user?.userID || req.user?.userId || req.user?.id; // User ID may be null for non-authenticated users
+
+      console.log('User ID from request (stream):', {
+        userID,
+        'req.user.userID': req.user?.userID,
+        'req.user.userId': req.user?.userId,
+        'req.user.id': req.user?.id
+      });
 
       if (!message) {
         return res.status(400).json({
@@ -307,9 +342,32 @@ const aiController = {
  * @returns {Promise<number>} - The conversation ID
  */
 async function saveConversationAndMessages(userID, conversationID, userMessage, aiResponse, history) {
+  console.log('Saving conversation and messages:', {
+    userID,
+    conversationID: conversationID || 'new',
+    messageLength: userMessage.length,
+    responseLength: aiResponse.length,
+    historyLength: history?.length || 0
+  });
+
+  if (!userID) {
+    console.error('Cannot save conversation: No user ID provided');
+    throw new Error('No user ID provided');
+  }
+
+  // Enhanced debugging: Check if the user exists in the database
+  try {
+    // Check with userID field (the correct field in the database)
+    const [userCheck] = await pool.query('SELECT * FROM users WHERE userID = ?', [userID]);
+    console.log(`User check for userID ${userID}:`, userCheck.length > 0 ? 'Found' : 'Not found');
+  } catch (error) {
+    console.error('Error checking user existence:', error);
+  }
+
   const connection = await pool.getConnection();
 
   try {
+    console.log('Beginning transaction with connection:', connection ? 'Valid connection' : 'Invalid connection');
     await connection.beginTransaction();
 
     // If no conversationID, create a new conversation
@@ -319,16 +377,41 @@ async function saveConversationAndMessages(userID, conversationID, userMessage, 
         ? `${userMessage.substring(0, 47)}...`
         : userMessage;
 
-      const [result] = await connection.query(
-        'INSERT INTO ai_chat_conversations (userID, title) VALUES (?, ?)',
-        [userID, title]
-      );
+      console.log('Creating new conversation with title:', title);
 
-      conversationID = result.insertId;
-      console.log(`Created new conversation with ID: ${conversationID}`);
+      // Try to find the correct user ID field
+      let effectiveUserID = userID;
+      try {
+        const [userRecord] = await connection.query('SELECT userID FROM users WHERE userID = ?', [userID]);
+        console.log('User record found:', userRecord[0]);
+        if (userRecord.length > 0) {
+          // Use the userID field from the database
+          effectiveUserID = userRecord[0].userID;
+          console.log('Using effective userID:', effectiveUserID);
+        }
+      } catch (error) {
+        console.error('Error finding effective userID:', error);
+      }
+
+      console.log('Attempting to insert new conversation with userID:', effectiveUserID);
+      try {
+        const [result] = await connection.query(
+          'INSERT INTO ai_chat_conversations (userID, title) VALUES (?, ?)',
+          [effectiveUserID, title]
+        );
+
+        conversationID = result.insertId;
+        console.log(`Created new conversation with ID: ${conversationID} for userID: ${effectiveUserID}`);
+      } catch (insertError) {
+        console.error('Error inserting new conversation:', insertError);
+        console.error('SQL Error:', insertError.sqlMessage);
+        console.error('SQL State:', insertError.sqlState);
+        throw insertError;
+      }
 
       // If we have history, save it to the new conversation
       if (history && history.length > 0) {
+        console.log(`Saving ${history.length} history messages to conversation ${conversationID}`);
         for (const msg of history) {
           await connection.query(
             'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
@@ -336,31 +419,73 @@ async function saveConversationAndMessages(userID, conversationID, userMessage, 
           );
         }
       }
+    } else {
+      console.log(`Using existing conversation with ID: ${conversationID}`);
     }
 
     // Save the user message
-    await connection.query(
-      'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
-      [conversationID, userMessage, 1, 0]
-    );
+    console.log('Saving user message to conversation:', conversationID);
+    try {
+      const [userMsgResult] = await connection.query(
+        'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
+        [conversationID, userMessage, 1, 0]
+      );
+      console.log('User message saved with ID:', userMsgResult.insertId);
+    } catch (userMsgError) {
+      console.error('Error saving user message:', userMsgError);
+      console.error('SQL Error:', userMsgError.sqlMessage);
+      console.error('SQL State:', userMsgError.sqlState);
+      throw userMsgError;
+    }
 
     // Save the AI response
-    await connection.query(
-      'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
-      [conversationID, aiResponse, 0, 1]
-    );
+    console.log('Saving AI response to conversation:', conversationID);
+    try {
+      const [aiMsgResult] = await connection.query(
+        'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
+        [conversationID, aiResponse, 0, 1]
+      );
+      console.log('AI response saved with ID:', aiMsgResult.insertId);
+    } catch (aiMsgError) {
+      console.error('Error saving AI response:', aiMsgError);
+      console.error('SQL Error:', aiMsgError.sqlMessage);
+      console.error('SQL State:', aiMsgError.sqlState);
+      throw aiMsgError;
+    }
 
     // Update the conversation's updatedAt timestamp
+    console.log('Updating conversation timestamp');
     await connection.query(
       'UPDATE ai_chat_conversations SET updatedAt = CURRENT_TIMESTAMP WHERE conversationID = ?',
       [conversationID]
     );
 
     await connection.commit();
+    console.log('Transaction committed successfully');
+
+    // Verify the conversation exists after saving
+    const [conversations] = await pool.query(
+      'SELECT * FROM ai_chat_conversations WHERE conversationID = ?',
+      [conversationID]
+    );
+    console.log(`Verification: Found ${conversations.length} conversations with ID ${conversationID}`);
+
+    // Verify messages were saved
+    const [messages] = await pool.query(
+      'SELECT COUNT(*) as count FROM ai_chat_messages WHERE conversationID = ?',
+      [conversationID]
+    );
+    console.log(`Verification: Found ${messages[0].count} messages for conversation ${conversationID}`);
+
     return conversationID;
   } catch (error) {
-    await connection.rollback();
-    console.error('Error in saveConversationAndMessages:', error);
+    console.error('Error in saveConversationAndMessages, rolling back transaction:', error);
+    try {
+      await connection.rollback();
+      console.log('Transaction rolled back successfully');
+    } catch (rollbackError) {
+      console.error('Error rolling back transaction:', rollbackError);
+    }
     throw error;
   } finally {
     connection.release();

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const aiController = require('../controllers/openaiController');
+const { verifyToken } = require('../middleware/auth');
 
 /**
  * Send a message to the AI API (SambaNova or DeepSeek)
@@ -17,7 +18,7 @@ const aiController = require('../controllers/openaiController');
  *
  * If provider is specified, it will use that provider. Otherwise, it will use the default provider (SambaNova).
  */
-router.post('/chat', aiController.sendMessage);
+router.post('/chat', verifyToken, aiController.sendMessage);
 
 /**
  * Stream a message to the AI API (SambaNova or DeepSeek)
@@ -32,6 +33,6 @@ router.post('/chat', aiController.sendMessage);
  *
  * If provider is specified, it will use that provider. Otherwise, it will use the default provider (SambaNova).
  */
-router.post('/stream', aiController.streamMessage);
+router.post('/stream', verifyToken, aiController.streamMessage);
 
 module.exports = router;

@@ -20,10 +20,10 @@ export function HistoryFloatingButton({ onClick, isVisible }: HistoryFloatingBut
     // Keep the motion wrapper for smooth transitions
     // Adjust animation for a horizontal reveal which fits the new shape better
     <motion.div
-      className="fixed left-6 bottom-6 z-40" // Position at bottom-left
-      initial={{ opacity: 0, x: -20 }}      // Slide in from left
+      className="fixed left-6 bottom-6 z-40" // Keep the position at bottom-left
+      initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}         // Slide out to left
+      exit={{ opacity: 0, x: -20 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {/* Keep Tooltip for accessibility and extra context if desired */}
@@ -44,15 +44,13 @@ export function HistoryFloatingButton({ onClick, isVisible }: HistoryFloatingBut
                 Adjust colors if your specific theme requires it (e.g., text-gray-300 hover:bg-gray-700).
             */}
             <Button
+              variant="ghost"
+              size="sm"
               onClick={onClick}
-              variant="secondary" // Use secondary for better visibility
-              className="h-auto px-3 py-2 rounded-md text-brand bg- transparent hover:bg-accent hover:text-brand-dark focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center gap-2 shadow-sm" // Use flex to align icon and text with a gap
+              className="text-xs flex items-center gap-1 text-brand hover:text-foreground "
             >
-              {/* Use the History icon - adjust size if needed */}
-              <History className="h-5 w-5" /> {/* Match icon size from image */}
-              {/* Add the visible text "History" */}
-              <span className="text-sm">History</span> {/* Match text style */}
-              {/* Remove the sr-only span as text is now visible */}
+              <History className="h-3 w-3" />
+              <span>History</span>
             </Button>
           </TooltipTrigger>
           {/* Update Tooltip content if desired, maybe shorten it */}

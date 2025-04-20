@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils" // Assuming cn is available for conditional class merging
 
 interface Conversation {
   conversationID: number
@@ -60,13 +61,11 @@ export function ChatHistoryDrawer({
 }: ChatHistoryDrawerProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const token = localStorage.getItem('token')
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [showArchived, setShowArchived] = useState(false)
-  // No longer need contentHeight state for side drawer
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -74,26 +73,42 @@ export function ChatHistoryDrawer({
 
   // Fetch conversations with pagination support
   const fetchConversations = async (pageNum = 1, archived = false) => {
-    if (!token) return
+    if (!user) {
+      console.log('No user available for chat history fetch')
+      return
+    }
 
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/api/chat-history/conversations?page=${pageNum}&archived=${archived}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const url = `${API_URL}/api/chat-history/conversations?page=${pageNum}&archived=${archived}`
+
+      // Import the secure API request function
+      const { secureApiRequest } = await import('@/lib/tokenHelper');
+
+      // Use the secure API request function
+      const response = await secureApiRequest(url)
 
       if (!response.ok) {
-        throw new Error("Failed to fetch conversations")
+        throw new Error(`Failed to fetch conversations: ${response.status}`)
       }
 
       const data = await response.json()
 
+      // Check if the data has the expected structure
+      if (!data.data || !Array.isArray(data.data.conversations)) {
+        console.error('Unexpected data structure:', data);
+        toast.error('Invalid data format received from server');
+        return;
+      }
+
       if (pageNum === 1) {
         setConversations(data.data.conversations)
       } else {
-        setConversations(prev => [...prev, ...data.data.conversations])
+        // Filter out duplicates before appending
+        const newConversations = data.data.conversations.filter(
+          (newItem: Conversation) => !conversations.some(existingItem => existingItem.conversationID === newItem.conversationID)
+        );
+        setConversations(prev => [...prev, ...newConversations]);
       }
 
       setHasMore(pageNum < data.data.pagination.pages)
@@ -116,7 +131,8 @@ export function ChatHistoryDrawer({
         (conversation) =>
           conversation.title.toLowerCase().includes(query) ||
           (conversation.lastMessage && conversation.lastMessage.toLowerCase().includes(query)) ||
-          (conversation.summary && conversation.summary.toLowerCase().includes(query))
+          (conversation.summary && conversation.summary.toLowerCase().includes(query)) ||
+          (conversation.tags && conversation.tags.some(tag => tag.toLowerCase().includes(query))) // Added tag search
       )
       setFilteredConversations(filtered)
     }
@@ -125,23 +141,22 @@ export function ChatHistoryDrawer({
   // Fetch conversations when drawer opens or archived status changes
   useEffect(() => {
     if (isOpen && isLoggedIn && user) {
-      fetchConversations(1, showArchived)
-      setPage(1) // Reset pagination when filters change
+      // Reset conversations and fetch fresh data when filter changes
+      setConversations([]);
+      fetchConversations(1, showArchived);
     }
-  }, [isOpen, showArchived, user, isLoggedIn])
+  }, [isOpen, showArchived, user, isLoggedIn]) // Added conversations state change as a dependency to potentially re-filter if list updates
 
   // Handle archive/unarchive
   const handleArchiveToggle = async (conversationId: number, currentArchiveState: boolean, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent selecting the conversation
-    if (!token) return
+    if (!user) return
 
     try {
-      const response = await fetch(`${API_URL}/api/chat-history/conversations/${conversationId}`, {
+      const { secureApiRequest } = await import('@/lib/tokenHelper');
+
+      const response = await secureApiRequest(`${API_URL}/api/chat-history/conversations/${conversationId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           isArchived: !currentArchiveState,
         }),
@@ -151,26 +166,16 @@ export function ChatHistoryDrawer({
         throw new Error("Failed to update conversation")
       }
 
-      // Update local state
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.conversationID === conversationId
-            ? { ...conv, isArchived: !currentArchiveState }
-            : conv
-        )
-      )
-
       toast.success(
         currentArchiveState
           ? "Conversation restored from archive"
           : "Conversation archived"
       )
 
-      // If we're viewing archived and unarchiving, or viewing active and archiving,
-      // we should refresh the list
-      if (showArchived === currentArchiveState) {
-        fetchConversations(1, showArchived)
-      }
+      // Re-fetch the current view to reflect the change
+      // This is simpler than managing optimistic updates across filtered lists
+      fetchConversations(1, showArchived)
+
     } catch (error) {
       console.error("Error toggling archive state:", error)
       toast.error("Failed to update conversation")
@@ -179,27 +184,26 @@ export function ChatHistoryDrawer({
 
   // Handle delete
   const handleDelete = async () => {
-    if (!token || !conversationToDelete) return
+    if (!user || !conversationToDelete) return
 
     try {
-      const response = await fetch(`${API_URL}/api/chat-history/conversations/${conversationToDelete}`, {
+      const { secureApiRequest } = await import('@/lib/tokenHelper');
+
+      const response = await secureApiRequest(`${API_URL}/api/chat-history/conversations/${conversationToDelete}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       })
 
       if (!response.ok) {
         throw new Error("Failed to delete conversation")
       }
 
-      // Remove from local state
+      // Remove from local state to update UI immediately
       setConversations(prev => prev.filter(conv => conv.conversationID !== conversationToDelete))
 
-      // If the deleted conversation was selected, clear selection
+      // If the deleted conversation was selected, clear selection and start a new chat
       if (selectedConversationId === conversationToDelete) {
-        onSelectConversation(0)
-        onNewConversation()
+        onSelectConversation(0) // Assuming 0 means no selection or new chat
+        onNewConversation() // Start a new empty chat
       }
 
       toast.success("Conversation deleted")
@@ -211,8 +215,6 @@ export function ChatHistoryDrawer({
       setConversationToDelete(null)
     }
   }
-
-  // No longer need to measure content height for side drawer
 
   // Handle body scroll lock and navigation bar styling
   useEffect(() => {
@@ -247,30 +249,42 @@ export function ChatHistoryDrawer({
 
   // Format date for display
   const formatDate = (dateString: string) => {
+    if (!dateString) return ''; // Handle cases where dateString might be null/undefined
+
     const date = new Date(dateString)
     const now = new Date()
     const yesterday = new Date(now)
     yesterday.setDate(yesterday.getDate() - 1)
+
+    // Check for valid date
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date string:", dateString);
+      return 'Invalid Date';
+    }
+
 
     if (date.toDateString() === now.toDateString()) {
       return "Today"
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "Yesterday"
     } else {
-      return format(date, "MMM d, yyyy")
+      // Ensure date-fns is imported and works
+      try {
+         return format(date, "MMM d, yyyy");
+      } catch (e) {
+         console.error("Error formatting date with date-fns:", e);
+         return date.toLocaleDateString(); // Fallback
+      }
     }
   }
+
 
   return (
     <Drawer.Root open={isOpen} onOpenChange={setIsOpen} direction="left">
       <Drawer.Portal>
+        {/* Overlay with backdrop blur */}
         <Drawer.Overlay
-          className="fixed inset-0 z-[45] transition-all duration-300"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.25)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
-          }}
+          className="fixed inset-0 z-[45] transition-opacity duration-300 bg-black/20 backdrop-blur-sm" // Using tailwind classes for blur and opacity
         />
         <Drawer.Content
           style={{
@@ -288,10 +302,10 @@ export function ChatHistoryDrawer({
             Panel for browsing and managing your chat history with Guidia AI
           </Drawer.Description>
 
-          <div className="p-3 bg-card flex-1 overflow-auto">
+          <div className="flex flex-col flex-1 overflow-hidden"> {/* Use flex-col and overflow-hidden */}
 
-            {/* Enhanced header with better visual hierarchy */}
-            <div className="px-4 py-2 flex justify-between items-center mb-4">
+            {/* Enhanced header with clear visual hierarchy */}
+            <div className="p-4 flex justify-between items-center"> {/* Added bottom border */}
               <div className="flex items-center gap-2.5">
                 <MessageSquare className="h-5 w-5 text-brand" />
                 <h2 className="font-semibold text-foreground text-xl">Chat History</h2>
@@ -310,40 +324,40 @@ export function ChatHistoryDrawer({
             {/* Content based on login status */}
             {!isLoggedIn ? (
               // Not logged in state
-              <div className="px-4 pb-4">
-                <div className="flex flex-col items-center justify-center py-10 text-center pt-52">
-                  <MessageSquare className="h-12 w-12 text-brand mb-4 opacity-80" />
-                  <h3 className="font-medium text-lg mb-2">Sign in to access your chat history</h3>
-                  <p className="text-muted-foreground text-sm mb-6">
-                    Create an account or sign in to save your conversations and access them later.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => {
-                        setIsOpen(false)
-                        navigate("/auth/login")
-                      }}
-                      className="bg-brand hover:bg-brand-dark text-white"
-                    >
-                      Sign In
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsOpen(false)
-                        navigate("/auth/register")
-                      }}
-                    >
-                      Create Account
-                    </Button>
-                  </div>
+              <div className="p-4 flex flex-col items-center justify-center text-center flex-1"> {/* Added p-4 and flex-1 */}
+                <div className="py-10"> {/* Added padding for content */}
+                   <MessageSquare className="h-12 w-12 text-brand mb-4 opacity-80" />
+                   <h3 className="font-medium text-lg mb-2">Sign in to access your chat history</h3>
+                   <p className="text-muted-foreground text-sm mb-6">
+                     Create an account or sign in to save your conversations and access them later.
+                   </p>
+                   <div className="flex gap-3 justify-center"> {/* Centered buttons */}
+                     <Button
+                       onClick={() => {
+                         setIsOpen(false)
+                         navigate("/auth/login")
+                       }}
+                       className="bg-brand hover:bg-brand-dark text-white"
+                     >
+                       Sign In
+                     </Button>
+                     <Button
+                       variant="outline"
+                       onClick={() => {
+                         setIsOpen(false)
+                         navigate("/auth/register")
+                       }}
+                     >
+                       Create Account
+                     </Button>
+                   </div>
                 </div>
               </div>
             ) : (
               // Logged in state - original content
               <>
                 {/* Search and filter controls */}
-                <div className="px-4 mb-4">
+                <div className="p-4"> {/* Added padding and bottom border */}
                   <div className="relative mb-3">
                     <div className="absolute left-2.5 inset-y-0 flex items-center pointer-events-none">
                       <Search className="h-4 w-4 text-muted-foreground" />
@@ -358,7 +372,10 @@ export function ChatHistoryDrawer({
                   <div className="flex items-center justify-between">
                     <span
                       onClick={() => setShowArchived(!showArchived)}
-                      className={`text-xs cursor-pointer hover:underline ${showArchived ? 'text-brand font-medium' : 'text-muted-foreground'}`}
+                      className={cn(
+                        "text-xs cursor-pointer hover:underline transition-colors", // Added transition
+                        showArchived ? 'text-brand font-medium' : 'text-muted-foreground'
+                      )}
                     >
                       {showArchived ? "View Active" : "View Archived"}
                     </span>
@@ -366,7 +383,7 @@ export function ChatHistoryDrawer({
                       variant="outline"
                       size="sm"
                       onClick={onNewConversation}
-                      className="text-xs"
+                      className="text-xs h-7 px-3" // Adjusted size for consistency
                     >
                       New Chat
                     </Button>
@@ -374,13 +391,9 @@ export function ChatHistoryDrawer({
                 </div>
 
                 {/* Content area with conversations list */}
-                <div
-                  id="history-drawer-content"
-                  className="px-4 pb-4 max-h-[calc(100vh-220px)] overflow-y-auto custom-scrollbar"
-                >
-                  {isLoading ? (
+                {isLoading ? (
                     // Loading state
-                    <div className="space-y-3">
+                    <div className="p-4 space-y-3 overflow-hidden"> {/* Added padding */}
                       {[...Array(5)].map((_, index) => (
                         <div key={index} className="flex items-center p-3 rounded-lg border border-border">
                           <Skeleton className="h-10 w-10 rounded-full mr-3" />
@@ -393,128 +406,161 @@ export function ChatHistoryDrawer({
                     </div>
                   ) : filteredConversations.length === 0 ? (
                     // Empty state
-                    <div className="flex flex-col items-center justify-center pt-56 py-10 text-center">
-                      <MessageSquare className="h-12 w-12 text-muted-foreground mb-2 opacity-50" />
-                      <h3 className="font-medium text-lg">No conversations found</h3>
-                      <p className="text-muted-foreground text-sm mt-1">
-                        {searchQuery
-                          ? "Try a different search term"
-                          : showArchived
-                          ? "No archived conversations"
-                          : "Start a new chat to begin"}
-                      </p>
+                    <div className="p-4 flex flex-col items-center justify-center text-center flex-1"> {/* Added padding and flex-1 */}
+                      <div className="py-10"> {/* Added padding for content */}
+                        <MessageSquare className="h-12 w-12 text-muted-foreground mb-2 opacity-50" />
+                        <h3 className="font-medium text-lg">No conversations found</h3>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          {searchQuery
+                            ? "Try a different search term"
+                            : showArchived
+                            ? "No archived conversations"
+                            : "Start a new chat to begin"}
+                        </p>
+                      </div>
                     </div>
                   ) : (
-                    // Conversation list
-                    <div className="space-y-2">
-                      <AnimatePresence>
+                    // Conversation list - Made scrollable
+                    <div
+                      id="history-drawer-list" // Renamed ID
+                      className="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2" // Added padding, flex-1, overflow, custom-scrollbar, space-y
+                      onScroll={(e) => {
+                        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+                        // Load more when scrolled near the bottom (e.g., within 100px)
+                        if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !isLoading) {
+                           fetchConversations(page + 1, showArchived);
+                        }
+                     }}
+                    >
+                      <AnimatePresence initial={false}> {/* initial={false} prevents initial animation on mount */}
                         {filteredConversations.map((conversation, index) => (
                           <motion.div
                             key={conversation.conversationID}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            transition={{ delay: index * 0.03, duration: 0.2 }} // Slightly adjusted transition
+                            exit={{ opacity: 0, x: -20, transition: { duration: 0.15 } }} // Added horizontal exit animation
+                            className={cn(
+                              "p-3 rounded-lg border cursor-pointer transition-all flex items-start group", // Added 'group' class
                               selectedConversationId === conversation.conversationID
                                 ? "border-brand bg-brand/5"
                                 : "border-border hover:border-brand/30 hover:bg-secondary/50"
-                            }`}
+                            )}
                             onClick={() => {
                               onSelectConversation(conversation.conversationID)
                               setIsOpen(false)
                             }}
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start flex-1">
-                                <div className="bg-secondary rounded-full p-2 mr-3">
-                                  <Clock className="h-5 w-5 text-brand" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="font-medium text-sm text-foreground truncate">
-                                    {conversation.title || "Untitled Conversation"}
-                                  </h3>
-                                  {conversation.lastMessage && (
-                                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                                      {conversation.lastMessage}
-                                    </p>
-                                  )}
-                                  <div className="flex items-center flex-wrap gap-1 mt-1">
-                                    <p className="text-xs text-muted-foreground">
-                                      {formatDate(conversation.lastMessageTimestamp)}
-                                    </p>
-                                    <span className="mx-1 text-muted-foreground">•</span>
-                                    <p className="text-xs text-muted-foreground">
-                                      {conversation.messageCount} {conversation.messageCount === 1 ? "message" : "messages"}
-                                    </p>
-                                    {conversation.isArchived && (
-                                      <>
-                                        <span className="mx-1 text-muted-foreground">•</span>
-                                        <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
-                                          Archived
-                                        </Badge>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                                    <ChevronRight className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={(e) => handleArchiveToggle(conversation.conversationID, conversation.isArchived, e)}
-                                  >
-                                    {conversation.isArchived ? (
-                                      <>
-                                        <Archive className="h-4 w-4 mr-2" />
-                                        Unarchive
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Archive className="h-4 w-4 mr-2" />
-                                        Archive
-                                      </>
-                                    )}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setConversationToDelete(conversation.conversationID)
-                                      setIsDeleteDialogOpen(true)
-                                    }}
-                                    className="text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            <div className="bg-secondary rounded-full p-2 mr-3 flex-shrink-0"> {/* Added flex-shrink-0 */}
+                               <Clock className="h-5 w-5 text-brand" />
                             </div>
+                            <div className="flex-1 min-w-0">
+                               <h3 className="font-medium text-sm text-foreground truncate mb-1"> {/* Added mb-1 */}
+                                 {conversation.title || `Chat ${conversation.conversationID}`} {/* Fallback title */}
+                               </h3>
+                               {conversation.lastMessage && (
+                                 <p className="text-xs text-muted-foreground line-clamp-1 mb-1"> {/* Added mb-1 */}
+                                   {conversation.lastMessage}
+                                 </p>
+                               )}
+                               <div className="flex items-center flex-wrap gap-1"> {/* Removed mt-1, spacing handled by mb-1 above */}
+                                 <p className="text-xs text-muted-foreground">
+                                   {formatDate(conversation.updatedAt || conversation.createdAt)}
+                                 </p>
+                                 <span className="mx-0.5 text-muted-foreground">•</span> {/* Adjusted margin */}
+                                 <p className="text-xs text-muted-foreground">
+                                   {conversation.messageCount || 0} {(conversation.messageCount || 0) === 1 ? "message" : "messages"}
+                                 </p>
+                                 {conversation.isArchived && (
+                                   <>
+                                     <span className="mx-0.5 text-muted-foreground">•</span> {/* Adjusted margin */}
+                                     <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 font-normal"> {/* font-normal for less emphasis */}
+                                       Archived
+                                     </Badge>
+                                   </>
+                                 )}
+                                  {/* Display tags if available */}
+                                  {conversation.tags && conversation.tags.map(tag => (
+                                     <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0 h-5 font-normal">
+                                        {tag}
+                                     </Badge>
+                                  ))}
+                               </div>
+                            </div>
+
+                            <DropdownMenu>
+                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus:opacity-100 ml-2 flex-shrink-0" // Hide until hover, flex-shrink-0
+                                    aria-label="Conversation options"
+                                 >
+                                   <ChevronRight className="h-4 w-4" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end">
+                                 <DropdownMenuItem
+                                   onClick={(e) => handleArchiveToggle(conversation.conversationID, conversation.isArchived, e)}
+                                 >
+                                   {conversation.isArchived ? (
+                                     <>
+                                       <Archive className="h-4 w-4 mr-2" />
+                                       Unarchive
+                                     </>
+                                   ) : (
+                                     <>
+                                       <Archive className="h-4 w-4 mr-2" />
+                                       Archive
+                                     </>
+                                   )}
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem
+                                   onClick={(e) => {
+                                     e.stopPropagation()
+                                     setConversationToDelete(conversation.conversationID)
+                                     setIsDeleteDialogOpen(true)
+                                   }}
+                                   className="text-destructive focus:text-destructive"
+                                 >
+                                   <Trash2 className="h-4 w-4 mr-2" />
+                                   Delete
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                            </DropdownMenu>
                           </motion.div>
                         ))}
                       </AnimatePresence>
 
-                      {/* Load more button */}
-                      {hasMore && (
-                        <div className="mt-4 text-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => fetchConversations(page + 1, showArchived)}
-                            disabled={isLoading}
-                          >
-                            {isLoading ? "Loading..." : "Load more"}
-                          </Button>
-                        </div>
+                      {/* Load more indicator */}
+                      {hasMore && !isLoading && ( // Show load more if has more and not currently loading
+                         <div className="mt-2 text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => fetchConversations(page + 1, showArchived)}
+                              disabled={isLoading}
+                              className="text-muted-foreground hover:text-foreground"
+                           >
+                              Load More
+                           </Button>
+                         </div>
                       )}
+                       {isLoading && page > 1 && ( // Show skeleton only when loading subsequent pages
+                           <div className="space-y-3 mt-2">
+                              {[...Array(2)].map((_, index) => (
+                                 <div key={index} className="flex items-center p-3 rounded-lg border border-border opacity-50">
+                                    <Skeleton className="h-10 w-10 rounded-full mr-3" />
+                                    <div className="space-y-2 flex-1">
+                                       <Skeleton className="h-4 w-3/4" />
+                                       <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                 </div>
+                              ))}
+                           </div>
+                        )}
                     </div>
                   )}
-                </div>
               </>
             )}
           </div>

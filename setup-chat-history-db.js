@@ -2,12 +2,14 @@
  * Script to set up the chat history database tables
  * Run with: node setup-chat-history-db.js
  */
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+import { config } from 'dotenv';
+import mysql from 'mysql2/promise';
+
+config();
 
 async function setupDatabase() {
   console.log('Setting up chat history database tables...');
-  
+
   // Create connection
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
@@ -16,7 +18,7 @@ async function setupDatabase() {
     database: process.env.DB_NAME || 'guidia-web-db',
     multipleStatements: true
   });
-  
+
   try {
     // SQL to create all tables
     const sql = `
@@ -91,11 +93,11 @@ async function setupDatabase() {
       CONSTRAINT \`fk_ai_chat_user_preferences_users\` FOREIGN KEY (\`userID\`) REFERENCES \`users\` (\`userID\`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
     `;
-    
+
     // Execute the SQL
     await connection.query(sql);
     console.log('Chat history database tables created successfully!');
-    
+
     // Create default tags
     const defaultTags = [
       'Career Advice',
@@ -106,7 +108,7 @@ async function setupDatabase() {
       'Skills Development',
       'Industry Insights'
     ];
-    
+
     for (const tag of defaultTags) {
       try {
         await connection.query('INSERT IGNORE INTO ai_chat_tags (name) VALUES (?)', [tag]);
@@ -117,9 +119,9 @@ async function setupDatabase() {
         }
       }
     }
-    
+
     console.log('Default tags created successfully!');
-    
+
   } catch (error) {
     console.error('Error setting up database:', error);
   } finally {

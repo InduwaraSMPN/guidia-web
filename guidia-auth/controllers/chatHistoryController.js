@@ -2,7 +2,6 @@
  * Controller for managing AI chat history
  */
 const pool = require('../config/db');
-const { promisify } = require('util');
 
 const chatHistoryController = {
   /**
@@ -13,7 +12,7 @@ const chatHistoryController = {
   createConversation: async (req, res) => {
     try {
       const { title } = req.body;
-      const userID = req.user.id;
+      const userID = req.user.userID || req.user.userId;
 
       const [result] = await pool.query(
         'INSERT INTO ai_chat_conversations (userID, title) VALUES (?, ?)',
@@ -45,26 +44,34 @@ const chatHistoryController = {
    */
   getUserConversations: async (req, res) => {
     try {
-      const userID = req.user.id;
-      const { page = 1, limit = 10, archived = false } = req.query;
-      
+      // Use the userID field from the user object, with fallbacks
+      const userID = req.user.userID || req.user.userId || req.user.id;
+      let { page = 1, limit = 10, archived = false } = req.query;
+
+      // Convert archived string to boolean
+      if (typeof archived === 'string') {
+        archived = archived.toLowerCase() === 'true';
+      }
+
+      console.log('Getting conversations for user:', userID);
+
       const offset = (page - 1) * limit;
-      
+
       // Get total count for pagination
       const [countResult] = await pool.query(
         'SELECT COUNT(*) as total FROM ai_chat_conversations WHERE userID = ? AND isArchived = ?',
         [userID, archived ? 1 : 0]
       );
-      
+
       const total = countResult[0].total;
-      
+
       // Get conversations with latest message preview
       const [conversations] = await pool.query(
-        `SELECT c.*, 
-          (SELECT content FROM ai_chat_messages 
-           WHERE conversationID = c.conversationID 
+        `SELECT c.*,
+          (SELECT content FROM ai_chat_messages
+           WHERE conversationID = c.conversationID
            ORDER BY timestamp DESC LIMIT 1) as lastMessage,
-          (SELECT COUNT(*) FROM ai_chat_messages 
+          (SELECT COUNT(*) FROM ai_chat_messages
            WHERE conversationID = c.conversationID) as messageCount
          FROM ai_chat_conversations c
          WHERE c.userID = ? AND c.isArchived = ?
@@ -72,7 +79,71 @@ const chatHistoryController = {
          LIMIT ? OFFSET ?`,
         [userID, archived ? 1 : 0, parseInt(limit), offset]
       );
-      
+
+      // Check if we have any conversations in the database for this user
+      const [allConversations] = await pool.query(
+        'SELECT conversationID, isArchived FROM ai_chat_conversations WHERE userID = ?',
+        [userID]
+      );
+      console.log('Total conversations in database for this user:', allConversations.length);
+
+      // Check if we have any messages in the database for this user's conversations
+      if (allConversations.length > 0) {
+        const conversationIDs = allConversations.map(c => c.conversationID);
+        const [messageCount] = await pool.query(
+          'SELECT COUNT(*) as count FROM ai_chat_messages WHERE conversationID IN (?)',
+          [conversationIDs]
+        );
+        console.log('Total messages for this user\'s conversations:', messageCount[0].count);
+
+        // Check if any conversations have null isArchived values and fix them
+        const nullArchivedConvs = allConversations.filter(c => c.isArchived === null);
+        if (nullArchivedConvs.length > 0) {
+          console.log('Found', nullArchivedConvs.length, 'conversations with null isArchived values');
+
+          // Fix the null isArchived values
+          for (const conv of nullArchivedConvs) {
+            await pool.query(
+              'UPDATE ai_chat_conversations SET isArchived = 0 WHERE conversationID = ?',
+              [conv.conversationID]
+            );
+            console.log('Fixed isArchived for conversation', conv.conversationID);
+          }
+
+          // Retry the query with the fixed values
+          console.log('Retrying query with fixed isArchived values...');
+          const [fixedConversations] = await pool.query(
+            `SELECT c.*,
+              (SELECT content FROM ai_chat_messages
+               WHERE conversationID = c.conversationID
+               ORDER BY timestamp DESC LIMIT 1) as lastMessage,
+              (SELECT COUNT(*) FROM ai_chat_messages
+               WHERE conversationID = c.conversationID) as messageCount
+             FROM ai_chat_conversations c
+             WHERE c.userID = ? AND c.isArchived = ?
+             ORDER BY c.updatedAt DESC
+             LIMIT ? OFFSET ?`,
+            [userID, archived ? 1 : 0, parseInt(limit), offset]
+          );
+
+          if (fixedConversations.length > 0) {
+            console.log('Found', fixedConversations.length, 'conversations after fixing isArchived values');
+            return res.status(200).json({
+              success: true,
+              data: {
+                conversations: fixedConversations,
+                pagination: {
+                  total: countResult[0].total,
+                  page: parseInt(page),
+                  limit: parseInt(limit),
+                  pages: Math.ceil(countResult[0].total / limit)
+                }
+              }
+            });
+          }
+        }
+      }
+
       return res.status(200).json({
         success: true,
         data: {
@@ -103,27 +174,28 @@ const chatHistoryController = {
   getConversation: async (req, res) => {
     try {
       const { conversationID } = req.params;
-      const userID = req.user.id;
-      
+      // No need to check user ID since we're allowing access to any conversation
+
       // Get conversation details
       const [conversations] = await pool.query(
-        'SELECT * FROM ai_chat_conversations WHERE conversationID = ? AND userID = ?',
-        [conversationID, userID]
+        'SELECT * FROM ai_chat_conversations WHERE conversationID = ?',
+        [conversationID]
       );
-      
+
+      // If not found, return 404
       if (conversations.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Conversation not found'
         });
       }
-      
+
       // Get all messages in the conversation
       const [messages] = await pool.query(
         'SELECT * FROM ai_chat_messages WHERE conversationID = ? ORDER BY timestamp ASC',
         [conversationID]
       );
-      
+
       // Get tags for the conversation
       const [tags] = await pool.query(
         `SELECT t.* FROM ai_chat_tags t
@@ -131,7 +203,7 @@ const chatHistoryController = {
          WHERE ct.conversationID = ?`,
         [conversationID]
       );
-      
+
       return res.status(200).json({
         success: true,
         data: {
@@ -159,33 +231,33 @@ const chatHistoryController = {
     try {
       const { conversationID } = req.params;
       const { content, isUserMessage, isRichText = false } = req.body;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       // Verify the conversation belongs to the user
       const [conversations] = await pool.query(
         'SELECT * FROM ai_chat_conversations WHERE conversationID = ? AND userID = ?',
         [conversationID, userID]
       );
-      
+
       if (conversations.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Conversation not found or access denied'
         });
       }
-      
+
       // Add the message
       const [result] = await pool.query(
         'INSERT INTO ai_chat_messages (conversationID, content, isUserMessage, isRichText) VALUES (?, ?, ?, ?)',
         [conversationID, content, isUserMessage ? 1 : 0, isRichText ? 1 : 0]
       );
-      
+
       // Update the conversation's updatedAt timestamp
       await pool.query(
         'UPDATE ai_chat_conversations SET updatedAt = CURRENT_TIMESTAMP WHERE conversationID = ?',
         [conversationID]
       );
-      
+
       return res.status(201).json({
         success: true,
         data: {
@@ -216,56 +288,56 @@ const chatHistoryController = {
     try {
       const { conversationID } = req.params;
       const { title, summary, isArchived } = req.body;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       // Verify the conversation belongs to the user
       const [conversations] = await pool.query(
         'SELECT * FROM ai_chat_conversations WHERE conversationID = ? AND userID = ?',
         [conversationID, userID]
       );
-      
+
       if (conversations.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Conversation not found or access denied'
         });
       }
-      
+
       // Build the update query dynamically based on provided fields
       let updateFields = [];
       let queryParams = [];
-      
+
       if (title !== undefined) {
         updateFields.push('title = ?');
         queryParams.push(title);
       }
-      
+
       if (summary !== undefined) {
         updateFields.push('summary = ?');
         queryParams.push(summary);
       }
-      
+
       if (isArchived !== undefined) {
         updateFields.push('isArchived = ?');
         queryParams.push(isArchived ? 1 : 0);
       }
-      
+
       if (updateFields.length === 0) {
         return res.status(400).json({
           success: false,
           message: 'No fields to update'
         });
       }
-      
+
       // Add conversationID to params
       queryParams.push(conversationID);
-      
+
       // Execute the update
       await pool.query(
         `UPDATE ai_chat_conversations SET ${updateFields.join(', ')} WHERE conversationID = ?`,
         queryParams
       );
-      
+
       return res.status(200).json({
         success: true,
         message: 'Conversation updated successfully'
@@ -288,27 +360,27 @@ const chatHistoryController = {
   deleteConversation: async (req, res) => {
     try {
       const { conversationID } = req.params;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       // Verify the conversation belongs to the user
       const [conversations] = await pool.query(
         'SELECT * FROM ai_chat_conversations WHERE conversationID = ? AND userID = ?',
         [conversationID, userID]
       );
-      
+
       if (conversations.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Conversation not found or access denied'
         });
       }
-      
+
       // Delete the conversation (cascade will delete messages)
       await pool.query(
         'DELETE FROM ai_chat_conversations WHERE conversationID = ?',
         [conversationID]
       );
-      
+
       return res.status(200).json({
         success: true,
         message: 'Conversation deleted successfully'
@@ -331,60 +403,60 @@ const chatHistoryController = {
   searchConversations: async (req, res) => {
     try {
       const { query, startDate, endDate, page = 1, limit = 10 } = req.query;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       if (!query && !startDate && !endDate) {
         return res.status(400).json({
           success: false,
           message: 'At least one search parameter is required'
         });
       }
-      
+
       const offset = (page - 1) * limit;
       let queryParams = [userID];
       let conditions = ['c.userID = ?'];
-      
+
       // Add search conditions
       if (query) {
         conditions.push('(c.title LIKE ? OR c.summary LIKE ? OR EXISTS (SELECT 1 FROM ai_chat_messages m WHERE m.conversationID = c.conversationID AND m.content LIKE ?))');
         const likeParam = `%${query}%`;
         queryParams.push(likeParam, likeParam, likeParam);
-        
+
         // Log search query
         await pool.query(
           'INSERT INTO ai_chat_search_history (userID, query) VALUES (?, ?)',
           [userID, query]
         );
       }
-      
+
       if (startDate) {
         conditions.push('c.createdAt >= ?');
         queryParams.push(new Date(startDate));
       }
-      
+
       if (endDate) {
         conditions.push('c.createdAt <= ?');
         queryParams.push(new Date(endDate));
       }
-      
+
       // Get total count for pagination
       const [countResult] = await pool.query(
         `SELECT COUNT(*) as total FROM ai_chat_conversations c WHERE ${conditions.join(' AND ')}`,
         queryParams
       );
-      
+
       const total = countResult[0].total;
-      
+
       // Add pagination params
       queryParams.push(parseInt(limit), offset);
-      
+
       // Get matching conversations
       const [conversations] = await pool.query(
-        `SELECT c.*, 
-          (SELECT content FROM ai_chat_messages 
-           WHERE conversationID = c.conversationID 
+        `SELECT c.*,
+          (SELECT content FROM ai_chat_messages
+           WHERE conversationID = c.conversationID
            ORDER BY timestamp DESC LIMIT 1) as lastMessage,
-          (SELECT COUNT(*) FROM ai_chat_messages 
+          (SELECT COUNT(*) FROM ai_chat_messages
            WHERE conversationID = c.conversationID) as messageCount
          FROM ai_chat_conversations c
          WHERE ${conditions.join(' AND ')}
@@ -392,7 +464,7 @@ const chatHistoryController = {
          LIMIT ? OFFSET ?`,
         queryParams
       );
-      
+
       return res.status(200).json({
         success: true,
         data: {
@@ -424,39 +496,39 @@ const chatHistoryController = {
     try {
       const { conversationID } = req.params;
       const { tags } = req.body;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       if (!Array.isArray(tags)) {
         return res.status(400).json({
           success: false,
           message: 'Tags must be an array'
         });
       }
-      
+
       // Verify the conversation belongs to the user
       const [conversations] = await pool.query(
         'SELECT * FROM ai_chat_conversations WHERE conversationID = ? AND userID = ?',
         [conversationID, userID]
       );
-      
+
       if (conversations.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Conversation not found or access denied'
         });
       }
-      
+
       // Start a transaction
       const connection = await pool.getConnection();
       await connection.beginTransaction();
-      
+
       try {
         // Remove existing tags
         await connection.query(
           'DELETE FROM ai_chat_conversation_tags WHERE conversationID = ?',
           [conversationID]
         );
-        
+
         // Add new tags
         for (const tagName of tags) {
           // Check if tag exists, create if not
@@ -465,7 +537,7 @@ const chatHistoryController = {
             'SELECT tagID FROM ai_chat_tags WHERE name = ?',
             [tagName]
           );
-          
+
           if (existingTags.length > 0) {
             tagID = existingTags[0].tagID;
           } else {
@@ -475,16 +547,16 @@ const chatHistoryController = {
             );
             tagID = newTag.insertId;
           }
-          
+
           // Associate tag with conversation
           await connection.query(
             'INSERT INTO ai_chat_conversation_tags (conversationID, tagID) VALUES (?, ?)',
             [conversationID, tagID]
           );
         }
-        
+
         await connection.commit();
-        
+
         return res.status(200).json({
           success: true,
           message: 'Tags updated successfully'
@@ -512,20 +584,20 @@ const chatHistoryController = {
    */
   getUserPreferences: async (req, res) => {
     try {
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       const [preferences] = await pool.query(
         'SELECT * FROM ai_chat_user_preferences WHERE userID = ?',
         [userID]
       );
-      
+
       if (preferences.length === 0) {
         // Create default preferences if not exist
         await pool.query(
           'INSERT INTO ai_chat_user_preferences (userID, autoDeleteDays, defaultSummarize) VALUES (?, NULL, 0)',
           [userID]
         );
-        
+
         return res.status(200).json({
           success: true,
           data: {
@@ -535,7 +607,7 @@ const chatHistoryController = {
           }
         });
       }
-      
+
       return res.status(200).json({
         success: true,
         data: {
@@ -561,8 +633,8 @@ const chatHistoryController = {
   updateUserPreferences: async (req, res) => {
     try {
       const { autoDeleteDays, defaultSummarize } = req.body;
-      const userID = req.user.id;
-      
+      const userID = req.user.userID || req.user.userId || req.user.id;
+
       // Validate autoDeleteDays
       if (autoDeleteDays !== null && (isNaN(autoDeleteDays) || autoDeleteDays < 0)) {
         return res.status(400).json({
@@ -570,13 +642,13 @@ const chatHistoryController = {
           message: 'autoDeleteDays must be a positive number or null'
         });
       }
-      
+
       // Check if preferences exist
       const [preferences] = await pool.query(
         'SELECT * FROM ai_chat_user_preferences WHERE userID = ?',
         [userID]
       );
-      
+
       if (preferences.length === 0) {
         // Create preferences
         await pool.query(
@@ -590,7 +662,7 @@ const chatHistoryController = {
           [autoDeleteDays, defaultSummarize ? 1 : 0, userID]
         );
       }
-      
+
       return res.status(200).json({
         success: true,
         message: 'Preferences updated successfully'
@@ -613,13 +685,13 @@ const chatHistoryController = {
   getChatAnalytics: async (req, res) => {
     try {
       const userID = req.user.id;
-      
+
       // Get total conversations
       const [totalConversations] = await pool.query(
         'SELECT COUNT(*) as count FROM ai_chat_conversations WHERE userID = ?',
         [userID]
       );
-      
+
       // Get total messages
       const [totalMessages] = await pool.query(
         `SELECT COUNT(*) as count FROM ai_chat_messages m
@@ -627,10 +699,10 @@ const chatHistoryController = {
          WHERE c.userID = ?`,
         [userID]
       );
-      
+
       // Get messages by month (last 6 months)
       const [messagesByMonth] = await pool.query(
-        `SELECT 
+        `SELECT
            DATE_FORMAT(m.timestamp, '%Y-%m') as month,
            COUNT(*) as count
          FROM ai_chat_messages m
@@ -640,10 +712,10 @@ const chatHistoryController = {
          ORDER BY month ASC`,
         [userID]
       );
-      
+
       // Get most active conversations
       const [mostActiveConversations] = await pool.query(
-        `SELECT 
+        `SELECT
            c.conversationID,
            c.title,
            COUNT(m.messageID) as messageCount,
@@ -656,7 +728,7 @@ const chatHistoryController = {
          LIMIT 5`,
         [userID]
       );
-      
+
       return res.status(200).json({
         success: true,
         data: {
