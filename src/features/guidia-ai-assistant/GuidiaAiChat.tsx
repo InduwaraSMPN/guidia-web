@@ -511,24 +511,21 @@ export function GuidiaAiChat() {
       <BackgroundBeams className="z-0 fixed inset-0 pointer-events-none" />
 
       <div className="flex h-full relative z-10">
-        {/* History drawer component */}
-        {user && (
-          <ChatHistoryDrawer
-            onSelectConversation={handleSelectConversation}
-            selectedConversationId={currentConversationId || undefined}
-            onNewConversation={handleNewConversation}
-            isOpen={isHistoryPanelVisible}
-            setIsOpen={setIsHistoryPanelVisible}
-          />
-        )}
+        {/* History drawer component - conditionally show content based on login status */}
+        <ChatHistoryDrawer
+          onSelectConversation={handleSelectConversation}
+          selectedConversationId={currentConversationId || undefined}
+          onNewConversation={handleNewConversation}
+          isOpen={isHistoryPanelVisible}
+          setIsOpen={setIsHistoryPanelVisible}
+          isLoggedIn={!!user}
+        />
 
-        {/* Floating history button */}
-        {user && (
-          <HistoryFloatingButton
-            onClick={() => setIsHistoryPanelVisible(true)}
-            isVisible={!isHistoryPanelVisible && isChatVisible}
-          />
-        )}
+        {/* Floating history button - always visible when history panel is closed */}
+        <HistoryFloatingButton
+          onClick={() => setIsHistoryPanelVisible(true)}
+          isVisible={!isHistoryPanelVisible}
+        />
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col overflow-hidden">

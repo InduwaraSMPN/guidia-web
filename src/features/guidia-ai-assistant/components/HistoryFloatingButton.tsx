@@ -1,9 +1,9 @@
 "use client"
 
-import { History } from "lucide-react" // Keep lucide-react icon
-import { motion } from "framer-motion" // Keep animations
-import { Button } from "@/components/ui/button" // Keep Shadcn Button
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip" // Keep Tooltip
+import { History } from "lucide-react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface HistoryFloatingButtonProps {
   onClick: () => void
@@ -15,45 +15,48 @@ export function HistoryFloatingButton({ onClick, isVisible }: HistoryFloatingBut
     return null
   }
 
-  // Refactored to use the History icon as the primary visual element,
-  // removing the solid background circle.
+  // Refactored to display Icon + Text, matching the provided image style
   return (
     // Keep the motion wrapper for smooth transitions
+    // Adjust animation for a horizontal reveal which fits the new shape better
     <motion.div
-      className="fixed left-6 bottom-6 z-40"
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.8, y: 20 }}
+      className="fixed left-6 bottom-6 z-40" // Position at bottom-left
+      initial={{ opacity: 0, x: -20 }}      // Slide in from left
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}         // Slide out to left
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
-      {/* Keep Tooltip for accessibility and clarity */}
+      {/* Keep Tooltip for accessibility and extra context if desired */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             {/*
-              Use Shadcn Button for click handling and accessibility attributes.
-              - variant="ghost": Removes default button background and border.
-              - size="icon": Applies standard sizing/padding for icon buttons (adjust if not available/desired).
-              - rounded-full: Makes the hover/focus effect circular if a background appears.
-              - text-brand: Sets the icon color to the brand color. Inherited by the icon.
-              - hover:text-brand-dark: Darkens icon color on hover.
-              - hover:bg-brand/10: Adds a subtle circular background matching the brand color (with 10% opacity) on hover for feedback.
-              - Remove previous explicit size (h-14 w-14), background (bg-brand), text-white and shadow (shadow-lg).
+              Modify Button component:
+              - Remove variant="ghost" and size="icon"
+              - Add flex layout to position icon and text.
+              - Add padding (e.g., px-3 py-2 or use default Button padding).
+              - Set text color (e.g., text-foreground, text-white, or a specific light gray)
+              - Add background on hover/focus for feedback (e.g., hover:bg-accent)
+              - Adjust rounding (e.g., rounded-md).
+              - NOTE: The image has a dark background, but this is a floating button.
+                We'll style the button itself, assuming it floats over the page content.
+                Using standard Shadcn styles like text-foreground and hover:bg-accent.
+                Adjust colors if your specific theme requires it (e.g., text-gray-300 hover:bg-gray-700).
             */}
             <Button
               onClick={onClick}
-              variant="ghost" // Removes background/border
-              size="icon"     // Standard padding for icon buttons, adjust if needed
-              className="rounded-full text-brand hover:text-brand-dark hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" // Added focus-visible styles for accessibility
+              variant="secondary" // Use secondary for better visibility
+              className="h-auto px-3 py-2 rounded-md text-brand hover:bg-accent hover:text-brand-dark focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center gap-2 shadow-sm" // Use flex to align icon and text with a gap
             >
-              {/* Increased icon size for better visibility as the primary element */}
-              <History className="h-6 w-6" /> {/* Example: Increased size */}
-              {/* Keep screen reader text */}
-              <span className="sr-only">View Chat History</span>
+              {/* Use the History icon - adjust size if needed */}
+              <History className="h-5 w-5" /> {/* Match icon size from image */}
+              {/* Add the visible text "History" */}
+              <span className="text-sm">History</span> {/* Match text style */}
+              {/* Remove the sr-only span as text is now visible */}
             </Button>
           </TooltipTrigger>
-          {/* Keep Tooltip content */}
-          <TooltipContent side="right">
+          {/* Update Tooltip content if desired, maybe shorten it */}
+          <TooltipContent side="top">
             <p>View Chat History</p>
           </TooltipContent>
         </Tooltip>
