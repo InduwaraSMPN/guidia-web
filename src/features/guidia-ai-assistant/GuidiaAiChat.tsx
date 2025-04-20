@@ -514,12 +514,12 @@ export function GuidiaAiChat() {
 
   return (
     <main
-      className="h-screen w-full bg-background relative flex flex-col antialiased overflow-hidden"
+      className="min-h-[calc(100vh-64px)] w-full bg-background relative flex flex-col antialiased overflow-hidden pt-16 flex-grow"
       style={{ touchAction: 'auto' }}
     >
       <BackgroundBeams className="z-0 fixed inset-0 pointer-events-none" />
 
-      <div className="flex h-full relative z-10">
+      <div className="flex h-full relative z-10 flex-grow">
         {/* History drawer component - conditionally show content based on login status */}
         <ChatHistoryDrawer
           onSelectConversation={handleSelectConversation}
@@ -539,7 +539,7 @@ export function GuidiaAiChat() {
 
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden h-full">
           <AnimatePresence mode="wait">
             {!isChatVisible ? (
               // Initial view with just the input
@@ -548,9 +548,9 @@ export function GuidiaAiChat() {
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="flex-1 flex flex-col items-center justify-center p-4 relative z-10"
+                className="flex-1 flex flex-col items-center justify-center p-4 relative z-10 min-h-[calc(100vh-200px)]"
               >
-                <header className="max-w-2xl mx-auto flex flex-col items-center">
+                <header className="max-w-2xl mx-auto flex flex-col items-center justify-center h-full">
                   <h1 className="text-4xl md:text-7xl text-center font-sans font-bold mb-4 whitespace-nowrap">
                     <span className="font-['Grillmaster_Extended'] bg-gradient-to-r from-brand-dark via-brand to-brand-light text-transparent bg-clip-text">
                       Guidia
