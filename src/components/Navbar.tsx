@@ -309,9 +309,9 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                 </div>
               </Link>
 
-              {/* News and Events next to logo when no user */}
+              {/* News and Events next to logo when no user - hidden on mobile */}
               {!user && !logoOnly && !isVerifyingToken && (
-                <div className="ml-8 relative" ref={navRef}>
+                <div className="ml-8 relative hidden md:block" ref={navRef}>
                   <div className="flex items-center space-x-4">
                     {/* News Link */}
                     <Link
@@ -349,21 +349,11 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       </MenuItem>
                     </div>
 
-                    {/* Guidia AI Link */}
-                    <Link
-                      key="/guidia-ai"
-                      to="/guidia-ai"
-                      ref={(el) => (itemRefs.current[2] = el)}
-                      className={`${navItemBaseClasses} ${location.pathname === '/guidia-ai' || location.pathname === '/ai-chat' ? activeNavItemClasses : inactiveNavItemClasses}`}
-                      onClick={() => setActiveDropdown(null)} // Close any open dropdown when clicking this item
-                      onMouseEnter={() => setActiveDropdown(null)} // Close any open dropdown when hovering this item
-                    >
-                      Guidia AI
-                    </Link>
+                    {/* Guidia AI Link removed for signed-out users */}
                   </div>
 
                   {/* Animated Underline Indicator for non-logged-in layout */}
-                  {!user && activeIndex !== -1 && activeIndex < 3 && indicatorStyle.width > 0 && (
+                  {!user && activeIndex !== -1 && activeIndex < 2 && indicatorStyle.width > 0 && (
                     <motion.div
                       className="absolute bottom-[1px] h-[2px] bg-brand rounded-full"
                       layoutId="navbar-underline-no-user"
@@ -660,16 +650,18 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
               </div>
             </div>
 
-            {/* Guidia AI - Available to all users */}
-            <Link
-              to="/guidia-ai"
-              onClick={() => setIsMenuOpen(false)}
-              className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
-                location.pathname === "/guidia-ai" || location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
-              }`}
-            >
-              Guidia AI
-            </Link>
+            {/* Guidia AI - Only available to logged-in users */}
+            {user && (
+              <Link
+                to="/guidia-ai"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-sm hover:text-brand py-3 transition-colors font-montserrat ${
+                  location.pathname === "/guidia-ai" || location.pathname === "/ai-chat" ? "text-brand font-bold" : "text-foreground font-medium"
+                }`}
+              >
+                Guidia AI
+              </Link>
+            )}
 
             {/* Jobs */}
             {user && (

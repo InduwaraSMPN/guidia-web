@@ -174,7 +174,27 @@ export function ProfileDropdown() {
     fetchProfileData();
   }, [user]);
 
-  // We don't need a separate click outside handler as it's handled by DropdownContext
+  // Add a global click handler to close the dropdown when clicking elsewhere
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      // Check if the click is outside the dropdown and button
+      if (
+        isOpen &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setActiveDropdown(null);
+      }
+    };
+
+    // Add the event listener
+    document.addEventListener('mousedown', handleGlobalClick);
+
+    // Clean up
+    return () => {
+      document.removeEventListener('mousedown', handleGlobalClick);
+    };
+  }, [isOpen, setActiveDropdown]);
 
   // Close dropdown when route changes
   useEffect(() => {
@@ -203,11 +223,27 @@ export function ProfileDropdown() {
     if (isOpen || isHoveringDropdown) {
       return (
         <div
-          className="absolute right-0 w-16 h-6 top-full z-40"
+          className="absolute right-0 w-24 h-8 top-full z-40"
           data-dropdown-content="profile"
           onMouseEnter={() => {
             setIsHoveringDropdown(true);
             setActiveDropdown("profile-dropdown"); // Ensure dropdown stays open
+
+            // Clear any pending timeout
+            if (leaveTimeoutRef.current) {
+              clearTimeout(leaveTimeoutRef.current);
+              leaveTimeoutRef.current = null;
+            }
+          }}
+          onMouseLeave={() => {
+            setIsHoveringDropdown(false);
+            // Add a small delay before closing
+            leaveTimeoutRef.current = setTimeout(() => {
+              // Force close the dropdown if we're not hovering over it
+              if (!isHoveringDropdown) {
+                setActiveDropdown(null);
+              }
+            }, 300);
           }}
           style={{ marginTop: '-2px' }} // Ensure no gap between button and hover path
         />
@@ -378,21 +414,45 @@ export function ProfileDropdown() {
   const handleButtonMouseEnter = () => {
     setActiveDropdown("profile-dropdown"); // Open on hover
     setIsHoveringDropdown(true);
+
+    // Clear any pending timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
   };
 
   // Handle button mouse leave
   const handleButtonMouseLeave = () => {
-    // Don't close immediately - this is handled by the global mousemove handler
+    // Add a small delay before closing to allow moving to the dropdown
+    leaveTimeoutRef.current = setTimeout(() => {
+      // Only close if we're not hovering over the dropdown
+      if (!isHoveringDropdown) {
+        setActiveDropdown(null);
+      }
+    }, 300);
   };
 
   // Handle dropdown mouse enter
   const handleDropdownMouseEnter = () => {
     setIsHoveringDropdown(true);
+
+    // Clear any pending timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
   };
 
   // Handle dropdown mouse leave
   const handleDropdownMouseLeave = () => {
     setIsHoveringDropdown(false);
+
+    // Add a small delay before closing
+    leaveTimeoutRef.current = setTimeout(() => {
+      // Force close the dropdown
+      setActiveDropdown(null);
+    }, 300);
   };
 
   return (
@@ -430,6 +490,7 @@ export function ProfileDropdown() {
           data-dropdown-content="profile"
           onMouseEnter={handleDropdownMouseEnter}
           onMouseLeave={handleDropdownMouseLeave}
+          onBlur={() => setActiveDropdown(null)} // Close on blur
           onClick={(e: React.MouseEvent) => e.stopPropagation()} // Prevent clicks inside dropdown from closing it
         >
           <motion.div
@@ -459,7 +520,7 @@ export function ProfileDropdown() {
             </div>
 
           {/* Menu items */}
-          <div className="py-2">
+          <div>
             <Link
               to={getProfilePath()}
               onClick={(e) => {
