@@ -19,6 +19,7 @@ import { GuidiaAiMessage } from "./components/GuidiaAiMessage";
 import { DateDivider } from "./components/DateDivider";
 import { ChatHistoryDrawer } from "./components/ChatHistoryDrawer";
 import { HistoryFloatingButton } from "./components/HistoryFloatingButton";
+import { PromptGallery } from "./components/PromptGallery";
 
 interface Message {
   id: string
@@ -556,6 +557,26 @@ export function GuidiaAiChat() {
                     onSubmit={onSubmit}
                     className="mt-6 w-full"
                     inputClassName="pl-4 sm:pl-10"
+                  />
+
+                  {/* Prompt Gallery */}
+                  <PromptGallery
+                    onPromptSelect={(prompt) => {
+                      // Create a synthetic form event
+                      const form = document.createElement('form');
+                      const input = document.createElement('input');
+                      input.value = prompt;
+                      form.appendChild(input);
+
+                      const syntheticEvent = {
+                        preventDefault: () => {},
+                        currentTarget: form,
+                        target: form,
+                      } as unknown as React.FormEvent<HTMLFormElement>;
+
+                      onSubmit(syntheticEvent);
+                    }}
+                    className="mt-8"
                   />
                 </header>
               </motion.div>

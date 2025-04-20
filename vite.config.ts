@@ -44,11 +44,16 @@ export default defineConfig({
         },
         bypass: (req) => {
           // Bypass proxy for frontend routes that should be handled by React Router
-          // Only bypass GET requests to the reset password page with a token
-          // Do NOT bypass API requests to verify the token
-          if (req.url.startsWith('/auth/reset-password/') &&
-              req.method === 'GET' &&
-              !req.url.includes('/verify-token')) {
+          // Bypass GET requests to auth pages that should be handled by React Router
+          if (req.method === 'GET' && (
+              req.url === '/auth/login' ||
+              req.url === '/auth/register' ||
+              req.url === '/auth/email-verification' ||
+              req.url === '/auth/register-continue' ||
+              req.url === '/auth/registration-pending' ||
+              req.url === '/auth/forgot-password' ||
+              (req.url.startsWith('/auth/reset-password/') && !req.url.includes('/verify-token'))
+            )) {
             return req.url;
           }
           return false;

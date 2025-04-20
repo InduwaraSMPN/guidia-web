@@ -11,6 +11,7 @@ import { API_URL } from "@/config"
 import { useAuth } from "@/contexts/AuthContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
+import { useNavigate } from "react-router-dom"
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ export function ChatHistoryDrawer({
   isLoggedIn = true, // Default to true for backward compatibility
 }: ChatHistoryDrawerProps) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const token = localStorage.getItem('token')
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([])
@@ -319,7 +321,7 @@ export function ChatHistoryDrawer({
                     <Button
                       onClick={() => {
                         setIsOpen(false)
-                        window.location.href = "/auth/login"
+                        navigate("/auth/login")
                       }}
                       className="bg-brand hover:bg-brand-dark text-white"
                     >
@@ -329,7 +331,7 @@ export function ChatHistoryDrawer({
                       variant="outline"
                       onClick={() => {
                         setIsOpen(false)
-                        window.location.href = "/auth/register"
+                        navigate("/auth/register")
                       }}
                     >
                       Create Account
@@ -343,7 +345,9 @@ export function ChatHistoryDrawer({
                 {/* Search and filter controls */}
                 <div className="px-4 mb-4">
                   <div className="relative mb-3">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <div className="absolute left-2.5 inset-y-0 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                    </div>
                     <Input
                       placeholder="Search conversations..."
                       className="pl-9"
