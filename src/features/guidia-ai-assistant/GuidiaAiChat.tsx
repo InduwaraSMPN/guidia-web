@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { VisuallyHidden } from "@/components/ui/visually-hidden.tsx"
 import { useAuth } from "@/contexts/AuthContext"
+import { Navigate } from "react-router-dom"
 import { BackgroundBeams } from "./components/BackgroundBeams";
 import { PlaceholdersAndVanishInput } from "./components/PlaceholdersAndVanishInput";
 import { GuidiaAiMessage } from "./components/GuidiaAiMessage";
@@ -33,6 +34,12 @@ interface Message {
 export function GuidiaAiChat() {
   const { user } = useAuth()
   const token = localStorage.getItem('token')
+
+  // Redirect to login if user is not logged in
+  if (!user) {
+    return <Navigate to="/auth/login" />;
+  }
+
   // State for chat messages
   const [messages, setMessages] = useState<Message[]>([])
   // State to track if chat is visible (after first message)

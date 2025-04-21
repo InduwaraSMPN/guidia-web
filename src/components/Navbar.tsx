@@ -349,7 +349,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
                       </MenuItem>
                     </div>
 
-                    {/* Guidia AI Link removed for signed-out users */}
+                    {/* Guidia AI Link removed for signed-out users - only accessible to logged-in users */}
                   </div>
 
                   {/* Animated Underline Indicator for non-logged-in layout */}

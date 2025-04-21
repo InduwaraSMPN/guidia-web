@@ -1,13 +1,20 @@
 import { MeetingAvailabilitySettings } from '@/components/meetings/MeetingAvailabilitySettings';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function MeetingAvailability() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+
+  // Redirect to login if user is not logged in
+  if (!user) {
+    return <Navigate to="/auth/login" />;
+  }
 
   // Simulate loading delay
   useEffect(() => {

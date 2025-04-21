@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -68,6 +68,11 @@ export function CalendarPage() {
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingData | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [rawMeetings, setRawMeetings] = useState<MeetingData[]>([]);
+
+  // Redirect to login if user is not logged in
+  if (!user) {
+    return <Navigate to="/auth/login" />;
+  }
 
   // Fetch meetings from API
   const fetchMeetings = async () => {

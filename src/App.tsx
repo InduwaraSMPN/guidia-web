@@ -174,8 +174,16 @@ function AppContent() {
           <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
           <Route path="/auth/reset-password" element={<Navigate to="/auth/login" replace />} />
           <Route path="/news" element={<NewsPage />} />
-          <Route path="/news/post" element={<PostNewsPage />} />
-          <Route path="/news/edit/:id" element={<PostNewsPage />} />
+          <Route path="/news/post" element={
+            <ProtectedRoute>
+              <PostNewsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/news/edit/:id" element={
+            <ProtectedRoute>
+              <PostNewsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/admin" element={<ProtectedRoute requiredRoleId={1}><AdminDashboard /></ProtectedRoute>}>
             <Route index element={null} />
             <Route path="registrations">
@@ -203,8 +211,16 @@ function AppContent() {
             <Route path="settings" element={<ProtectedRoute requiredRoleId={1}><AdminSettingsPage /></ProtectedRoute>} />
           </Route>
           <Route path="/events" element={<EventsPage />} />
-          <Route path="/events/post" element={<PostEventPage />} />
-          <Route path="/events/edit/:id" element={<PostEventPage />} />
+          <Route path="/events/post" element={
+            <ProtectedRoute>
+              <PostEventPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/events/edit/:id" element={
+            <ProtectedRoute>
+              <PostEventPage />
+            </ProtectedRoute>
+          } />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsOfServicePage />} />
@@ -214,16 +230,40 @@ function AppContent() {
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           {/* Company routes */}
-          <Route path="/companies/:id/jobs" element={<CompanyJobsPage />} />
+          <Route path="/companies/:id/jobs" element={
+            <ProtectedRoute>
+              <CompanyJobsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/companies/:id/details" element={<PublicCompanyProfile />} />
 
           <Route path="/counselors" element={<CounselorsPage />} />
           <Route path="/students" element={<StudentsPage />} />
-          <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/jobs/post" element={<PostJobPage />} />
-          <Route path="/jobs/:id" element={<JobDetailsPage />} />
-          <Route path="/jobs/:id/apply" element={<JobApplication />} />
-          <Route path="/jobs/:id/edit" element={<EditJobPage />} />
+          <Route path="/jobs" element={
+            <ProtectedRoute>
+              <JobsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/jobs/post" element={
+            <ProtectedRoute>
+              <PostJobPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/jobs/:id" element={
+            <ProtectedRoute>
+              <JobDetailsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/jobs/:id/apply" element={
+            <ProtectedRoute>
+              <JobApplication />
+            </ProtectedRoute>
+          } />
+          <Route path="/jobs/:id/edit" element={
+            <ProtectedRoute>
+              <EditJobPage />
+            </ProtectedRoute>
+          } />
           <Route path="/saved-jobs" element={
             <ProtectedRoute requiredUserType="Student">
               <SavedJobsPage />
@@ -388,7 +428,11 @@ function AppContent() {
           <Route path="/company">
             {/* Public view for directory access */}
             <Route path=":userID/details" element={<PublicCompanyProfile />} />
-            <Route path=":id/jobs" element={<CompanyJobsPage />} />
+            <Route path=":id/jobs" element={
+              <ProtectedRoute>
+                <CompanyJobsPage />
+              </ProtectedRoute>
+            } />
 
             {/* Redirect for company details by companyID */}
             <Route path=":companyID/profile" element={<CompanyProfileRedirect />} />
@@ -459,14 +503,30 @@ function AppContent() {
             } />
           </Route>
 
-          {/* Meeting Pages */}
-          <Route path="/meetings/settings" element={<MeetingAvailability />} />
-          <Route path="/meetings/calendar" element={<CalendarPage />} />
+          {/* Meeting Pages - Only accessible to logged-in users */}
+          <Route path="/meetings/settings" element={
+            <ProtectedRoute>
+              <MeetingAvailability />
+            </ProtectedRoute>
+          } />
+          <Route path="/meetings/calendar" element={
+            <ProtectedRoute>
+              <CalendarPage />
+            </ProtectedRoute>
+          } />
 
-          {/* AI Chat Pages - Accessible to all users */}
-          <Route path="/guidia-ai" element={<GuidiaAiChat />} />
+          {/* AI Chat Pages - Only accessible to logged-in users */}
+          <Route path="/guidia-ai" element={
+            <ProtectedRoute>
+              <GuidiaAiChat />
+            </ProtectedRoute>
+          } />
           {/* Legacy route for backward compatibility */}
-          <Route path="/ai-chat" element={<Navigate to="/guidia-ai" replace />} />
+          <Route path="/ai-chat" element={
+            <ProtectedRoute>
+              <Navigate to="/guidia-ai" replace />
+            </ProtectedRoute>
+          } />
 
           {/* Catch-all route for 404 pages */}
           <Route path="*" element={<Navigate to="/404" replace />} />
