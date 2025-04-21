@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, PieChartIcon, BarChart3, Star } from "lucide-react"
 import { cn, formatMeetingType } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ChartTooltip, MeetingStatusTooltip, ScheduleTooltip } from "@/components/ui/chart-tooltip"
+import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
 
 interface MeetingStatisticsProps {
   meetingStats: {
@@ -128,7 +130,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -140,7 +142,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <Calendar className="h-4 w-4" />
               <span className="text-sm">Total Meetings</span>
@@ -148,7 +150,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
             <div className="text-2xl font-bold">{meetingStats.totalMeetings}</div>
           </div>
 
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <Star className="h-4 w-4" />
               <span className="text-sm">Success Rating</span>
@@ -156,7 +158,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
             <div className="text-xl font-bold">{formatRating(meetingStats.avgSuccessRating)}</div>
           </div>
 
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <Star className="h-4 w-4" />
               <span className="text-sm">Platform Rating</span>
@@ -164,7 +166,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
             <div className="text-xl font-bold">{formatRating(meetingStats.avgPlatformRating)}</div>
           </div>
 
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-sm">Busiest Day</span>
@@ -196,7 +198,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Meetings by Status</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -217,17 +219,19 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                       </Pie>
                       <Legend formatter={(value) => formatMeetingType(value)} />
                       <Tooltip
-                        formatter={(value, name) => [value, "Count"]}
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            // Add total to payload for percentage calculation
+                            payload[0].payload.total = meetingStats.totalMeetings;
+                          }
+                          return <MeetingStatusTooltip active={active} payload={payload} />
                         }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
 
               <div>
@@ -235,7 +239,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Meetings by Type</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96" delay={0.2}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -256,18 +260,19 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                       </Pie>
                       <Legend formatter={(value) => formatMeetingType(value)} />
                       <Tooltip
-                        formatter={(value, name) => [value, "Count"]}
-                        labelFormatter={(name) => formatMeetingType(name)}
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            // Add total to payload for percentage calculation
+                            payload[0].payload.total = meetingStats.totalMeetings;
+                          }
+                          return <MeetingStatusTooltip active={active} payload={payload} />
                         }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
             </div>
           </TabsContent>
@@ -282,31 +287,33 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <BarChart3 className="h-4 w-4 text-brand" />
                   <span>Busiest Days of the Week</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={meetingStats.busiestDays}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                       <XAxis dataKey="dayOfWeek" tick={{ fill: "var(--foreground)" }} />
                       <YAxis tick={{ fill: "var(--foreground)" }} />
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
-                        }}
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        cursor={{ fill: "var(--muted)", opacity: 0.1 }}
+                        content={({ active, payload }) => (
+                          <ScheduleTooltip active={active} payload={payload} />
+                        )}
                       />
                       <Legend />
                       <Bar
                         dataKey="count"
                         name="Meetings"
                         fill="var(--brand)"
-                        radius={[4, 4, 0, 0]}
-                        animationDuration={1000}
+                        radius={[6, 6, 0, 0]}
+                        animationDuration={1200}
+                        animationEasing="ease-in-out"
+                        barSize={30}
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
 
               <div>
@@ -314,33 +321,33 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   <Clock className="h-4 w-4 text-brand" />
                   <span>Busiest Hours of the Day</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96" delay={0.2}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={formattedBusiestHours}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                       <XAxis dataKey="formattedHour" tick={{ fill: "var(--foreground)" }} />
                       <YAxis tick={{ fill: "var(--foreground)" }} />
                       <Tooltip
-                        formatter={(value, name) => [value, "Meetings"]}
-                        labelFormatter={(label) => `Time: ${label}`}
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
-                        }}
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        cursor={{ fill: "var(--muted)", opacity: 0.1 }}
+                        content={({ active, payload }) => (
+                          <ScheduleTooltip active={active} payload={payload} />
+                        )}
                       />
                       <Legend />
                       <Bar
                         dataKey="count"
                         name="Meetings"
                         fill="#0ea5e9"
-                        radius={[4, 4, 0, 0]}
-                        animationDuration={1000}
+                        radius={[6, 6, 0, 0]}
+                        animationDuration={1200}
+                        animationEasing="ease-in-out"
+                        barSize={30}
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
             </div>
           </TabsContent>
@@ -360,7 +367,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                   {meetingStats.upcomingMeetings.map((meeting, index) => (
                     <div
                       key={meeting.meetingID}
-                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-sm"
+                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md"
                     >
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { UserPlus, Briefcase, FileText, Calendar, LogIn, Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 interface ActivityFeedProps {
   activities: Array<{
@@ -108,7 +109,7 @@ export function ActivityFeedCard({ activities }: ActivityFeedProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-brand" />
@@ -121,9 +122,12 @@ export function ActivityFeedCard({ activities }: ActivityFeedProps) {
           <div className="space-y-4">
             {activities.length > 0 ? (
               activities.map((activity, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-sm"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md"
                 >
                   <div className="flex justify-between items-start">
                     <Badge
@@ -140,13 +144,18 @@ export function ActivityFeedCard({ activities }: ActivityFeedProps) {
                     <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.timestamp)}</span>
                   </div>
                   <div className="mt-3 pl-1">{renderActivityContent(activity)}</div>
-                </div>
+                </motion.div>
               ))
             ) : (
-              <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed border-border">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed border-border"
+              >
                 <Activity className="h-10 w-10 mx-auto mb-2 text-muted-foreground/60" />
                 <p>No recent activities found</p>
-              </div>
+              </motion.div>
             )}
           </div>
         </ScrollArea>

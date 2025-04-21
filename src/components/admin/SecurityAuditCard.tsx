@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ShieldCheck, ShieldAlert, ShieldX, UserCheck, LogIn, LogOut, ShieldOff, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recharts"
+import { StatusTooltip } from "@/components/ui/chart-tooltip"
+import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
 
 interface SecurityStatisticsProps {
   securityStats: {
@@ -146,7 +148,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-brand" />
@@ -161,7 +163,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
               <BarChart3 className="h-4 w-4 text-brand" />
               <span>Security Activity</span>
             </h3>
-            <div className="h-96">
+            <AnimatedChartContainer className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -170,10 +172,13 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                     cy="50%"
                     labelLine={false}
                     outerRadius={80}
+                    innerRadius={30}
                     fill="var(--brand)"
                     dataKey="count"
                     nameKey="eventType"
-                    animationDuration={1000}
+                    animationDuration={1500}
+                    animationEasing="ease-in-out"
+                    paddingAngle={2}
                     label={({ eventType, percent }) => `${eventType}: ${(percent * 100).toFixed(0)}%`}
                   >
                     {preparePieChartData().map((entry, index) => (
@@ -188,22 +193,26 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                   <Legend />
                   <Tooltip
                     formatter={(value, _name) => [value, "Count"]}
-                    contentStyle={{
-                      backgroundColor: "var(--card)",
-                      borderColor: "var(--border)",
-                      borderRadius: "0.375rem",
-                      boxShadow: "var(--shadow)",
+                    animationDuration={200}
+                    animationEasing="ease-out"
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        // Add total to payload for percentage calculation
+                        const total = preparePieChartData().reduce((sum, item) => sum + item.count, 0);
+                        payload[0].payload.total = total;
+                      }
+                      return <StatusTooltip active={active} payload={payload} />
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            </AnimatedChartContainer>
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+              <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
                 <div className="text-sm text-muted-foreground mb-1">Account Status Changes</div>
                 <div className="text-2xl font-bold">{securityStats.accountStatusChanges}</div>
               </div>
-              <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+              <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
                 <div className="text-sm text-muted-foreground mb-1">Failed Logins</div>
                 <div className="text-2xl font-bold">
                   {securityStats.loginAttempts.find((item) => item.eventType.toLowerCase().includes("fail"))?.count || 0}
@@ -223,7 +232,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                   securityStats.recentEvents.map((event, index) => (
                     <div
                       key={index}
-                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-sm"
+                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md"
                     >
                       <div className="flex justify-between items-start">
                         <Badge

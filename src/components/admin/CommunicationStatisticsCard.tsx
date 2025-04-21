@@ -16,6 +16,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MessageSquare, TrendingUp, Clock, Users } from "lucide-react"
+import { ChartTooltip } from "@/components/ui/chart-tooltip"
+import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
 
 interface CommunicationStatisticsProps {
   communicationStats: {
@@ -99,7 +101,7 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
   const weekStats = getWeekStats()
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-brand" />
@@ -109,28 +111,28 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <MessageSquare className="h-4 w-4" />
               <span className="text-sm">Total Messages</span>
             </div>
             <div className="text-2xl font-bold">{communicationStats.totalMessages}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm">Last 7 Days</span>
             </div>
             <div className="text-2xl font-bold">{communicationStats.messages7Days}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm">Last 30 Days</span>
             </div>
             <div className="text-2xl font-bold">{communicationStats.messages30Days}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <MessageSquare className="h-4 w-4" />
               <span className="text-sm">Unread Messages</span>
@@ -160,19 +162,25 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
               <TrendingUp className="h-4 w-4 text-brand" />
               <span>Message Trend (Last 30 Days)</span>
             </h3>
-            <div className="h-96">
+            <AnimatedChartContainer className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="date" tick={{ fill: "var(--foreground)" }} />
                   <YAxis tick={{ fill: "var(--foreground)" }} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "var(--card)",
-                      borderColor: "var(--border)",
-                      borderRadius: "0.375rem",
-                      boxShadow: "var(--shadow)",
-                    }}
+                    animationDuration={200}
+                    animationEasing="ease-out"
+                    cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 4" }}
+                    content={({ active, payload, label }) => (
+                      <ChartTooltip
+                        active={active}
+                        payload={payload}
+                        label={label}
+                        labelFormatter={(label) => `Date: ${label}`}
+                        formatter={(value) => [value, "Messages"]}
+                      />
+                    )}
                   />
                   <Legend />
                   <Line
@@ -181,14 +189,21 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
                     name="Messages"
                     stroke="#800020"
                     strokeWidth={2}
-                    dot={{ r: 4, fill: "#800020" }}
-                    activeDot={{ r: 6, strokeWidth: 0, fill: "#800020" }}
-                    animationDuration={1000}
+                    dot={{ r: 3, fill: "#800020", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{
+                      r: 6,
+                      strokeWidth: 2,
+                      stroke: "#fff",
+                      fill: "#800020",
+                      boxShadow: "0 0 0 4px rgba(128, 0, 32, 0.2)"
+                    }}
+                    animationDuration={1500}
+                    animationEasing="ease-in-out"
                     isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </AnimatedChartContainer>
           </TabsContent>
 
           <TabsContent
@@ -199,25 +214,39 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
               <Clock className="h-4 w-4 text-brand" />
               <span>Weekly Message Activity</span>
             </h3>
-            <div className="h-96">
+            <AnimatedChartContainer className="h-96" delay={0.2}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weekStats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="day" tick={{ fill: "var(--foreground)" }} />
                   <YAxis tick={{ fill: "var(--foreground)" }} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "var(--card)",
-                      borderColor: "var(--border)",
-                      borderRadius: "0.375rem",
-                      boxShadow: "var(--shadow)",
-                    }}
+                    animationDuration={200}
+                    animationEasing="ease-out"
+                    cursor={{ fill: "var(--muted)", opacity: 0.1 }}
+                    content={({ active, payload, label }) => (
+                      <ChartTooltip
+                        active={active}
+                        payload={payload}
+                        label={label}
+                        labelFormatter={(label) => `Day: ${label}`}
+                        formatter={(value) => [value, "Messages"]}
+                      />
+                    )}
                   />
                   <Legend />
-                  <Bar dataKey="count" name="Messages" fill="#0ea5e9" radius={[4, 4, 0, 0]} animationDuration={1000} />
+                  <Bar
+                    dataKey="count"
+                    name="Messages"
+                    fill="#0ea5e9"
+                    radius={[6, 6, 0, 0]}
+                    animationDuration={1200}
+                    animationEasing="ease-in-out"
+                    barSize={30}
+                  />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </AnimatedChartContainer>
           </TabsContent>
 
           <TabsContent
@@ -235,7 +264,7 @@ export function CommunicationStatisticsCard({ communicationStats }: Communicatio
                   {communicationStats.activeConversations.map((conversation, index) => (
                     <div
                       key={`${conversation.user1ID}-${conversation.user2ID}`}
-                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-sm"
+                      className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md"
                     >
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>

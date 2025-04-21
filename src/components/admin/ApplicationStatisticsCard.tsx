@@ -18,6 +18,8 @@ import {
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { FileText, TrendingUp, BarChart3, PieChartIcon } from "lucide-react"
+import { ChartTooltip, StatusTooltip } from "@/components/ui/chart-tooltip"
+import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
 
 interface ApplicationStatisticsProps {
   applicationStats: {
@@ -66,7 +68,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
   const formattedConversionRate = `${parseFloat(applicationStats.conversionRate).toFixed(1)}%`
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-brand" />
@@ -76,28 +78,28 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <FileText className="h-4 w-4" />
               <span className="text-sm">Total Job Applications</span>
             </div>
             <div className="text-2xl font-bold">{applicationStats.totalApplications}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm">Last 7 Days</span>
             </div>
             <div className="text-2xl font-bold">{applicationStats.applicationsLast7Days}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm">Last 30 Days</span>
             </div>
             <div className="text-2xl font-bold">{applicationStats.applicationsLast30Days}</div>
           </div>
-          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px]">
+          <div className="bg-accent/30 p-4 rounded-lg border border-border/50 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:translate-y-[-2px] hover:shadow-md">
             <div className="flex items-center gap-2 mb-1 text-muted-foreground">
               <BarChart3 className="h-4 w-4" />
               <span className="text-sm">Conversion Rate</span>
@@ -124,19 +126,25 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
               <TrendingUp className="h-4 w-4 text-brand" />
               <span>Job Application Trend (Last 30 Days)</span>
             </h3>
-            <div className="h-96">
+            <AnimatedChartContainer className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="date" tick={{ fill: "var(--foreground)" }} />
                   <YAxis tick={{ fill: "var(--foreground)" }} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "var(--card)",
-                      borderColor: "var(--border)",
-                      borderRadius: "0.375rem",
-                      boxShadow: "var(--shadow)",
-                    }}
+                    animationDuration={200}
+                    animationEasing="ease-out"
+                    cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 4" }}
+                    content={({ active, payload, label }) => (
+                      <ChartTooltip
+                        active={active}
+                        payload={payload}
+                        label={label}
+                        labelFormatter={(label) => `Date: ${label}`}
+                        formatter={(value) => [value, "Applications"]}
+                      />
+                    )}
                   />
                   <Legend />
                   <Line
@@ -145,14 +153,21 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                     name="Applications"
                     stroke="#800020"
                     strokeWidth={2}
-                    dot={{ r: 4, fill: "#800020" }}
-                    activeDot={{ r: 6, strokeWidth: 0, fill: "#800020" }}
-                    animationDuration={1000}
+                    dot={{ r: 3, fill: "#800020", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{
+                      r: 6,
+                      strokeWidth: 2,
+                      stroke: "#fff",
+                      fill: "#800020",
+                      boxShadow: "0 0 0 4px rgba(128, 0, 32, 0.2)"
+                    }}
+                    animationDuration={1500}
+                    animationEasing="ease-in-out"
                     isAnimationActive={true}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </AnimatedChartContainer>
           </TabsContent>
 
           <TabsContent
@@ -165,7 +180,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                   <PieChartIcon className="h-4 w-4 text-brand" />
                   <span>Job Applications by Status</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -174,10 +189,13 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                         cy="50%"
                         labelLine={false}
                         outerRadius={100}
+                        innerRadius={30}
                         fill="var(--brand)"
                         dataKey="count"
                         nameKey="status"
-                        animationDuration={1000}
+                        animationDuration={1500}
+                        animationEasing="ease-in-out"
+                        paddingAngle={2}
                         label={({ status, percent }) => `${status}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {applicationStats.applicationsByStatus.map((entry, index) => (
@@ -186,17 +204,19 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                       </Pie>
                       <Legend />
                       <Tooltip
-                        formatter={(value, name) => [value, "Count"]}
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            // Add total to payload for percentage calculation
+                            payload[0].payload.total = applicationStats.totalApplications;
+                          }
+                          return <StatusTooltip active={active} payload={payload} />
                         }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
 
               <div>
@@ -204,34 +224,38 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                   <BarChart3 className="h-4 w-4 text-brand" />
                   <span>Job Applications Status Distribution</span>
                 </h3>
-                <div className="h-96">
+                <AnimatedChartContainer className="h-96" delay={0.2}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={applicationStats.applicationsByStatus}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                       <XAxis dataKey="status" tick={{ fill: "var(--foreground)" }} />
                       <YAxis tick={{ fill: "var(--foreground)" }} />
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: "var(--card)",
-                          borderColor: "var(--border)",
-                          borderRadius: "0.375rem",
-                          boxShadow: "var(--shadow)",
+                        animationDuration={200}
+                        animationEasing="ease-out"
+                        cursor={{ fill: "var(--muted)", opacity: 0.1 }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            // Add total to payload for percentage calculation
+                            payload[0].payload.total = applicationStats.totalApplications;
+                          }
+                          return <StatusTooltip active={active} payload={payload} />
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="count" name="Applications" radius={[4, 4, 0, 0]} animationDuration={1000}>
+                      <Bar dataKey="count" name="Applications" radius={[6, 6, 0, 0]} animationDuration={1200} animationEasing="ease-in-out" barSize={30}>
                         {applicationStats.applicationsByStatus.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={getStatusColor(entry.status)} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
+                </AnimatedChartContainer>
               </div>
             </div>
 
             <div className="mt-8">
-              <div className="overflow-hidden rounded-lg border border-border">
+              <div className="overflow-hidden rounded-lg border border-border/60 hover:border-border transition-all duration-200 shadow-sm hover:shadow-md">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-muted/50">
@@ -242,7 +266,7 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                   </thead>
                   <tbody>
                     {applicationStats.applicationsByStatus.map((status, index) => (
-                      <tr key={index} className="border-t border-border transition-colors hover:bg-muted/30">
+                      <tr key={index} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <div
