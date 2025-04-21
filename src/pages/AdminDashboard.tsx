@@ -8,8 +8,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useSocket } from "../contexts/SocketContext";
 import { toast } from "../components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import AdminSidebar from "../components/AdminSidebar";
 import PageHeading from "../components/PageHeading";
+import AdminSidebarDrawer from "../components/admin/AdminSidebarDrawer";
+import AdminSidebarFloatingButton from "../components/admin/AdminSidebarFloatingButton";
 import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard";
 import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard";
 import { MeetingStatisticsCard } from "@/components/admin/MeetingStatisticsCard";
@@ -280,16 +281,11 @@ export function AdminDashboard() {
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
 
-  // Add state to track sidebar collapsed status
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Add state to track sidebar visibility
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Add state to track auto-refresh
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
-
-  // Function to update sidebar state that will be passed to AdminSidebar
-  const handleSidebarToggle = (collapsed: boolean) => {
-    setSidebarCollapsed(collapsed);
-  };
 
   // Function to toggle auto-refresh
   const toggleAutoRefresh = () => {
@@ -570,13 +566,23 @@ export function AdminDashboard() {
   ]);
 
   return (
-    <SidebarContext.Provider value={{ collapsed: sidebarCollapsed }}>
+    <SidebarContext.Provider value={{ collapsed: false }}>
       <div className="flex min-h-screen bg-background">
-        <AdminSidebar onToggle={handleSidebarToggle} />
+        {/* Admin Sidebar Drawer */}
+        <AdminSidebarDrawer
+          isOpen={isSidebarOpen}
+          setIsOpen={setIsSidebarOpen}
+        />
+
+        {/* Floating button to open sidebar */}
+        <AdminSidebarFloatingButton
+          onClick={() => setIsSidebarOpen(true)}
+          isVisible={!isSidebarOpen}
+        />
+
         <div
           className="flex-1 transition-all duration-300 ease-in-out"
           style={{
-            marginLeft: sidebarCollapsed ? "80px" : "250px",
             marginTop: "64px",
           }}
         >
