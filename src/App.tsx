@@ -60,6 +60,9 @@ import { AdminEventsPage } from './pages/admin/AdminEventsPage';
 import { AdminMessagesPage } from './pages/admin/AdminMessagesPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminMeetingsPage } from './pages/admin/AdminMeetingsPage';
+import SecurityAuditPage from './pages/admin/SecurityAuditPage';
+import ActivityFeedPage from './pages/admin/ActivityFeedPage';
+import SystemHealthPage from './pages/admin/SystemHealthPage';
 import { MeetingsPage } from './pages/MeetingsPage';
 import { MeetingAvailabilityPage } from './pages/MeetingAvailabilityPage';
 import { Toaster } from './components/ui/sonner';
@@ -208,6 +211,9 @@ function AppContent() {
               <Route path="edit/:id" element={<ProtectedRoute requiredRoleId={1}><PostEventPage /></ProtectedRoute>} />
             </Route>
             <Route path="meetings" element={<ProtectedRoute requiredRoleId={1}><AdminMeetingsPage /></ProtectedRoute>} />
+            <Route path="security-audit" element={<ProtectedRoute requiredRoleId={1}><SecurityAuditPage /></ProtectedRoute>} />
+            <Route path="activity-feed" element={<ProtectedRoute requiredRoleId={1}><ActivityFeedPage /></ProtectedRoute>} />
+            <Route path="system-health" element={<ProtectedRoute requiredRoleId={1}><SystemHealthPage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute requiredRoleId={1}><AdminSettingsPage /></ProtectedRoute>} />
           </Route>
           <Route path="/events" element={<EventsPage />} />

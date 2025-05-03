@@ -14,7 +14,8 @@ interface SecurityStatisticsProps {
       eventType: string
       details: string
       userID: number
-      timestamp: string
+      timeStamp?: string // Backend uses timeStamp (capital S)
+      timestamp?: string // For backward compatibility
     }>
     loginAttempts: Array<{
       eventType: string
@@ -68,10 +69,29 @@ const LOGIN_COLORS = {
 }
 
 export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
+  // Check if date is valid
+  const isValidDate = (date: Date) => {
+    return date instanceof Date && !isNaN(date.getTime());
+  }
+
   // Format timestamp for better display
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleString()
+    if (!timestamp) return "No date available";
+
+    const date = new Date(timestamp);
+    if (!isValidDate(date)) {
+      // Try to parse different formats or return a default
+      // Check if it's a Unix timestamp (seconds or milliseconds)
+      if (/^\d+$/.test(timestamp)) {
+        const unixDate = new Date(parseInt(timestamp) * (/^\d{10}$/.test(timestamp) ? 1000 : 1));
+        if (isValidDate(unixDate)) {
+          return unixDate.toLocaleString();
+        }
+      }
+      return "Invalid date format";
+    }
+
+    return date.toLocaleString();
   }
 
   // Prepare combined data for the pie chart (login attempts + account status changes)
@@ -92,23 +112,52 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
 
   // Format relative time
   const formatRelativeTime = (timestamp: string) => {
-    const now = new Date()
-    const eventTime = new Date(timestamp)
-    const diffInSeconds = Math.floor((now.getTime() - eventTime.getTime()) / 1000)
+    if (!timestamp) return "No date available";
+
+    const now = new Date();
+    const eventTime = new Date(timestamp);
+
+    if (!isValidDate(eventTime)) {
+      // Try to parse different formats or return a default
+      if (/^\d+$/.test(timestamp)) {
+        const unixDate = new Date(parseInt(timestamp) * (/^\d{10}$/.test(timestamp) ? 1000 : 1));
+        if (isValidDate(unixDate)) {
+          const diffInSeconds = Math.floor((now.getTime() - unixDate.getTime()) / 1000);
+          // Continue with the time difference calculation using unixDate
+          if (diffInSeconds < 60) {
+            return "just now";
+          } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+          } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+          } else if (diffInSeconds < 604800) {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days} ${days === 1 ? "day" : "days"} ago`;
+          } else {
+            return unixDate.toLocaleDateString();
+          }
+        }
+      }
+      return "Unknown time";
+    }
+
+    const diffInSeconds = Math.floor((now.getTime() - eventTime.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return "just now"
+      return "just now";
     } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60)
-      return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
     } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600)
-      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
     } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400)
-      return `${days} ${days === 1 ? "day" : "days"} ago`
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} ${days === 1 ? "day" : "days"} ago`;
     } else {
-      return eventTime.toLocaleDateString()
+      return eventTime.toLocaleDateString();
     }
   }
 
@@ -192,16 +241,16 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                   </Pie>
                   <Legend />
                   <Tooltip
-                    formatter={(value, _name) => [value, "Count"]}
+                    formatter={(value: any) => [value, "Count"]}
                     animationDuration={200}
                     animationEasing="ease-out"
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
+                    content={(props: any) => {
+                      if (props.active && props.payload && props.payload.length) {
                         // Add total to payload for percentage calculation
                         const total = preparePieChartData().reduce((sum, item) => sum + item.count, 0);
-                        payload[0].payload.total = total;
+                        props.payload[0].payload.total = total;
                       }
-                      return <StatusTooltip active={active} payload={payload} />
+                      return <StatusTooltip active={props.active} payload={props.payload} />
                     }}
                   />
                 </PieChart>
@@ -226,7 +275,7 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
               <ShieldAlert className="h-4 w-4 text-brand" />
               <span>Recent Security Events</span>
             </h3>
-            <ScrollArea className="h-96 pr-4">
+            <ScrollArea className="h-[490px] pr-4">
               <div className="space-y-4">
                 {securityStats.recentEvents.length > 0 ? (
                   securityStats.recentEvents.map((event, index) => (
@@ -245,12 +294,18 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
                           {getEventIcon(event.eventType)}
                           {event.eventType}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">{formatRelativeTime(event.timestamp)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {event.timeStamp ? formatRelativeTime(event.timeStamp) :
+                           event.timestamp ? formatRelativeTime(event.timestamp) : "No date"}
+                        </span>
                       </div>
                       <div className="mt-3 pl-1 text-sm">
                         <div className="font-medium mb-1">User ID: {event.userID}</div>
                         <div className="text-muted-foreground">{event.details}</div>
-                        <div className="text-xs text-muted-foreground mt-2">{formatTimestamp(event.timestamp)}</div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          {event.timeStamp ? formatTimestamp(event.timeStamp) :
+                           event.timestamp ? formatTimestamp(event.timestamp) : "No timestamp available"}
+                        </div>
                       </div>
                     </div>
                   ))

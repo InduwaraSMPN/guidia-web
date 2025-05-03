@@ -21,6 +21,9 @@ import {
   X,
   PanelLeft,
   Search,
+  Activity,
+  ShieldAlert,
+  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -49,6 +52,9 @@ export function AdminSidebarDrawer({ isOpen, setIsOpen }: AdminSidebarDrawerProp
     { path: "/admin/users/companies", label: "Company Users", section: "users" },
     { path: "/admin/news", label: "News", section: "main" },
     { path: "/admin/events", label: "Events", section: "main" },
+    { path: "/admin/security-audit", label: "Security Audit", section: "main" },
+    { path: "/admin/activity-feed", label: "Activity Feed", section: "main" },
+    { path: "/admin/system-health", label: "System Health", section: "main" },
     { path: "/admin/settings", label: "Admin Settings", section: "main" },
   ];
 
@@ -400,6 +406,57 @@ export function AdminSidebarDrawer({ isOpen, setIsOpen }: AdminSidebarDrawerProp
                   >
                     <Calendar size={18} className="flex-shrink-0 mr-3" />
                     <span className="truncate">Events</span>
+                  </Link>
+                )}
+
+                {/* Security Audit - only show if in filtered results or no search */}
+                {(searchQuery === '' || filteredNavItems.some(item => item.path === '/admin/security-audit')) && (
+                  <Link
+                    to="/admin/security-audit"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+                      isActive("/security-audit")
+                        ? "bg-rose-800/10 text-rose-800 font-semibold"
+                        : "text-foreground hover:bg-muted hover:text-rose-800"
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <ShieldAlert size={18} className="flex-shrink-0 mr-3" />
+                    <span className="truncate">Security Audit</span>
+                  </Link>
+                )}
+
+                {/* Activity Feed - only show if in filtered results or no search */}
+                {(searchQuery === '' || filteredNavItems.some(item => item.path === '/admin/activity-feed')) && (
+                  <Link
+                    to="/admin/activity-feed"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+                      isActive("/activity-feed")
+                        ? "bg-rose-800/10 text-rose-800 font-semibold"
+                        : "text-foreground hover:bg-muted hover:text-rose-800"
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Activity size={18} className="flex-shrink-0 mr-3" />
+                    <span className="truncate">Activity Feed</span>
+                  </Link>
+                )}
+
+                {/* System Health - only show if in filtered results or no search */}
+                {(searchQuery === '' || filteredNavItems.some(item => item.path === '/admin/system-health')) && (
+                  <Link
+                    to="/admin/system-health"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+                      isActive("/system-health")
+                        ? "bg-rose-800/10 text-rose-800 font-semibold"
+                        : "text-foreground hover:bg-muted hover:text-rose-800"
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Server size={18} className="flex-shrink-0 mr-3" />
+                    <span className="truncate">System Health</span>
                   </Link>
                 )}
 

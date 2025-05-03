@@ -15,10 +15,7 @@ import { JobStatisticsCard } from "@/components/admin/JobStatisticsCard";
 import { ApplicationStatisticsCard } from "@/components/admin/ApplicationStatisticsCard";
 import { MeetingStatisticsCard } from "@/components/admin/MeetingStatisticsCard";
 import { UserActivityCard } from "@/components/admin/UserActivityCard";
-import { SecurityAuditCard } from "@/components/admin/SecurityAuditCard";
 import { CommunicationStatisticsCard } from "@/components/admin/CommunicationStatisticsCard";
-import { SystemHealthCard } from "@/components/admin/SystemHealthCard";
-import { ActivityFeedCard } from "@/components/admin/ActivityFeedCard";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
@@ -760,26 +757,7 @@ export function AdminDashboard() {
                           />
                         )}
 
-                        {/* System Health Card */}
-                        {dashboardData.systemHealth && (
-                          <SystemHealthCard
-                            systemHealth={dashboardData.systemHealth}
-                          />
-                        )}
 
-                        {/* Security Audit Card */}
-                        {dashboardData.securityStats && (
-                          <SecurityAuditCard
-                            securityStats={dashboardData.securityStats}
-                          />
-                        )}
-
-                        {/* Activity Feed Card */}
-                        {dashboardData.activityFeed && (
-                          <ActivityFeedCard
-                            activities={dashboardData.activityFeed}
-                          />
-                        )}
                       </div>
                     </div>
                   ) : null}
