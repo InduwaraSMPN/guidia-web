@@ -67,9 +67,10 @@ export function MeetingRequestForm({
     }
 
     // Map role IDs to user types
-    // 2 = Student, 3 = Counselor, 4 = Company
+    // 1 = Admin, 2 = Student, 3 = Counselor, 4 = Company
     let userType;
     switch (user.roleId) {
+      case 1: userType = 'Admin'; break;
       case 2: userType = 'Student'; break;
       case 3: userType = 'Counselor'; break;
       case 4: userType = 'Company'; break;
@@ -82,6 +83,7 @@ export function MeetingRequestForm({
     // Always put types in alphabetical order for consistency
     const types = [userType, recipientType].sort();
     const meetingType = types.join('_').toLowerCase();
+    console.log(`Generated meeting type: ${meetingType} for user role ${user.roleId} (${userType}) and recipient type ${recipientType}`);
     return meetingType;
   };
 

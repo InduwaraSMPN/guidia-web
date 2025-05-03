@@ -29,7 +29,10 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
   // For companies, we need to compare the company's companyID with the user's company profile
   let isCurrentUser = false;
 
-  if (user) {
+  // Special case for admin users - they should always be able to chat and request meetings
+  const isAdmin = user?.roleId === 1;
+
+  if (user && !isAdmin) {
     if (type === "company" && user.userType === "Company") {
       // For companies, we need to check if the current user's company matches this company
       const userCompanyID = localStorage.getItem('companyID');
@@ -52,8 +55,10 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
 
   const handleChat = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isCurrentUser && user?.userType && user?.userID) {
-      const userTypePath = user.userType.toLowerCase();
+    // Allow admin users to chat regardless of isCurrentUser check
+    if ((isAdmin || !isCurrentUser) && user?.userType && user?.userID) {
+      // Special handling for admin users - use 'admin' as the path
+      const userTypePath = user.userType === 'Admin' ? 'admin' : user.userType.toLowerCase();
 
       // For companies, we need to get the userID instead of companyID for chat
       if (type === "company") {
@@ -191,14 +196,14 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
         </Button>
         <Button
           size="sm"
-          disabled={isCurrentUser}
+          disabled={!isAdmin && isCurrentUser}
           className={`flex-1 text-xs h-8 transition-all duration-300 ${
-            isCurrentUser
+            !isAdmin && isCurrentUser
               ? 'bg-brand hover:bg-brand-dark cursor-not-allowed opacity-50'
               : 'bg-brand hover:bg-brand-dark'
           }`}
           onClick={handleChat}
-          title={isCurrentUser ? "You cannot chat with yourself" : ""}
+          title={!isAdmin && isCurrentUser ? "You cannot chat with yourself" : ""}
         >
           Chat
         </Button>
@@ -208,16 +213,16 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
         <Button
           variant="outline"
           size="sm"
-          disabled={isCurrentUser}
-          className={`w-full text-xs h-8 transition-all duration-300 ${isCurrentUser ? 'cursor-not-allowed opacity-50' : ''}`}
+          disabled={!isAdmin && isCurrentUser}
+          className={`w-full text-xs h-8 transition-all duration-300 ${!isAdmin && isCurrentUser ? 'cursor-not-allowed opacity-50' : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            if (!isCurrentUser) {
+            if (isAdmin || !isCurrentUser) {
               // Open the meeting request dialog
               document.getElementById(`meeting-request-${id}`)?.click();
             }
           }}
-          title={isCurrentUser ? "You cannot request a meeting with yourself" : ""}
+          title={!isAdmin && isCurrentUser ? "You cannot request a meeting with yourself" : ""}
         >
           <Calendar className="mr-2 h-4 w-4" />
           Request Meeting
