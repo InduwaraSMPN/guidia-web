@@ -53,6 +53,10 @@ export function NotificationsDropdown({ onUpdateUnreadCount }: NotificationsDrop
 
         // Type assertion since we know the structure
         const notificationsData = response.data as Notification[]
+
+        // Log notifications data to help diagnose issues
+        console.log("Notifications data:", notificationsData)
+
         setNotifications(notificationsData)
 
         // Count unread notifications
@@ -154,6 +158,9 @@ export function NotificationsDropdown({ onUpdateUnreadCount }: NotificationsDrop
   }
 
   const handleNotificationClick = async (notification: Notification) => {
+    // Log notification details when clicked
+    console.log("Notification clicked:", notification)
+
     // Mark as read if not already read
     if (!notification.isRead) {
       await markAsRead(notification.notificationID)
@@ -189,14 +196,16 @@ export function NotificationsDropdown({ onUpdateUnreadCount }: NotificationsDrop
   }
 
   // Determine priority color
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | undefined) => {
+    if (!priority) return "bg-secondary" // Default color if priority is undefined or null
+
     const priorityColors = {
       low: "bg-secondary",
       medium: "bg-info/20",
       high: "bg-warning/20",
       urgent: "bg-error/20",
     }
-    return priorityColors[priority as keyof typeof priorityColors] || "bg-secondary"
+    return priorityColors[priority.toLowerCase() as keyof typeof priorityColors] || "bg-secondary"
   }
 
   if (isLoading) {
@@ -303,7 +312,10 @@ export function NotificationsDropdown({ onUpdateUnreadCount }: NotificationsDrop
                         getPriorityColor(notification.priority)
                       )}
                     >
-                      {notification.notificationType.replace(/_/g, " ").toLowerCase()}
+                      {notification.notificationType ?
+                        notification.notificationType.replace(/_/g, " ").toLowerCase() :
+                        notification.priority || "notification"
+                      }
                     </span>
                   </div>
                 </div>

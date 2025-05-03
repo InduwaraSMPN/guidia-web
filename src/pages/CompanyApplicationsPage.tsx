@@ -58,7 +58,26 @@ export function CompanyApplicationsPage() {
 
         setIsLoading(true);
         const response = await axiosInstance.get(`/api/jobs/applications/company/${companyID}`);
-        setApplications(response.data as Application[]);
+
+        // Check for duplicate applications
+        const applicationIds = response.data.map((app: Application) => app.applicationID);
+        const hasDuplicates = new Set(applicationIds).size !== applicationIds.length;
+
+        if (hasDuplicates) {
+          console.warn('Duplicate applications detected in response:',
+            applicationIds.filter((id: number, index: number) =>
+              applicationIds.indexOf(id) !== index
+            )
+          );
+        }
+
+        // Filter out duplicate applications by applicationID
+        const uniqueApplications = Array.from(
+          new Map(response.data.map((app: Application) => [app.applicationID, app]))
+        ).map(([_, app]) => app) as Application[];
+
+        console.log(`Filtered ${response.data.length - uniqueApplications.length} duplicate applications`);
+        setApplications(uniqueApplications);
       } catch (error) {
         console.error('Error fetching applications:', error);
         toast.error('Failed to load applications');

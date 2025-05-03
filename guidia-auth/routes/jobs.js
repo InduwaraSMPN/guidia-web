@@ -615,8 +615,9 @@ router.get('/applications/company/:companyId', verifyToken, async (req, res) => 
     }
 
     // Get all applications for this company's jobs
+    // Use DISTINCT to ensure no duplicates
     const [applications] = await pool.execute(`
-      SELECT
+      SELECT DISTINCT
         ja.applicationID,
         ja.jobID,
         ja.studentID,
@@ -639,6 +640,9 @@ router.get('/applications/company/:companyId', verifyToken, async (req, res) => 
       ORDER BY ja.submittedAt DESC
     `, [companyId]);
 
+    // Log the number of applications found
+    console.log(`Found ${applications.length} applications for company ${companyId}`);
+
     res.json(applications);
   } catch (error) {
     console.error('Error fetching company applications:', error);
@@ -651,6 +655,9 @@ router.get('/applications/company/:companyId', verifyToken, async (req, res) => 
 router.patch('/applications/:id/status', verifyToken, async (req, res) => {
   const NotificationTriggers = require('../utils/notificationTriggers');
   const notificationTriggers = new NotificationTriggers(req.app.locals.pool);
+  const { sendEmail } = require('../utils/emailHelper');
+  const getJobApplicationStatusTemplate = require('../email-templates/job-application-status-template');
+
   try {
     const pool = req.app.locals.pool;
     const applicationId = req.params.id;
@@ -665,7 +672,7 @@ router.patch('/applications/:id/status', verifyToken, async (req, res) => {
     // The user must be from the company that posted the job
     const [authorized] = await pool.execute(`
       SELECT j.jobID, j.title, c.companyID, c.companyName, c.userID as companyUserID,
-             ja.applicationID, ja.studentID, ja.status as currentStatus
+             ja.applicationID, ja.studentID, ja.status as currentStatus, ja.firstName, ja.lastName, ja.email
       FROM job_applications ja
       JOIN jobs j ON ja.jobID = j.jobID
       JOIN companies c ON j.companyID = c.companyID
@@ -701,7 +708,7 @@ router.patch('/applications/:id/status', verifyToken, async (req, res) => {
 
     // Get student details for notification
     const [studentDetails] = await pool.execute(`
-      SELECT s.*, u.userID
+      SELECT s.*, u.userID, u.email
       FROM students s
       JOIN users u ON s.userID = u.userID
       WHERE u.userID = ?
@@ -732,6 +739,48 @@ router.patch('/applications/:id/status', verifyToken, async (req, res) => {
       } catch (notificationError) {
         console.error('Error sending notification:', notificationError);
         // Continue with the response even if notification fails
+      }
+
+      // Send email notification to student
+      try {
+        // Prioritize the email from the job application over the student's account email
+        // This ensures we send to the email that the student provided when applying
+        const applicationEmail = job.email;
+        const accountEmail = student.email || student.studentEmail;
+
+        // Use the application email if available, otherwise fall back to account email
+        const studentEmail = applicationEmail || accountEmail;
+        const studentName = student.studentName || `${job.firstName} ${job.lastName}`;
+
+        // Log which email we're using
+        if (applicationEmail && accountEmail && applicationEmail !== accountEmail) {
+          console.log(`Using application email (${applicationEmail}) instead of account email (${accountEmail})`);
+        }
+
+        if (studentEmail) {
+          // Generate application URL with the correct path for student job applications
+          const applicationUrl = `${process.env.FRONTEND_URL || 'http://localhost:1030'}/profile/jobs-applications/edit/${job.studentID}`;
+
+          // Send email
+          await sendEmail(
+            getJobApplicationStatusTemplate(
+              studentEmail,
+              studentName,
+              job.title,
+              job.companyName,
+              status,
+              notes,
+              applicationUrl
+            )
+          );
+
+          console.log(`Application status update email sent to: ${studentEmail}`);
+        } else {
+          console.error('Could not find email address to send application status update');
+        }
+      } catch (emailError) {
+        console.error('Error sending application status update email:', emailError);
+        // Continue with the response even if email fails
       }
     }
 
