@@ -174,23 +174,6 @@ export function ViewDocumentModal({
     }
   }, [onClose, handleZoomIn, handleZoomOut, handleResetZoom])
 
-  // We'll use this function in the future for URL validation
-  // Currently not used but kept for future reference
-  /*
-  const checkValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false;
-    try {
-      if (url.startsWith('data:')) return true;
-      if (url.startsWith('blob:')) return true;
-      if (url.startsWith('mock-azure-url://')) return true; // For development
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  */
-
   // Load document data when modal opens
   useEffect(() => {
     if (!isOpen || !documentUrl) return;

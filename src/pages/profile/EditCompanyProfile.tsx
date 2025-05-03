@@ -323,7 +323,7 @@ export function EditCompanyProfile() {
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       <div className="max-w-3xl mx-auto mb-16">
         <h1 className="text-3xl font-bold text-brand mb-8">
-          Edit Company Profile
+          Edit Profile
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
