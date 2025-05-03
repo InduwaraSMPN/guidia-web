@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { ArrowUpDown, Download } from 'lucide-react';
 import { CsvExporter } from './CsvExporter';
 import { formatDate } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface UserData {
   email: string;
@@ -44,6 +45,8 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
   const [sortField, setSortField] = useState<keyof Registration>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleSort = (field: keyof Registration) => {
@@ -53,6 +56,8 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
       setSortField(field);
       setSortDirection("asc");
     }
+    // Reset to first page when sort changes
+    setCurrentPage(1);
   };
 
   const sortedRegistrations = useMemo(() => {
@@ -67,6 +72,12 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
         : String(b[sortField]).localeCompare(String(a[sortField]));
     });
   }, [registrations, sortField, sortDirection]);
+
+  // Get paginated data
+  const paginatedRegistrations = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedRegistrations.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedRegistrations, currentPage, itemsPerPage]);
 
   const csvData = useMemo(() => {
     return sortedRegistrations.map(registration => {
@@ -107,7 +118,7 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
     <div ref={tableRef} className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
       <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
         <div className="flex items-center space-x-4">
-          <CsvExporter 
+          <CsvExporter
             data={csvData}
             columns={csvColumns}
             tableName="declined-registrations"
@@ -137,7 +148,7 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
           </thead>
           <tbody className="divide-y divide-gray-200">
             <AnimatePresence>
-              {sortedRegistrations.map((registration) => {
+              {paginatedRegistrations.map((registration) => {
                 const userData = parseUserData(registration.userData);
                 return (
                   <motion.tr
@@ -175,9 +186,24 @@ export function DeclinedRegistrationsTable({ registrations, isLoading = false }:
                 );
               })}
             </AnimatePresence>
+            {registrations.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground">
+                  No declined registrations found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={sortedRegistrations.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

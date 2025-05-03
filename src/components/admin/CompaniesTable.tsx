@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { PencilIcon, TrashIcon, UserPlusIcon, ArrowUpDown, Download } from 'lucide-react';
 import { CsvExporter } from './CsvExporter';
 import { motion, AnimatePresence } from "framer-motion";
 import { Select, Option } from "@/components/ui/Select";
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface User {
   userID: string;
@@ -27,18 +28,20 @@ const statusOptions: Option[] = [
   { value: "blocked", label: "Blocked" },
 ];
 
-export function CompaniesTable({ 
-  users, 
-  roleID, 
-  onAdd, 
-  onEdit, 
-  onDelete, 
+export function CompaniesTable({
+  users,
+  roleID,
+  onAdd,
+  onEdit,
+  onDelete,
   onStatusChange,
-  isLoading = false 
+  isLoading = false
 }: CompaniesTableProps) {
   const [sortField, setSortField] = useState<keyof User>('email');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleSort = (field: keyof User) => {
@@ -48,6 +51,8 @@ export function CompaniesTable({
       setSortField(field);
       setSortDirection('asc');
     }
+    // Reset to first page when sort changes
+    setCurrentPage(1);
   };
 
   const filteredUsers = users.filter(user => user.roleID === roleID);
@@ -56,12 +61,18 @@ export function CompaniesTable({
     return [...filteredUsers].sort((a, b) => {
       const aValue = a[sortField]?.toString().toLowerCase() ?? '';
       const bValue = b[sortField]?.toString().toLowerCase() ?? '';
-      
-      return sortDirection === 'asc' 
+
+      return sortDirection === 'asc'
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     });
   }, [filteredUsers, sortField, sortDirection]);
+
+  // Get paginated data
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedUsers, currentPage, itemsPerPage]);
 
   const csvColumns = useMemo(() => [
     { id: 'userID', header: 'Company ID' },
@@ -127,7 +138,7 @@ export function CompaniesTable({
           </thead>
           <tbody className="divide-y divide-gray-200">
             <AnimatePresence>
-              {sortedUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <motion.tr
                   layout
                   key={user.userID}
@@ -183,7 +194,7 @@ export function CompaniesTable({
                 </motion.tr>
               ))}
             </AnimatePresence>
-            {sortedUsers.length === 0 && (
+            {filteredUsers.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground">
                   No companies found
@@ -193,6 +204,14 @@ export function CompaniesTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={sortedUsers.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

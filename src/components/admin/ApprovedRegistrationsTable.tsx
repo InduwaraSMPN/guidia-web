@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ArrowUpDown, Download } from 'lucide-react';
 import { CsvExporter } from './CsvExporter';
 import { formatDate } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface UserData {
   email: string;
@@ -44,13 +45,20 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
   const [sortField, setSortField] = useState<keyof Registration>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const handleSort = (field: keyof Registration) => {
-    setSortDirection(currentDirection => 
+    setSortDirection(currentDirection =>
       sortField === field && currentDirection === 'asc' ? 'desc' : 'asc'
     );
     setSortField(field);
   };
+
+  // Reset to first page when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
 
   const sortedRegistrations = useMemo(() => {
     return [...registrations].sort((a, b) => {
@@ -64,6 +72,12 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
         : String(b[sortField]).localeCompare(String(a[sortField]));
     });
   }, [registrations, sortField, sortDirection]);
+
+  // Get paginated data
+  const paginatedRegistrations = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedRegistrations.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedRegistrations, currentPage, itemsPerPage]);
 
   const csvData = useMemo(() => {
     return sortedRegistrations.map(registration => {
@@ -103,7 +117,7 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
   return (
     <div className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
       <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
-        <CsvExporter 
+        <CsvExporter
           data={csvData}
           columns={csvColumns}
           tableName="approved-registrations"
@@ -132,7 +146,7 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
           </thead>
           <tbody className="divide-y divide-gray-200">
             <AnimatePresence>
-              {sortedRegistrations.map((registration) => {
+              {paginatedRegistrations.map((registration) => {
                 const userData = parseUserData(registration.userData);
                 return (
                   <motion.tr
@@ -157,7 +171,7 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
                         <div>
                           <span className="font-medium">User Type:</span>{' '}
                           <span className={`inline-flex px-2 text-xs font-semibold leading-5 rounded-full ${
-                            userData.userType === 'Counselor' 
+                            userData.userType === 'Counselor'
                               ? ''
                               : ''
                           }`}>
@@ -173,9 +187,24 @@ export function ApprovedRegistrationsTable({ registrations, isLoading = false }:
                 );
               })}
             </AnimatePresence>
+            {registrations.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground">
+                  No approved registrations found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={sortedRegistrations.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { PencilIcon, TrashIcon, Plus, ArrowUpDown, Download } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CsvExporter } from './CsvExporter';
 import { motion, AnimatePresence } from "framer-motion";
+import { TablePagination } from '@/components/ui/table-pagination';
 
 interface Event {
   eventID: string;
@@ -24,6 +25,8 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
   const [sortField, setSortField] = useState<keyof Event>('eventDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleSort = (field: keyof Event) => {
@@ -33,6 +36,8 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
       setSortField(field);
       setSortDirection('asc');
     }
+    // Reset to first page when sort changes
+    setCurrentPage(1);
   };
 
   const sortedEvents = useMemo(() => {
@@ -42,6 +47,12 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
       return 0;
     });
   }, [events, sortField, sortDirection]);
+
+  // Get paginated data
+  const paginatedEvents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedEvents.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedEvents, currentPage, itemsPerPage]);
 
   const csvColumns = useMemo(() => [
     { id: 'eventID', header: 'Event ID' },
@@ -110,7 +121,7 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
           </thead>
           <tbody className="divide-y divide-gray-200">
             <AnimatePresence>
-              {sortedEvents.map((event) => (
+              {paginatedEvents.map((event) => (
                 <motion.tr
                   layout
                   key={event.eventID}
@@ -160,7 +171,7 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
                 </motion.tr>
               ))}
             </AnimatePresence>
-            {sortedEvents.length === 0 && (
+            {events.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                   No events found
@@ -170,6 +181,14 @@ export function EventsTable({ events, onEdit, onDelete, onAdd, isLoading = false
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={sortedEvents.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
