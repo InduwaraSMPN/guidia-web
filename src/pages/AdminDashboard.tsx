@@ -111,6 +111,87 @@ interface MeetingStatistics {
     status: string;
     meetingType: string;
   }>;
+  counselorPerformance?: {
+    counselors: Array<{
+      counselorID: string;
+      counselorName: string;
+      userID: string;
+      totalMeetings: number;
+      totalMeetingsReceived: number;
+      acceptedMeetings: number;
+      declinedMeetings: number;
+      requestedMeetings: number;
+      cancelledMeetings: number;
+      completedMeetings: number;
+      acceptanceRate: number;
+      declineRate: number;
+      requestRate: number;
+      cancellationRate: number;
+      completionRate: number;
+    }>;
+    metrics: {
+      acceptanceRate: {
+        highest: {
+          counselorID: string;
+          counselorName: string;
+          acceptanceRate: number;
+        } | null;
+        lowest: {
+          counselorID: string;
+          counselorName: string;
+          acceptanceRate: number;
+        } | null;
+      };
+      requestRate: {
+        highest: {
+          counselorID: string;
+          counselorName: string;
+          requestRate: number;
+        } | null;
+        lowest: {
+          counselorID: string;
+          counselorName: string;
+          requestRate: number;
+        } | null;
+      };
+      declineRate: {
+        highest: {
+          counselorID: string;
+          counselorName: string;
+          declineRate: number;
+        } | null;
+        lowest: {
+          counselorID: string;
+          counselorName: string;
+          declineRate: number;
+        } | null;
+      };
+      cancellationRate: {
+        highest: {
+          counselorID: string;
+          counselorName: string;
+          cancellationRate: number;
+        } | null;
+        lowest: {
+          counselorID: string;
+          counselorName: string;
+          cancellationRate: number;
+        } | null;
+      };
+      completionRate: {
+        highest: {
+          counselorID: string;
+          counselorName: string;
+          completionRate: number;
+        } | null;
+        lowest: {
+          counselorID: string;
+          counselorName: string;
+          completionRate: number;
+        } | null;
+      };
+    };
+  };
 }
 
 interface UserActivity {
@@ -350,6 +431,22 @@ export function AdminDashboard() {
         meetingStatsData = await meetingStatsRes.json();
       } else {
         console.error("Failed to fetch meeting statistics");
+      }
+
+      // Fetch counselor performance metrics
+      const counselorPerformanceRes = await fetch("/api/admin/counselor-performance", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (counselorPerformanceRes.ok) {
+        const counselorPerformanceData = await counselorPerformanceRes.json();
+        // Add counselor performance data to meeting statistics
+        if (meetingStatsData) {
+          meetingStatsData.counselorPerformance = counselorPerformanceData;
+        }
+      } else {
+        console.error("Failed to fetch counselor performance metrics");
       }
 
       // Fetch user activity statistics

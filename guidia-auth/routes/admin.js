@@ -1634,4 +1634,111 @@ router.post('/trigger-dashboard-update', verifyToken, verifyAdmin, async (req, r
   }
 });
 
+/**
+ * Get counselor performance metrics for admin dashboard
+ * GET /api/admin/counselor-performance
+ */
+router.get(
+  "/counselor-performance",
+  verifyToken,
+  verifyAdmin,
+  async (req, res) => {
+    try {
+      const pool = req.app.locals.pool;
+
+      // Get counselors with their meeting statistics
+      const [counselorMeetingStats] = await pool.execute(`
+        SELECT
+          c.counselorID,
+          c.counselorName,
+          c.userID,
+          COUNT(DISTINCT CASE WHEN m.recipientID = c.userID THEN m.meetingID END) as totalMeetingsReceived,
+          COUNT(DISTINCT CASE WHEN m.recipientID = c.userID AND m.status = 'accepted' THEN m.meetingID END) as acceptedMeetings,
+          COUNT(DISTINCT CASE WHEN m.recipientID = c.userID AND m.status = 'declined' THEN m.meetingID END) as declinedMeetings,
+          COUNT(DISTINCT CASE WHEN m.requestorID = c.userID THEN m.meetingID END) as requestedMeetings,
+          COUNT(DISTINCT CASE WHEN (m.requestorID = c.userID OR m.recipientID = c.userID) AND m.status = 'cancelled' THEN m.meetingID END) as cancelledMeetings,
+          COUNT(DISTINCT CASE WHEN (m.requestorID = c.userID OR m.recipientID = c.userID) AND m.status = 'completed' THEN m.meetingID END) as completedMeetings,
+          COUNT(DISTINCT CASE WHEN (m.requestorID = c.userID OR m.recipientID = c.userID) THEN m.meetingID END) as totalMeetings
+        FROM counselors c
+        LEFT JOIN meetings m ON c.userID = m.recipientID OR c.userID = m.requestorID
+        GROUP BY c.counselorID, c.counselorName, c.userID
+      `);
+
+      // Calculate rates for each counselor
+      const counselorPerformance = counselorMeetingStats.map(counselor => {
+        // Avoid division by zero
+        const acceptanceRate = counselor.totalMeetingsReceived > 0
+          ? (counselor.acceptedMeetings / counselor.totalMeetingsReceived) * 100
+          : 0;
+
+        const declineRate = counselor.totalMeetingsReceived > 0
+          ? (counselor.declinedMeetings / counselor.totalMeetingsReceived) * 100
+          : 0;
+
+        const requestRate = counselor.totalMeetings > 0
+          ? (counselor.requestedMeetings / counselor.totalMeetings) * 100
+          : 0;
+
+        const cancellationRate = counselor.totalMeetings > 0
+          ? (counselor.cancelledMeetings / counselor.totalMeetings) * 100
+          : 0;
+
+        const completionRate = counselor.totalMeetings > 0
+          ? (counselor.completedMeetings / counselor.totalMeetings) * 100
+          : 0;
+
+        return {
+          counselorID: counselor.counselorID,
+          counselorName: counselor.counselorName,
+          userID: counselor.userID,
+          totalMeetings: counselor.totalMeetings,
+          totalMeetingsReceived: counselor.totalMeetingsReceived,
+          acceptedMeetings: counselor.acceptedMeetings,
+          declinedMeetings: counselor.declinedMeetings,
+          requestedMeetings: counselor.requestedMeetings,
+          cancelledMeetings: counselor.cancelledMeetings,
+          completedMeetings: counselor.completedMeetings,
+          acceptanceRate: parseFloat(acceptanceRate.toFixed(2)),
+          declineRate: parseFloat(declineRate.toFixed(2)),
+          requestRate: parseFloat(requestRate.toFixed(2)),
+          cancellationRate: parseFloat(cancellationRate.toFixed(2)),
+          completionRate: parseFloat(completionRate.toFixed(2))
+        };
+      });
+
+      // Sort counselors by different metrics to find highest and lowest
+      const sortByAcceptanceRate = [...counselorPerformance].sort((a, b) => b.acceptanceRate - a.acceptanceRate);
+      const sortByRequestRate = [...counselorPerformance].sort((a, b) => b.requestRate - a.requestRate);
+      const sortByDeclineRate = [...counselorPerformance].sort((a, b) => b.declineRate - a.declineRate);
+      const sortByCancellationRate = [...counselorPerformance].sort((a, b) => b.cancellationRate - a.cancellationRate);
+      const sortByCompletionRate = [...counselorPerformance].sort((a, b) => b.completionRate - a.completionRate);
+
+      // Get top and bottom performers for each metric (only include counselors with at least one meeting)
+      const getTopBottomPerformers = (sortedArray, minMeetings = 1) => {
+        const filtered = sortedArray.filter(c => c.totalMeetings >= minMeetings);
+        return {
+          highest: filtered.length > 0 ? filtered[0] : null,
+          lowest: filtered.length > 1 ? filtered[filtered.length - 1] : null
+        };
+      };
+
+      const result = {
+        counselors: counselorPerformance,
+        metrics: {
+          acceptanceRate: getTopBottomPerformers(sortByAcceptanceRate),
+          requestRate: getTopBottomPerformers(sortByRequestRate),
+          declineRate: getTopBottomPerformers(sortByDeclineRate),
+          cancellationRate: getTopBottomPerformers(sortByCancellationRate),
+          completionRate: getTopBottomPerformers(sortByCompletionRate)
+        }
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching counselor performance metrics:", error);
+      res.status(500).json({ error: "Failed to fetch counselor performance metrics" });
+    }
+  }
+);
+
 module.exports = router;

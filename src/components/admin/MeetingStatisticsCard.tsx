@@ -15,11 +15,13 @@ import {
   Cell,
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, PieChartIcon, BarChart3, Star } from "lucide-react"
+import { Calendar, Clock, PieChartIcon, BarChart3, Star, Users, TrendingUp, TrendingDown, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 import { cn, formatMeetingType } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChartTooltip, MeetingStatusTooltip, ScheduleTooltip } from "@/components/ui/chart-tooltip"
+import { MeetingStatusTooltip, ScheduleTooltip } from "@/components/ui/chart-tooltip"
 import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
+import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect, useMemo } from "react"
 
 interface MeetingStatisticsProps {
   meetingStats: {
@@ -53,6 +55,87 @@ interface MeetingStatisticsProps {
       status: string
       meetingType: string
     }>
+    counselorPerformance?: {
+      counselors: Array<{
+        counselorID: string
+        counselorName: string
+        userID: string
+        totalMeetings: number
+        totalMeetingsReceived: number
+        acceptedMeetings: number
+        declinedMeetings: number
+        requestedMeetings: number
+        cancelledMeetings: number
+        completedMeetings: number
+        acceptanceRate: number
+        declineRate: number
+        requestRate: number
+        cancellationRate: number
+        completionRate: number
+      }>
+      metrics: {
+        acceptanceRate: {
+          highest: {
+            counselorID: string
+            counselorName: string
+            acceptanceRate: number
+          } | null
+          lowest: {
+            counselorID: string
+            counselorName: string
+            acceptanceRate: number
+          } | null
+        }
+        requestRate: {
+          highest: {
+            counselorID: string
+            counselorName: string
+            requestRate: number
+          } | null
+          lowest: {
+            counselorID: string
+            counselorName: string
+            requestRate: number
+          } | null
+        }
+        declineRate: {
+          highest: {
+            counselorID: string
+            counselorName: string
+            declineRate: number
+          } | null
+          lowest: {
+            counselorID: string
+            counselorName: string
+            declineRate: number
+          } | null
+        }
+        cancellationRate: {
+          highest: {
+            counselorID: string
+            counselorName: string
+            cancellationRate: number
+          } | null
+          lowest: {
+            counselorID: string
+            counselorName: string
+            cancellationRate: number
+          } | null
+        }
+        completionRate: {
+          highest: {
+            counselorID: string
+            counselorName: string
+            completionRate: number
+          } | null
+          lowest: {
+            counselorID: string
+            counselorName: string
+            completionRate: number
+          } | null
+        }
+      }
+    }
   }
 }
 
@@ -74,6 +157,44 @@ const TYPE_COLORS = {
 }
 
 export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) {
+  const [counselorSearch, setCounselorSearch] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [counselorSearch]);
+
+  // Get filtered and paginated counselors
+  const filteredCounselors = useMemo(() => {
+    if (!meetingStats.counselorPerformance) return [];
+
+    return meetingStats.counselorPerformance.counselors
+      .filter(c => {
+        if (!counselorSearch.trim()) {
+          // Show all counselors, including those with 0 meetings
+          return true;
+        }
+        const query = counselorSearch.trim().toLowerCase();
+        // Safely convert values to strings before calling toLowerCase()
+        const counselorName = String(c.counselorName || '').toLowerCase();
+        const userID = String(c.userID || '').toLowerCase();
+        const counselorID = String(c.counselorID || '').toLowerCase();
+
+        return counselorName.includes(query) ||
+               userID.includes(query) ||
+               counselorID.includes(query);
+      })
+      .sort((a, b) => b.totalMeetings - a.totalMeetings);
+  }, [counselorSearch, meetingStats.counselorPerformance]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredCounselors.length / itemsPerPage);
+  const paginatedCounselors = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCounselors.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCounselors, currentPage, itemsPerPage]);
   // Get color for meeting status
   const getStatusColor = (status: string) => {
     const normalizedStatus = status.toLowerCase()
@@ -185,6 +306,9 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
             </TabsTrigger>
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-background">
               Upcoming
+            </TabsTrigger>
+            <TabsTrigger value="counselors" className="data-[state=active]:bg-background">
+              Counselor Performance
             </TabsTrigger>
           </TabsList>
 
@@ -364,7 +488,7 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
             {meetingStats.upcomingMeetings.length > 0 ? (
               <ScrollArea className="h-[500px] pr-4">
                 <div className="space-y-4">
-                  {meetingStats.upcomingMeetings.map((meeting, index) => (
+                  {meetingStats.upcomingMeetings.map((meeting) => (
                     <div
                       key={meeting.meetingID}
                       className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md"
@@ -416,6 +540,323 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
               <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed border-border">
                 <Calendar className="h-10 w-10 mx-auto mb-2 text-muted-foreground/60" />
                 <p>No upcoming meetings found</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent
+            value="counselors"
+            className="animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
+          >
+            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-brand" />
+              <span>Counselor Performance Metrics</span>
+            </h3>
+
+            {meetingStats.counselorPerformance ? (
+              <div className="space-y-8">
+                {/* Performance Highlights */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Acceptance Rate */}
+                  <div className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md">
+                    <h4 className="text-md font-medium mb-3 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-green-800 dark:text-green-300">Acceptance Rate</span>
+                    </h4>
+                    <div className="space-y-3">
+                      {meetingStats.counselorPerformance.metrics.acceptanceRate.highest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                            <span className="text-sm">Highest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.acceptanceRate.highest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800">
+                            {meetingStats.counselorPerformance.metrics.acceptanceRate.highest.acceptanceRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                      {meetingStats.counselorPerformance.metrics.acceptanceRate.lowest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingDown className="h-4 w-4 text-green-500" />
+                            <span className="text-sm">Lowest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.acceptanceRate.lowest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800">
+                            {meetingStats.counselorPerformance.metrics.acceptanceRate.lowest.acceptanceRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Completion Rate */}
+                  <div className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md">
+                    <h4 className="text-md font-medium mb-3 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-blue-500" />
+                      <span className="text-blue-800 dark:text-blue-300">Completion Rate</span>
+                    </h4>
+                    <div className="space-y-3">
+                      {meetingStats.counselorPerformance.metrics.completionRate.highest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm">Highest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.completionRate.highest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                            {meetingStats.counselorPerformance.metrics.completionRate.highest.completionRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                      {meetingStats.counselorPerformance.metrics.completionRate.lowest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingDown className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm">Lowest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.completionRate.lowest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                            {meetingStats.counselorPerformance.metrics.completionRate.lowest.completionRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Decline Rate */}
+                  <div className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md">
+                    <h4 className="text-md font-medium mb-3 flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-red-800 dark:text-red-300">Decline Rate</span>
+                    </h4>
+                    <div className="space-y-3">
+                      {meetingStats.counselorPerformance.metrics.declineRate.highest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-red-500" />
+                            <span className="text-sm">Highest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.declineRate.highest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800">
+                            {meetingStats.counselorPerformance.metrics.declineRate.highest.declineRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                      {meetingStats.counselorPerformance.metrics.declineRate.lowest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingDown className="h-4 w-4 text-red-500" />
+                            <span className="text-sm">Lowest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.declineRate.lowest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800">
+                            {meetingStats.counselorPerformance.metrics.declineRate.lowest.declineRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Cancellation Rate */}
+                  <div className="border border-border rounded-lg p-4 transition-all duration-200 hover:border-border/80 hover:bg-accent/10 hover:shadow-md">
+                    <h4 className="text-md font-medium mb-3 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <span className="text-amber-800 dark:text-amber-300">Cancellation Rate</span>
+                    </h4>
+                    <div className="space-y-3">
+                      {meetingStats.counselorPerformance.metrics.cancellationRate.highest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm">Highest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.cancellationRate.highest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border-amber-200 dark:border-amber-800">
+                            {meetingStats.counselorPerformance.metrics.cancellationRate.highest.cancellationRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                      {meetingStats.counselorPerformance.metrics.cancellationRate.lowest && (
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <TrendingDown className="h-4 w-4 text-amber-500" />
+                            <span className="text-sm">Lowest:</span>
+                            <span className="font-medium">{meetingStats.counselorPerformance.metrics.cancellationRate.lowest.counselorName}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border-amber-200 dark:border-amber-800">
+                            {meetingStats.counselorPerformance.metrics.cancellationRate.lowest.cancellationRate.toFixed(1)}%
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detailed Counselor Performance Table */}
+                <div>
+                  <h4 className="text-md font-medium mb-3">Detailed Counselor Performance</h4>
+                  <div className="rounded-lg border border-border shadow-sm overflow-hidden bg-white">
+                    <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border bg-white">
+                      <div className="relative w-64">
+                        <input
+                          type="text"
+                          placeholder="Search counselors..."
+                          value={counselorSearch}
+                          onChange={(e) => setCounselorSearch(e.target.value)}
+                          className="w-full pl-10 pr-8 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/20"
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        {counselorSearch && (
+                          <button
+                            onClick={() => setCounselorSearch("")}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
+                          >
+                            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+                      >
+                        <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export CSV
+                      </motion.button>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left text-muted-foreground">
+                        <thead className="text-xs text-foreground uppercase bg-secondary sticky top-0">
+                          <tr>
+                            <th scope="col" className="px-8 py-4 font-normal">Counselor</th>
+                            <th scope="col" className="px-8 py-4 text-right font-normal">Total Meetings</th>
+                            <th scope="col" className="px-8 py-4 text-right font-normal">Acceptance Rate</th>
+                            <th scope="col" className="px-8 py-4 text-right font-normal">Completion Rate</th>
+                            <th scope="col" className="px-8 py-4 text-right font-normal">Decline Rate</th>
+                            <th scope="col" className="px-8 py-4 text-right font-normal">Cancellation Rate</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          <AnimatePresence>
+                            {paginatedCounselors.map((counselor) => (
+                              <motion.tr
+                                layout
+                                key={counselor.counselorID}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="hover:bg-secondary transition-colors duration-200 bg-white"
+                              >
+                                <td className="px-8 py-4 font-normal text-foreground">{counselor.counselorName}</td>
+                                <td className="px-8 py-4 text-right font-normal">{counselor.totalMeetings}</td>
+                                <td className="px-8 py-4 text-right">
+                                  <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-200 dark:border-green-800">
+                                    {counselor.acceptanceRate.toFixed(1)}%
+                                  </Badge>
+                                </td>
+                                <td className="px-8 py-4 text-right">
+                                  <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                                    {counselor.completionRate.toFixed(1)}%
+                                  </Badge>
+                                </td>
+                                <td className="px-8 py-4 text-right">
+                                  <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-200 dark:border-red-800">
+                                    {counselor.declineRate.toFixed(1)}%
+                                  </Badge>
+                                </td>
+                                <td className="px-8 py-4 text-right">
+                                  <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border-amber-200 dark:border-amber-800">
+                                    {counselor.cancellationRate.toFixed(1)}%
+                                  </Badge>
+                                </td>
+                              </motion.tr>
+                            ))}
+                          </AnimatePresence>
+                          {filteredCounselors.length === 0 && (
+                            <tr>
+                              <td colSpan={6} className="px-8 py-10 text-center text-muted-foreground">
+                                {counselorSearch ?
+                                  `No counselors matching "${counselorSearch}" found` :
+                                  "No counselor performance data available"
+                                }
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                      {/* Pagination Controls */}
+                      {filteredCounselors.length > itemsPerPage && (
+                        <div className="flex items-center justify-between px-8 py-4 border-t border-border bg-white">
+                          <div className="text-sm text-muted-foreground">
+                            Showing {Math.min(filteredCounselors.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredCounselors.length, currentPage * itemsPerPage)} of {filteredCounselors.length} counselors
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentPage === 1}
+                              className="px-3 py-1 text-sm border border-border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary transition-colors"
+                            >
+                              Previous
+                            </button>
+                            {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+                              // Show first page, last page, current page, and pages around current
+                              let pageToShow = i + 1;
+                              if (totalPages > 5) {
+                                if (currentPage <= 3) {
+                                  // Near start: show first 5 pages
+                                  pageToShow = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                  // Near end: show last 5 pages
+                                  pageToShow = totalPages - 4 + i;
+                                } else {
+                                  // Middle: show current page and 2 pages on each side
+                                  pageToShow = currentPage - 2 + i;
+                                }
+                              }
+
+                              return (
+                                <button
+                                  key={pageToShow}
+                                  onClick={() => setCurrentPage(pageToShow)}
+                                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                    currentPage === pageToShow
+                                      ? 'bg-brand text-white'
+                                      : 'border border-border hover:bg-secondary'
+                                  }`}
+                                >
+                                  {pageToShow}
+                                </button>
+                              );
+                            })}
+                            <button
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={currentPage === totalPages}
+                              className="px-3 py-1 text-sm border border-border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary transition-colors"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed border-border">
+                <Users className="h-10 w-10 mx-auto mb-2 text-muted-foreground/60" />
+                <p>No counselor performance data available</p>
               </div>
             )}
           </TabsContent>
