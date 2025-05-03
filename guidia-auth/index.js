@@ -10,6 +10,14 @@ const multer = require("multer");
 const { BlobServiceClient } = require("@azure/storage-blob");
 const bcrypt = require("bcrypt");
 const { Server } = require("socket.io");
+const helmet = require("helmet");
+const hpp = require("hpp");
+const xss = require("xss");
+const validator = require("validator");
+
+// Import custom security utilities
+const cryptoUtils = require("./utils/cryptoUtils");
+const validationUtils = require("./utils/validationUtils");
 const getOTPEmailTemplate = require("./email-templates/otp-template");
 const getRegistrationPendingTemplate = require("./email-templates/registration-pending-template");
 const getRegistrationApprovedTemplate = require("./email-templates/registration-approved-template");
@@ -30,6 +38,10 @@ const { verifyToken, verifyAdmin } = require("./middleware/auth");
 const {
   authLimiter,
   registrationLimiter,
+  passwordResetLimiter,
+  sensitiveOperationLimiter,
+  enumerationLimiter,
+  logFailedLoginAttempt
 } = require("./middleware/rateLimiter");
 
 // Import CSRF protection
@@ -37,6 +49,18 @@ const {
   csrfProtection,
   csrfTokenGenerator,
 } = require("./middleware/csrfProtection");
+
+// Import enhanced security middleware
+const {
+  corsPolicy,
+  resourceAccessControl,
+  roleAccessControl,
+  securityHeaders,
+  securityLogging,
+  logSecurityEvent,
+  uploadSecurityHeaders,
+  apiSecurityHeaders
+} = require("./middleware/securityMiddleware");
 
 // Multer configuration for file uploads
 const upload = multer({
@@ -79,34 +103,26 @@ const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
 
 // Basic middleware
-app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:1030",
-    credentials: true,
-    exposedHeaders: [
-      "X-CSRF-Token",
-      "x-csrf-token",
-      "Content-Type",
-      "Authorization",
-    ],
-  })
-);
+app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
+app.use(express.urlencoded({ extended: true, limit: '1mb' })); // Parse URL-encoded bodies
 
-// Add middleware to ensure CORS headers are set on all responses
-app.use((req, res, next) => {
-  // Ensure CORS headers are set
-  res.header(
-    "Access-Control-Allow-Origin",
-    process.env.FRONTEND_URL || "http://localhost:1030"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Expose-Headers",
-    "X-CSRF-Token, x-csrf-token, Content-Type, Authorization"
-  );
-  next();
-});
+// Apply security headers to all responses
+app.use(securityHeaders);
+
+// Apply enhanced CORS policy
+app.use(corsPolicy);
+
+// Apply Helmet for additional security headers
+app.use(helmet());
+
+// Prevent HTTP Parameter Pollution
+app.use(hpp());
+
+// Add security logging middleware
+app.use(securityLogging);
+
+// Make logSecurityEvent available to routes
+app.locals.logSecurityEvent = logSecurityEvent;
 app.use("/api/students", studentRoutes);
 app.use("/api/counselors", counselorsRouter);
 app.use("/api/companies", companiesRouter);
@@ -894,37 +910,82 @@ app.patch(
 app.post("/auth/login", authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        error: "Missing credentials",
+        message: "Email and password are required"
+      });
+    }
+
+    // Check if email is valid format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        error: "Invalid email format",
+        message: "Please provide a valid email address"
+      });
+    }
+
+    // Get user from database
     const [users] = await pool.query(
       'SELECT u.*, CASE u.roleID WHEN 1 THEN "Admin" WHEN 2 THEN "Student" WHEN 3 THEN "Counselor" WHEN 4 THEN "Company" END as role_name FROM users u WHERE email = ?',
       [email]
     );
+
+    // User not found
     if (users.length === 0) {
-      await logSecurityEvent("LOGIN_FAILED", {
-        reason: "User not found",
-        email,
-        ip: req.ip,
-      });
+      // Import the logFailedLoginAttempt function
+      const { logFailedLoginAttempt } = require('./middleware/rateLimiter');
+
+      // Log the failed attempt
+      await logFailedLoginAttempt(req, email, 0, "User not found");
+
+      // Use a consistent error message to prevent user enumeration
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const user = users[0];
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
-      await logSecurityEvent(
-        "LOGIN_FAILED",
-        { reason: "Invalid password", userID: user.userID, email, ip: req.ip },
-        user.userID
-      );
-      return res.status(401).json({ error: "Invalid credentials" });
+
+    // Check if account is locked
+    if (user.status === "locked") {
+      // Check if lock period has expired
+      if (user.resetTokenExpiry && new Date(user.resetTokenExpiry) > new Date()) {
+        // Calculate remaining time in minutes
+        const remainingTime = Math.ceil((new Date(user.resetTokenExpiry) - new Date()) / (60 * 1000));
+
+        return res.status(403).json({
+          error: "Account temporarily locked",
+          message: `Too many failed login attempts. Please try again in ${remainingTime} minutes or reset your password.`,
+          lockExpiry: user.resetTokenExpiry
+        });
+      } else {
+        // Lock period expired, unlock the account
+        await pool.query(
+          "UPDATE users SET status = 'active', resetTokenExpiry = NULL WHERE userID = ?",
+          [user.userID]
+        );
+      }
     }
 
+    // Check if account is blocked by admin
     if (user.status === "blocked") {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Your account is blocked. Contact guidia.web@gmail.com for assistance",
-        });
+      return res.status(403).json({
+        error: "Account blocked",
+        message: "Your account is blocked. Contact guidia.web@gmail.com for assistance"
+      });
+    }
+
+    // Verify password
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      // Import the logFailedLoginAttempt function
+      const { logFailedLoginAttempt } = require('./middleware/rateLimiter');
+
+      // Log the failed attempt and potentially lock the account
+      await logFailedLoginAttempt(req, email, user.userID, "Invalid password");
+
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Check if profile exists for students, counselors, and companies
@@ -1247,25 +1308,61 @@ app.post("/auth/register", registrationLimiter, async (req, res) => {
   }
 });
 
-app.post("/auth/forgot-password", async (req, res) => {
+app.post("/auth/forgot-password", passwordResetLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
-    // Check if user exists
-    const [users] = await pool.query(
-      "SELECT userID FROM users WHERE email = ?",
-      [email]
-    );
-    if (users.length === 0) {
-      return res.json({
-        message:
-          "If an account exists with this email, you will receive password reset instructions.",
+    // Validate email format
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        error: "Invalid email format",
+        message: "Please provide a valid email address"
       });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    // Check if user exists
+    const [users] = await pool.query(
+      "SELECT userID, status FROM users WHERE email = ?",
+      [email]
+    );
+
+    // Always return the same response regardless of whether the email exists
+    // This prevents user enumeration
+    const standardResponse = {
+      message: "If an account exists with this email, you will receive password reset instructions."
+    };
+
+    if (users.length === 0) {
+      // Log the attempt for security monitoring
+      await logSecurityEvent("PASSWORD_RESET_ATTEMPT", {
+        email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        status: "email_not_found"
+      });
+
+      // Return standard response
+      return res.json(standardResponse);
+    }
+
+    // Check if account is locked or blocked
+    if (users[0].status === "locked" || users[0].status === "blocked") {
+      await logSecurityEvent("PASSWORD_RESET_ATTEMPT", {
+        email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        status: "account_" + users[0].status
+      }, users[0].userID);
+
+      // Return standard response without revealing account status
+      return res.json(standardResponse);
+    }
+
+    // Generate a secure reset token using our cryptoUtils
+    const resetToken = cryptoUtils.generateSecureToken(32);
+
+    // Set expiry to 1 hour from now
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
     // Store reset token in database
     await pool.query(
@@ -1281,15 +1378,29 @@ app.post("/auth/forgot-password", async (req, res) => {
     const emailOptions = getPasswordResetTemplate(email, resetUrl);
     try {
       await transporter.sendMail(emailOptions);
+
+      // Log successful password reset request
+      await logSecurityEvent("PASSWORD_RESET_REQUEST", {
+        email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        status: "email_sent"
+      }, users[0].userID);
     } catch (emailError) {
       console.error("Error sending password reset email:", emailError);
-      // Continue with the response even if email fails
+
+      // Log email sending failure
+      await logSecurityEvent("PASSWORD_RESET_REQUEST", {
+        email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        status: "email_failed",
+        error: emailError.message
+      }, users[0].userID);
     }
 
-    res.json({
-      message:
-        "If an account exists with this email, you will receive password reset instructions.",
-    });
+    // Return standard response
+    res.json(standardResponse);
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ error: "Failed to process password reset request" });
@@ -1324,17 +1435,41 @@ app.post("/auth/reset-password/verify-token", async (req, res) => {
   }
 });
 
-app.post("/auth/reset-password", async (req, res) => {
+app.post("/auth/reset-password", passwordResetLimiter, async (req, res) => {
   try {
     const { token, password } = req.body;
 
+    // Validate input
+    if (!token || !password) {
+      return res.status(400).json({
+        error: "Missing required fields",
+        message: "Token and password are required"
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = cryptoUtils.validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        error: "Password too weak",
+        message: passwordValidation.reason
+      });
+    }
+
     // First check if the token exists in the database at all
     const [tokenCheck] = await pool.query(
-      "SELECT userID, resetToken, resetTokenExpiry FROM users WHERE resetToken = ?",
+      "SELECT userID, email, resetToken, resetTokenExpiry FROM users WHERE resetToken = ?",
       [token]
     );
 
     if (tokenCheck.length === 0) {
+      // Log failed attempt
+      await logSecurityEvent("PASSWORD_RESET_FAILURE", {
+        reason: "invalid_token",
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
@@ -1342,17 +1477,53 @@ app.post("/auth/reset-password", async (req, res) => {
     const isExpired = new Date(tokenCheck[0].resetTokenExpiry) < new Date();
 
     if (isExpired) {
+      // Log failed attempt with expired token
+      await logSecurityEvent("PASSWORD_RESET_FAILURE", {
+        reason: "expired_token",
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      }, tokenCheck[0].userID);
+
+      // Invalidate the expired token
+      await pool.query(
+        "UPDATE users SET resetToken = NULL, resetTokenExpiry = NULL WHERE resetToken = ?",
+        [token]
+      );
+
       return res.status(400).json({ error: "Invalid or expired reset token" });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash the new password with a higher cost factor for security
+    const hashedPassword = await cryptoUtils.hashPassword(password);
 
     // Update password and clear reset token
     await pool.query(
-      "UPDATE users SET password = ?, resetToken = NULL, resetTokenExpiry = NULL WHERE resetToken = ?",
+      "UPDATE users SET password = ?, resetToken = NULL, resetTokenExpiry = NULL, status = 'active' WHERE resetToken = ?",
       [hashedPassword, token]
     );
+
+    // Log successful password reset
+    await logSecurityEvent("PASSWORD_RESET_SUCCESS", {
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    }, tokenCheck[0].userID);
+
+    // Send notification email about password change
+    try {
+      await transporter.sendMail({
+        to: tokenCheck[0].email,
+        subject: "Your Guidia password has been changed",
+        html: `
+          <p>Hello,</p>
+          <p>Your password for Guidia has been successfully changed.</p>
+          <p>If you did not request this change, please contact support immediately.</p>
+          <p>Thank you,<br>The Guidia Team</p>
+        `
+      });
+    } catch (emailError) {
+      console.error("Error sending password change notification:", emailError);
+      // Continue with the response even if email fails
+    }
 
     res.json({ message: "Password reset successful" });
   } catch (error) {
@@ -1380,56 +1551,76 @@ const calculateCooldownPeriod = (otpSentCount, lastAttemptTime) => {
   return { minutes: 0, ms: 0 };
 };
 
-const logSecurityEvent = async (eventType, details, userId = null) => {
-  try {
-    // Use 0 as a placeholder for unknown/non-existent users
-    const userIdValue = userId === null ? 0 : userId;
-    await pool.query(
-      "INSERT INTO security_audit_log (eventType, details, userID, timestamp) VALUES (?, ?, ?, NOW())",
-      [eventType, JSON.stringify(details), userIdValue]
-    );
-  } catch (error) {
-    console.error("Error logging security event:", error);
-  }
-};
+// Note: logSecurityEvent is already imported from securityMiddleware
 
-// Logging and error handling middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
-    headers: {
-      ...req.headers,
-      authorization: req.headers.authorization ? "[REDACTED]" : undefined,
-    },
-    query: req.query,
-    body: req.body,
-  });
-  next();
-});
+// Remove duplicate logging middleware since we already have one above
 
+// 404 handler - don't expose details in production
 app.use((req, res) => {
+  // Log the 404 error but don't expose sensitive information
   console.error("404 Not Found:", {
     method: req.method,
-    url: req.url,
-    headers: req.headers,
-    body: req.body,
+    url: req.originalUrl || req.url,
+    ip: req.ip,
+    // Don't log headers or body in production
+    ...(process.env.NODE_ENV === 'development' ? {
+      headers: {
+        ...req.headers,
+        authorization: req.headers.authorization ? "[REDACTED]" : undefined,
+      },
+      query: req.query,
+    } : {})
   });
+
+  // Log security event for potential path traversal or resource enumeration attempts
+  if (req.originalUrl && (req.originalUrl.includes('../') || req.originalUrl.includes('.env'))) {
+    logSecurityEvent("SUSPICIOUS_REQUEST", {
+      path: req.originalUrl,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    }, req.user ? req.user.id : 0);
+  }
+
   res.status(404).json({ error: "Endpoint not found" });
 });
 
+// Global error handler with improved security
 app.use((err, req, res, next) => {
-  console.error("Global error:", {
-    error: err,
+  // Generate a unique error reference ID for tracking
+  const errorId = crypto.randomBytes(8).toString('hex');
+
+  // Log the error with the reference ID
+  console.error(`Global error [${errorId}]:`, {
+    message: err.message,
     stack: err.stack,
-    path: req.path,
+    path: req.originalUrl || req.path,
     method: req.method,
-    body: req.body,
+    ip: req.ip,
+    // Only log sensitive info in development
+    ...(process.env.NODE_ENV === 'development' ? {
+      query: req.query,
+      body: req.body,
+    } : {})
   });
+
+  // Log security event for potential security issues
+  if (err.code === 'EBADCSRFTOKEN' ||
+      (err.message && (err.message.includes('CSRF') || err.message.includes('token')))) {
+    logSecurityEvent("CSRF_ATTEMPT", {
+      path: req.originalUrl || req.path,
+      ip: req.ip,
+      errorId
+    }, req.user ? req.user.id : 0);
+  }
+
+  // Send appropriate response based on environment
   res.status(500).json({
     error: "Internal server error",
-    details:
-      process.env.NODE_ENV === "development"
-        ? { message: err.message, stack: err.stack }
-        : "Something went wrong",
+    errorId, // Include the error ID so users can reference it in support requests
+    ...(process.env.NODE_ENV === "development" ? {
+      message: err.message,
+      // Don't include full stack trace even in development
+    } : {})
   });
 });
 

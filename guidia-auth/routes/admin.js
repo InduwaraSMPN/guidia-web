@@ -86,7 +86,7 @@ router.post("/run-task", verifyToken, verifyAdmin, async (req, res) => {
         try {
           // Implement basic daily tasks here
           await pool.execute("REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-            ['system_last_daily_run', new Date().toISOString()]);
+            ['SYSTEM_LAST_DAILY_RUN', new Date().toISOString()]);
           return 'Daily tasks completed';
         } catch (error) {
           console.error('Error in daily task:', error);
@@ -98,7 +98,7 @@ router.post("/run-task", verifyToken, verifyAdmin, async (req, res) => {
         try {
           // Implement basic weekly tasks here
           await pool.execute("REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-            ['system_last_weekly_run', new Date().toISOString()]);
+            ['SYSTEM_LAST_WEEKLY_RUN', new Date().toISOString()]);
           return 'Weekly tasks completed';
         } catch (error) {
           console.error('Error in weekly task:', error);
@@ -239,7 +239,7 @@ router.get("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
 
     // Get notification settings from database
     const [settings] = await pool.execute(
-      "SELECT * FROM system_settings WHERE settingKey LIKE 'notification_%'"
+      "SELECT * FROM system_settings WHERE settingKey LIKE 'NOTIFICATION_%'"
     );
 
     // Transform to expected format
@@ -255,19 +255,19 @@ router.get("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
 
     // Update with values from database if they exist
     settings.forEach(setting => {
-      if (setting.settingKey === 'notification_job_deadline') {
+      if (setting.settingKey === 'NOTIFICATION_JOB_DEADLINE') {
         notificationSettings.jobDeadlineNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_job_expiry') {
+      } else if (setting.settingKey === 'NOTIFICATION_JOB_EXPIRY') {
         notificationSettings.jobExpiryNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_profile_completion') {
+      } else if (setting.settingKey === 'NOTIFICATION_PROFILE_COMPLETION') {
         notificationSettings.profileCompletionNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_meeting_reminder') {
+      } else if (setting.settingKey === 'NOTIFICATION_MEETING_REMINDER') {
         notificationSettings.meetingReminderNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_meeting_feedback') {
+      } else if (setting.settingKey === 'NOTIFICATION_MEETING_FEEDBACK') {
         notificationSettings.meetingFeedbackNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_message') {
+      } else if (setting.settingKey === 'NOTIFICATION_MESSAGE') {
         notificationSettings.messageNotifications = setting.settingValue === '1';
-      } else if (setting.settingKey === 'notification_security_alert') {
+      } else if (setting.settingKey === 'NOTIFICATION_SECURITY_ALERT') {
         notificationSettings.securityAlertNotifications = setting.settingValue === '1';
       }
     });
@@ -316,37 +316,37 @@ router.put("/notification-settings", verifyToken, verifyAdmin, async (req, res) 
     try {
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_job_deadline', jobDeadlineNotifications ? '1' : '0']
+        ['NOTIFICATION_JOB_DEADLINE', jobDeadlineNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_job_expiry', jobExpiryNotifications ? '1' : '0']
+        ['NOTIFICATION_JOB_EXPIRY', jobExpiryNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_profile_completion', profileCompletionNotifications ? '1' : '0']
+        ['NOTIFICATION_PROFILE_COMPLETION', profileCompletionNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_meeting_reminder', meetingReminderNotifications ? '1' : '0']
+        ['NOTIFICATION_MEETING_REMINDER', meetingReminderNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_meeting_feedback', meetingFeedbackNotifications ? '1' : '0']
+        ['NOTIFICATION_MEETING_FEEDBACK', meetingFeedbackNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_message', messageNotifications ? '1' : '0']
+        ['NOTIFICATION_MESSAGE', messageNotifications ? '1' : '0']
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['notification_security_alert', securityAlertNotifications ? '1' : '0']
+        ['NOTIFICATION_SECURITY_ALERT', securityAlertNotifications ? '1' : '0']
       );
 
       console.log('Database update successful');
@@ -429,26 +429,26 @@ router.get("/system-settings", verifyToken, verifyAdmin, async (req, res) => {
 
     // Get system settings from database
     const [settings] = await pool.execute(
-      "SELECT * FROM system_settings WHERE settingKey LIKE 'system_%'"
+      "SELECT * FROM system_settings WHERE settingKey LIKE 'SYSTEM_%'"
     );
 
     // Default settings
     const systemSettings = {
-      siteName: 'Guidia',
+      siteName: 'GUIDIA',
       supportEmail: 'support@guidia.com',
-      dateFormat: 'd MMMM yyyy',
+      dateFormat: 'D MMMM YYYY',
       maintenanceMode: false
     };
 
     // Update with values from database if they exist
     settings.forEach(setting => {
-      if (setting.settingKey === 'system_site_name') {
+      if (setting.settingKey === 'SYSTEM_SITE_NAME') {
         systemSettings.siteName = setting.settingValue;
-      } else if (setting.settingKey === 'system_support_email') {
+      } else if (setting.settingKey === 'SYSTEM_SUPPORT_EMAIL') {
         systemSettings.supportEmail = setting.settingValue;
-      } else if (setting.settingKey === 'system_date_format') {
+      } else if (setting.settingKey === 'SYSTEM_DATE_FORMAT') {
         systemSettings.dateFormat = setting.settingValue;
-      } else if (setting.settingKey === 'system_maintenance_mode') {
+      } else if (setting.settingKey === 'SYSTEM_MAINTENANCE_MODE') {
         systemSettings.maintenanceMode = setting.settingValue === '1';
       }
     });
@@ -490,22 +490,22 @@ router.put("/system-settings", verifyToken, verifyAdmin, async (req, res) => {
     try {
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['system_site_name', siteName]
+        ['SYSTEM_SITE_NAME', siteName]
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['system_support_email', supportEmail]
+        ['SYSTEM_SUPPORT_EMAIL', supportEmail]
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['system_date_format', dateFormat]
+        ['SYSTEM_DATE_FORMAT', dateFormat]
       );
 
       await pool.execute(
         "REPLACE INTO system_settings (settingKey, settingValue) VALUES (?, ?)",
-        ['system_maintenance_mode', maintenanceMode ? '1' : '0']
+        ['SYSTEM_MAINTENANCE_MODE', maintenanceMode ? '1' : '0']
       );
 
       console.log('Database update successful');
@@ -1395,6 +1395,50 @@ router.get("/system-health", verifyToken, verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error("Error fetching system health statistics:", error);
     res.status(500).json({ error: "Failed to fetch system health statistics" });
+  }
+});
+
+/**
+ * Execute SQL query (admin only)
+ * POST /api/admin/execute-sql
+ */
+router.post("/execute-sql", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { sql } = req.body;
+
+    if (!sql) {
+      return res.status(400).json({ error: 'SQL query is required' });
+    }
+
+    // Execute the query
+    const [result] = await pool.query(sql);
+
+    // Log the query for auditing
+    console.log(`Admin SQL query executed by user ${req.user.id}:`, sql);
+
+    // Log to security audit log if the table exists
+    try {
+      await pool.query(
+        "INSERT INTO security_audit_log (eventType, details, userID, timestamp) VALUES (?, ?, ?, NOW())",
+        [
+          'ADMIN_SQL_QUERY',
+          JSON.stringify({
+            sql,
+            ip: req.ip,
+            userAgent: req.get('User-Agent')
+          }),
+          req.user.id
+        ]
+      );
+    } catch (logError) {
+      // If the security_audit_log table doesn't exist yet, just log to console
+      console.log('Could not log to security_audit_log table:', logError.message);
+    }
+
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error('Error executing SQL query:', error);
+    res.status(500).json({ error: 'Failed to execute SQL query', details: error.message });
   }
 });
 
