@@ -29,7 +29,6 @@ The authentication system is based on JSON Web Tokens (JWT) and provides:
 6. **Secure password reset**: Secure token-based password reset flow
 7. **Password strength enforcement**: Requirements for strong passwords
 
-See [AUTHENTICATION.md](./AUTHENTICATION.md) for more details.
 
 ## Authorization
 

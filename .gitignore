@@ -39,7 +39,6 @@ yarn-error.log*
 
 
 #examples
-database_creation_plan.md
 index.sql
 # Firebase service account keys
 guidia-auth/firebase-service-account.json

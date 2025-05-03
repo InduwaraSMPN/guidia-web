@@ -124,7 +124,6 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const errorCode = (error as any)?.code;
       if (errorCode === 'PERMISSION_DENIED') {
         console.warn('Firebase permission denied. Make sure Firebase security rules are properly configured.');
-        console.warn('See FIREBASE_SETUP.md for instructions on setting up security rules.');
       }
 
       throw error;

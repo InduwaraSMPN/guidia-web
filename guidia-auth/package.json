@@ -5,14 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "verify-messages": "node scripts/verify-message-migration.js",
-    "migrate-messages": "node scripts/migrate-missing-messages.js",
-    "test-messages": "node scripts/test-firebase-messages.js",
-    "backup-messages": "node scripts/backup-mysql-messages.js",
-    "drop-messages": "node scripts/drop-mysql-messages.js",
     "test-firebase": "node scripts/test-firebase-connection.js",
-    "regenerate-key": "node scripts/regenerate-service-account.js",
-    "check-time": "node scripts/check-system-time.js",
     "rotate-key": "node scripts/rotate-firebase-key.js",
     "schedule-rotation": "node scripts/schedule-key-rotation.js"
   },
