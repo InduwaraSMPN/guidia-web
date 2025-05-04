@@ -6,6 +6,12 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 import { ProfileSection } from '@/interfaces/Profile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRegistration } from '@/contexts/RegistrationContext';
+import {
+  validateEmail,
+  validatePhoneNumber,
+  validateText,
+  validateStudentNumber
+} from '@/utils/validationUtils';
 
 export function WelcomeEditStudentProfile() {
   const navigate = useNavigate();
@@ -212,6 +218,65 @@ export function WelcomeEditStudentProfile() {
     }
   ];
 
+  // Validate form data
+  const validateFormData = (formData: Record<string, any>): boolean => {
+    // Validate student number
+    if (!validateStudentNumber(formData.studentNumber)) {
+      toast.error('Student number is required and must not exceed 20 characters');
+      return false;
+    }
+
+    // Validate student name
+    if (!validateText(formData.studentName, 2)) {
+      toast.error('Student name must be at least 2 characters');
+      return false;
+    }
+
+    // Validate title
+    if (!validateText(formData.title, 2)) {
+      toast.error('Title must be at least 2 characters');
+      return false;
+    }
+
+    // Validate contact number
+    if (!validatePhoneNumber(formData.contactNumber)) {
+      toast.error('Please enter a valid contact number');
+      return false;
+    }
+
+    // Validate email
+    if (!validateEmail(formData.studentMail)) {
+      toast.error('Please enter a valid email address');
+      return false;
+    }
+
+    // Validate description - no character limit as per memory
+    if (!validateText(formData.description, 10)) {
+      toast.error('Description must be at least 10 characters');
+      return false;
+    }
+
+    // Validate study level
+    if (!formData.studyLevel) {
+      toast.error('Please select a study level');
+      return false;
+    }
+
+    // Validate course level
+    if (!formData.courseLevel) {
+      toast.error('Please select a course level');
+      return false;
+    }
+
+    // Validate image
+    if (!formData.image && !previewUrl) {
+      toast.error('Please upload a profile image');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (formData: Record<string, any>) => {
     if (!token || !user?.userID || !user?.email) {
       toast.error('Please login to update profile');
@@ -223,6 +288,11 @@ export function WelcomeEditStudentProfile() {
     if (user.roleId !== 2) {
       toast.error('Only students can create profiles');
       navigate('/');
+      return;
+    }
+
+    // Validate form data
+    if (!validateFormData(formData)) {
       return;
     }
 

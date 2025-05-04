@@ -7,10 +7,11 @@ import { Job } from '@/components/JobCard';
 import axiosInstance from '@/lib/axios';
 import { toast } from "sonner";
 import { FileUploader } from '@/components/FileUploader';
-import type { AcceptType } from '@/interfaces/FileUploader';
+
 import { DocumentPreview } from '@/components/document/DocumentPreview';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { validateEmail, validatePhoneNumber, validateText } from '@/utils/validationUtils';
 
 
 
@@ -31,6 +32,13 @@ export function JobApplication() {
     email: '',
     phone: '',
     resume: null as File | null,
+  });
+  const [errors, setErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    resume: '',
   });
   const [pdfPreviewData, setPdfPreviewData] = useState<string | null>(null);
 
@@ -64,43 +72,72 @@ export function JobApplication() {
     fetchJobDetails();
   }, [id, navigate]);
 
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'firstName':
+        return !validateText(value, 2)
+          ? "First name must be at least 2 characters"
+          : "";
+
+      case 'lastName':
+        return !validateText(value, 2)
+          ? "Last name must be at least 2 characters"
+          : "";
+
+      case 'email':
+        return !validateEmail(value)
+          ? "Please enter a valid email address"
+          : "";
+
+      case 'phone':
+        return !validatePhoneNumber(value)
+          ? "Please enter a valid phone number"
+          : "";
+
+      default:
+        return "";
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
+
+    // Sanitize phone input if needed
+    let sanitizedValue = value;
+    if (name === 'phone') {
+      sanitizedValue = value.replace(/[^\d\s\-()+"]/g, '');
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
+    }));
+
+    // Validate the field
+    const error = validateField(name, sanitizedValue);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    // Validate file type
-    if (file.type !== 'application/pdf') {
-      toast.error("Please upload a PDF file");
-      return;
-    }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Please upload a file smaller than 5MB");
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      resume: file
-    }));
-
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPdfPreviewData(reader.result as string);
+  const validateForm = (): boolean => {
+    const newErrors = {
+      firstName: validateField('firstName', formData.firstName),
+      lastName: validateField('lastName', formData.lastName),
+      email: validateField('email', formData.email),
+      phone: validateField('phone', formData.phone),
+      resume: !formData.resume ? 'Resume is required' : ''
     };
-    reader.readAsDataURL(file);
+
+    setErrors(newErrors);
+
+    // Check if there are any errors
+    return !Object.values(newErrors).some(error => error !== '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +146,18 @@ export function JobApplication() {
     if (!user || user.roleId !== 2) {
       toast.error("You must be logged in as a student to apply");
       navigate('/auth/login');
+      return;
+    }
+
+    // Validate the form
+    if (!validateForm()) {
+      // Show the first error message
+      const firstError = Object.values(errors).find(error => error !== '');
+      if (firstError) {
+        toast.error(firstError);
+      } else {
+        toast.error("Please fix the errors in the form");
+      }
       return;
     }
 
@@ -291,7 +340,11 @@ export function JobApplication() {
                   placeholder="Enter first name"
                   title="First Name"
                   aria-label="First Name"
+                  className={errors.firstName ? "border-red-500" : ""}
                 />
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
@@ -306,7 +359,11 @@ export function JobApplication() {
                   placeholder="Enter last name"
                   title="Last Name"
                   aria-label="Last Name"
+                  className={errors.lastName ? "border-red-500" : ""}
                 />
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                )}
               </div>
             </div>
 
@@ -323,7 +380,11 @@ export function JobApplication() {
                 placeholder="Enter email address"
                 title="Email"
                 aria-label="Email"
+                className={errors.email ? "border-red-500" : ""}
               />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -339,37 +400,71 @@ export function JobApplication() {
                 placeholder="Enter phone number"
                 title="Phone"
                 aria-label="Phone"
+                className={errors.phone ? "border-red-500" : ""}
               />
+              {errors.phone && (
+                <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
                 Resume (PDF only)<span className="text-brand">*</span>
               </label>
+              {errors.resume && (
+                <p className="text-red-500 text-sm mt-1">{errors.resume}</p>
+              )}
 
               {!formData.resume ? (
-                <FileUploader
-                  acceptType="pdf"
-                  label="Resume"
-                  onUpload={(files) => {
-                    if (files.length > 0) {
-                      const file = files[0];
-                      setFormData(prev => ({
-                        ...prev,
-                        resume: file
-                      }));
+                <div className={errors.resume ? "border border-red-500 rounded-md p-1" : ""}>
+                  <FileUploader
+                    acceptType="pdf"
+                    label="Resume"
+                    onUpload={(files) => {
+                      if (files.length > 0) {
+                        const file = files[0];
 
-                      // Create preview URL
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setPdfPreviewData(reader.result as string);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  selectedFile={formData.resume}
-                  multiple={false}
-                />
+                        // Validate file type
+                        if (file.type !== 'application/pdf') {
+                          setErrors(prev => ({
+                            ...prev,
+                            resume: "Please upload a PDF file"
+                          }));
+                          return;
+                        }
+
+                        // Validate file size (5MB limit)
+                        if (file.size > 5 * 1024 * 1024) {
+                          setErrors(prev => ({
+                            ...prev,
+                            resume: "Please upload a file smaller than 5MB"
+                          }));
+                          return;
+                        }
+
+                        setFormData(prev => ({
+                          ...prev,
+                          resume: file
+                        }));
+
+                        // Clear resume error
+                        setErrors(prev => ({
+                          ...prev,
+                          resume: ""
+                        }));
+
+                        // Create preview URL
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setPdfPreviewData(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    selectedFile={formData.resume}
+                    multiple={false}
+                  />
+                </div>
               ) : (
                 <DocumentPreview
                   file={formData.resume}
@@ -377,6 +472,11 @@ export function JobApplication() {
                   onRemove={() => {
                     setFormData(prev => ({ ...prev, resume: null }));
                     setPdfPreviewData(null);
+                    // Set resume error when removing the file
+                    setErrors(prev => ({
+                      ...prev,
+                      resume: "Resume is required"
+                    }));
                   }}
                   disabled={isSubmitting}
                 />

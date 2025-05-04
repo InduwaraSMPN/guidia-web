@@ -8,9 +8,16 @@ import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ViewDocumentModal } from "@/components/ViewDocumentModal";
 import { FileUploader } from "@/components/FileUploader";
-import { Select, Option } from "@/components/ui/Select";
+import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StudentImage } from "@/lib/imageUtils";
+import {
+  validateEmail,
+  validatePhoneNumber,
+  validateText,
+  validateStudentNumber,
+  sanitizePhoneNumber
+} from "@/utils/validationUtils";
 
 interface FormData {
   studentNumber: string;
@@ -22,6 +29,18 @@ interface FormData {
   image: File | null;
   studyLevel: string;
   courseLevel: string;
+}
+
+interface FormErrors {
+  studentNumber?: string;
+  studentName?: string;
+  title?: string;
+  contactNumber?: string;
+  studentMail?: string;
+  description?: string;
+  image?: string;
+  studyLevel?: string;
+  courseLevel?: string;
 }
 
 export function EditStudentProfile() {
@@ -44,9 +63,9 @@ export function EditStudentProfile() {
     studyLevel: "",
     courseLevel: "",
   });
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  const selectClassName =
-    "flex h-[44px] w-full rounded-md border border-input bg-background px-4 pr-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Im02IDkgNiA2IDYtNiIvPjwvc3ZnPg==')] bg-no-repeat bg-[center_right_8px]";
+
 
   const courseLevelOptions = {
     Undergraduate: ["Level - 1", "Level - 2", "Level - 3", "Level - 4"],
@@ -77,13 +96,124 @@ export function EditStudentProfile() {
     ],
   };
 
+  // Validate all form fields
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Student Number validation
+    if (!validateStudentNumber(formData.studentNumber)) {
+      newErrors.studentNumber = "Student number is required and must not exceed 20 characters";
+    }
+
+    // Student Name validation
+    if (!validateText(formData.studentName, 2)) {
+      newErrors.studentName = "Student name must be at least 2 characters";
+    }
+
+    // Title validation
+    if (!validateText(formData.title, 2)) {
+      newErrors.title = "Title must be at least 2 characters";
+    }
+
+    // Contact Number validation
+    if (!validatePhoneNumber(formData.contactNumber)) {
+      newErrors.contactNumber = "Please enter a valid contact number";
+    }
+
+    // Email validation
+    if (!validateEmail(formData.studentMail)) {
+      newErrors.studentMail = "Please enter a valid email address";
+    }
+
+    // Description validation - no character limit as per memory
+    if (!validateText(formData.description, 10)) {
+      newErrors.description = "Description must be at least 10 characters";
+    }
+
+    // Study Level validation
+    if (!formData.studyLevel) {
+      newErrors.studyLevel = "Please select a study level";
+    }
+
+    // Course Level validation
+    if (!formData.courseLevel) {
+      newErrors.courseLevel = "Please select a course level";
+    }
+
+    // Image validation
+    if (!formData.image && !previewUrl) {
+      newErrors.image = "Please upload a profile image";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Validate a specific field
+  const validateField = (name: string, value: any): string | undefined => {
+    switch (name) {
+      case 'studentNumber':
+        return !validateStudentNumber(value)
+          ? "Student number is required and must not exceed 20 characters"
+          : undefined;
+
+      case 'studentName':
+        return !validateText(value, 2)
+          ? "Student name must be at least 2 characters"
+          : undefined;
+
+      case 'title':
+        return !validateText(value, 2)
+          ? "Title must be at least 2 characters"
+          : undefined;
+
+      case 'contactNumber':
+        return !validatePhoneNumber(value)
+          ? "Please enter a valid contact number"
+          : undefined;
+
+      case 'studentMail':
+        return !validateEmail(value)
+          ? "Please enter a valid email address"
+          : undefined;
+
+      case 'description':
+        return !validateText(value, 10)
+          ? "Description must be at least 10 characters"
+          : undefined;
+
+      case 'studyLevel':
+        return !value ? "Please select a study level" : undefined;
+
+      case 'courseLevel':
+        return !value ? "Please select a course level" : undefined;
+
+      default:
+        return undefined;
+    }
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    // Sanitize input for specific fields
+    let sanitizedValue = value;
+    if (name === 'contactNumber') {
+      sanitizedValue = sanitizePhoneNumber(value);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: sanitizedValue,
+    }));
+
+    // Validate the field
+    const error = validateField(name, sanitizedValue);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }));
   };
 
@@ -91,6 +221,13 @@ export function EditStudentProfile() {
     setFormData((prev) => ({
       ...prev,
       description: value,
+    }));
+
+    // Validate the description
+    const error = validateField('description', value);
+    setErrors(prev => ({
+      ...prev,
+      description: error
     }));
   };
 
@@ -129,7 +266,7 @@ export function EditStudentProfile() {
     const loadProfileData = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/students/${user.userID}`,
+          `/api/students/${user.userID}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -196,12 +333,19 @@ export function EditStudentProfile() {
       return;
     }
 
-    try {
-      if (!formData.image && !previewUrl) {
-        toast.error("Please upload a profile image");
-        return;
+    // Validate all form fields
+    if (!validateForm()) {
+      // Show the first error message
+      const firstError = Object.values(errors).find(error => error !== undefined);
+      if (firstError) {
+        toast.error(firstError);
+      } else {
+        toast.error("Please fix the errors in the form");
       }
+      return;
+    }
 
+    try {
       let profileImagePath = previewUrl || "";
 
       if (formData.image instanceof File && formData.image.size > 0) {
@@ -211,7 +355,7 @@ export function EditStudentProfile() {
         imageFormData.append("userID", user.userID.toString());
 
         const uploadResponse = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/upload`,
+          `/api/upload`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -231,7 +375,7 @@ export function EditStudentProfile() {
 
       // Include userID in the profile data
       const profileData = {
-        userID: user.userID, // Add this line
+        userID: user.userID,
         studentNumber: formData.studentNumber,
         studentName: formData.studentName,
         studentTitle: formData.title,
@@ -244,7 +388,7 @@ export function EditStudentProfile() {
       };
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/students/${user.userID}`,
+        `/api/students/${user.userID}`,
         {
           method: "PUT",
           headers: {
@@ -384,7 +528,11 @@ export function EditStudentProfile() {
                 placeholder="Enter student number"
                 title="Student Number"
                 aria-label="Student Number"
+                className={errors.studentNumber ? "border-red-500" : ""}
               />
+              {errors.studentNumber && (
+                <p className="text-red-500 text-sm mt-1">{errors.studentNumber}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -400,7 +548,11 @@ export function EditStudentProfile() {
                 placeholder="Enter student name"
                 title="Student Name"
                 aria-label="Student Name"
+                className={errors.studentName ? "border-red-500" : ""}
               />
+              {errors.studentName && (
+                <p className="text-red-500 text-sm mt-1">{errors.studentName}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -417,7 +569,11 @@ export function EditStudentProfile() {
                   placeholder="Enter title"
                   title="Title"
                   aria-label="Title"
+                  className={errors.title ? "border-red-500" : ""}
                 />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -433,7 +589,11 @@ export function EditStudentProfile() {
                   placeholder="Enter contact number"
                   title="Contact Number"
                   aria-label="Contact Number"
+                  className={errors.contactNumber ? "border-red-500" : ""}
                 />
+                {errors.contactNumber && (
+                  <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>
+                )}
               </div>
             </div>
 
@@ -450,7 +610,11 @@ export function EditStudentProfile() {
                 placeholder="Enter student email"
                 title="Student Email"
                 aria-label="Student Email"
+                className={errors.studentMail ? "border-red-500" : ""}
               />
+              {errors.studentMail && (
+                <p className="text-red-500 text-sm mt-1">{errors.studentMail}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -483,6 +647,9 @@ export function EditStudentProfile() {
                   disabled={isLoading}
                   isSearchable={false}
                 />
+                {errors.studyLevel && (
+                  <p className="text-red-500 text-sm mt-1">{errors.studyLevel}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -517,6 +684,9 @@ export function EditStudentProfile() {
                   disabled={!formData.studyLevel || isLoading}
                   isSearchable={formData.studyLevel === 'Postgraduate'}
                 />
+                {errors.courseLevel && (
+                  <p className="text-red-500 text-sm mt-1">{errors.courseLevel}</p>
+                )}
               </div>
             </div>
 
@@ -524,18 +694,26 @@ export function EditStudentProfile() {
               <label className="block text-sm font-medium text-foreground">
                 Description<span className="text-brand">*</span>
               </label>
-              <RichTextEditor
-                value={formData.description}
-                onChange={handleEditorChange}
-                placeholder="Enter student description"
-                className="min-h-[160px]"
-              />
+              <div className={errors.description ? "border border-red-500 rounded-md" : ""}>
+                <RichTextEditor
+                  value={formData.description}
+                  onChange={handleEditorChange}
+                  placeholder="Enter student description"
+                  className="min-h-[160px]"
+                />
+              </div>
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">
                 Image<span className="text-brand">*</span>
               </label>
+              {errors.image && (
+                <p className="text-red-500 text-sm mb-1">{errors.image}</p>
+              )}
               {showFileUploader && (
                 <FileUploader
                   acceptType="image"

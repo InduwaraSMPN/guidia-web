@@ -98,7 +98,7 @@ export function WelcomeEditSpecializations() {
         }
       });
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/specializations`, {
+      const response = await fetch(`/api/counselors/specializations`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -285,7 +285,7 @@ export function WelcomeEditCompanyProfile() {
         imageFormData.append('type', 'company-profile');
         imageFormData.append('userID', user?.userID?.toString() || '');
 
-        const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
+        const uploadResponse = await fetch(`/api/upload`, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
@@ -326,7 +326,7 @@ export function WelcomeEditCompanyProfile() {
       });
 
       // Log the API URL for debugging
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/companies/profile`;
+      const apiUrl = `/api/companies/profile`;
       console.log('API URL being called:', apiUrl);
 
       const response = await fetch(

@@ -11,6 +11,7 @@ import { FileText, LoaderCircle} from 'lucide-react';
 import { MultipleInput } from '@/components/ui/MultipleInput';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AzureImage } from '@/lib/imageUtils';
+import { validateEmail, validatePhoneNumber, validateText } from '@/utils/validationUtils';
 
 interface FormData {
   counselorName: string;
@@ -24,6 +25,19 @@ interface FormData {
   location: string;
   languages: string[];
   languageInput: string;
+}
+
+interface FormErrors {
+  counselorName?: string;
+  position?: string;
+  education?: string;
+  contactNumber?: string;
+  emailMail?: string;
+  description?: string;
+  image?: string;
+  yearsOfExperience?: string;
+  location?: string;
+  languages?: string;
 }
 
 const getProfilePath = (user: any) => {
@@ -43,16 +57,9 @@ const getProfilePath = (user: any) => {
 };
 
 export function EditCounselorProfile() {
-  const validatePhoneNumber = (phone: string) => {
-    // Allow only digits, spaces, dashes, parentheses, and plus sign
-    const phoneRegex = /^\+?[0-9]{1,4}?[-.\s]?(\(?\d{1,4}?\))?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
-    return phoneRegex.test(phone);
-  };
-
   const { userID } = useParams<{ userID: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Add this check at the beginning of the component
   if (!userID || !user) {
@@ -79,6 +86,111 @@ export function EditCounselorProfile() {
     languages: [],
     languageInput: ''
   });
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  // Validate all form fields
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Counselor Name validation
+    if (!validateText(formData.counselorName, 2)) {
+      newErrors.counselorName = "Counselor name must be at least 2 characters";
+    }
+
+    // Position validation
+    if (!validateText(formData.position, 2)) {
+      newErrors.position = "Position must be at least 2 characters";
+    }
+
+    // Education validation
+    if (!validateText(formData.education, 2)) {
+      newErrors.education = "Education must be at least 2 characters";
+    }
+
+    // Contact Number validation
+    if (!validatePhoneNumber(formData.contactNumber)) {
+      newErrors.contactNumber = "Please enter a valid phone number";
+    }
+
+    // Email validation
+    if (!validateEmail(formData.emailMail)) {
+      newErrors.emailMail = "Please enter a valid email address";
+    }
+
+    // Description validation
+    if (!validateText(formData.description, 10)) {
+      newErrors.description = "Description must be at least 10 characters";
+    }
+
+    // Years of Experience validation
+    if (!formData.yearsOfExperience) {
+      newErrors.yearsOfExperience = "Please enter years of experience";
+    }
+
+    // Location validation
+    if (!validateText(formData.location, 2)) {
+      newErrors.location = "Location must be at least 2 characters";
+    }
+
+    // Languages validation
+    if (formData.languages.length === 0) {
+      newErrors.languages = "Please add at least one language";
+    }
+
+    // Image validation
+    if (!formData.image && !previewUrl) {
+      newErrors.image = "Please upload a profile image";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Validate a specific field
+  const validateField = (name: string, value: any): string | undefined => {
+    switch (name) {
+      case 'counselorName':
+        return !validateText(value, 2)
+          ? "Counselor name must be at least 2 characters"
+          : undefined;
+
+      case 'position':
+        return !validateText(value, 2)
+          ? "Position must be at least 2 characters"
+          : undefined;
+
+      case 'education':
+        return !validateText(value, 2)
+          ? "Education must be at least 2 characters"
+          : undefined;
+
+      case 'contactNumber':
+        return !validatePhoneNumber(value)
+          ? "Please enter a valid phone number"
+          : undefined;
+
+      case 'emailMail':
+        return !validateEmail(value)
+          ? "Please enter a valid email address"
+          : undefined;
+
+      case 'description':
+        return !validateText(value, 10)
+          ? "Description must be at least 10 characters"
+          : undefined;
+
+      case 'yearsOfExperience':
+        return !value ? "Please enter years of experience" : undefined;
+
+      case 'location':
+        return !validateText(value, 2)
+          ? "Location must be at least 2 characters"
+          : undefined;
+
+      default:
+        return undefined;
+    }
+  };
 
   useEffect(() => {
     // Simulate loading delay
@@ -149,8 +261,15 @@ export function EditCounselorProfile() {
       return;
     }
 
-    if (!validatePhoneNumber(formData.contactNumber)) {
-      toast.error('Please enter a valid phone number');
+    // Validate all form fields
+    if (!validateForm()) {
+      // Show the first error message
+      const firstError = Object.values(errors).find(error => error !== undefined);
+      if (firstError) {
+        toast.error(firstError);
+      } else {
+        toast.error("Please fix the errors in the form");
+      }
       return;
     }
 
@@ -167,7 +286,7 @@ export function EditCounselorProfile() {
         imageFormData.append('type', 'counselor-profile');
         imageFormData.append('userID', user.userID.toString());
 
-        const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
+        const uploadResponse = await fetch(`/api/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -196,7 +315,7 @@ export function EditCounselorProfile() {
         userID: user.userID
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/${userID}`, {
+      const response = await fetch(`/api/counselors/${userID}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -232,21 +351,35 @@ export function EditCounselorProfile() {
       // Remove any characters that aren't digits, spaces, dashes, parentheses, or plus
       const sanitizedValue = value.replace(/[^\d\s\-()+"]/g, '');
 
-      // Validate phone number
-      if (sanitizedValue && !validatePhoneNumber(sanitizedValue)) {
-        setPhoneError('Please enter a valid phone number');
-      } else {
-        setPhoneError(null);
-      }
-
       setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
+
+      // Validate the field
+      const error = validateField(name, sanitizedValue);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+
+      // Validate the field
+      const error = validateField(name, value);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
     }
   };
 
   const handleEditorChange = (value: string) => {
     setFormData(prev => ({ ...prev, description: value }));
+
+    // Validate the description
+    const error = validateField('description', value);
+    setErrors(prev => ({
+      ...prev,
+      description: error
+    }));
   };
 
   const handleRemoveImage = () => {
@@ -256,31 +389,17 @@ export function EditCounselorProfile() {
     setFormData(prev => ({ ...prev, image: null }));
     setPreviewUrl('');
     setShowFileUploader(true);
-  };
 
-  const handleAddLanguage = () => {
-    if (formData.languageInput.trim() !== '') {
-      setFormData(prev => ({
-        ...prev,
-        languages: [...prev.languages, prev.languageInput],
-        languageInput: ''
-      }));
-    }
-  };
-
-  const handleRemoveLanguage = (language: string) => {
-    setFormData(prev => ({
+    // Set image error when removing the image
+    setErrors(prev => ({
       ...prev,
-      languages: prev.languages.filter(l => l !== language)
+      image: "Please upload a profile image"
     }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddLanguage();
-    }
-  };
+
+
+
 
   if (pageLoading) {
     return (
@@ -371,7 +490,11 @@ export function EditCounselorProfile() {
               onChange={handleInputChange}
               placeholder="Enter your full name"
               required
+              className={errors.counselorName ? 'border-red-500' : ''}
             />
+            {errors.counselorName && (
+              <p className="text-sm text-red-500 mt-1">{errors.counselorName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -384,7 +507,11 @@ export function EditCounselorProfile() {
               onChange={handleInputChange}
               placeholder="Enter your position"
               required
+              className={errors.position ? 'border-red-500' : ''}
             />
+            {errors.position && (
+              <p className="text-sm text-red-500 mt-1">{errors.position}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -397,7 +524,11 @@ export function EditCounselorProfile() {
               onChange={handleInputChange}
               placeholder="Enter your education"
               required
+              className={errors.education ? 'border-red-500' : ''}
             />
+            {errors.education && (
+              <p className="text-sm text-red-500 mt-1">{errors.education}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -412,10 +543,10 @@ export function EditCounselorProfile() {
                 onChange={handleInputChange}
                 placeholder="Enter your phone (e.g., +1-234-567-8900)"
                 required
-                className={phoneError ? 'border-red-500' : ''}
+                className={errors.contactNumber ? 'border-red-500' : ''}
               />
-              {phoneError && (
-                <p className="text-sm text-red-500 mt-1">{phoneError}</p>
+              {errors.contactNumber && (
+                <p className="text-sm text-red-500 mt-1">{errors.contactNumber}</p>
               )}
             </div>
 
@@ -430,7 +561,11 @@ export function EditCounselorProfile() {
                 placeholder="Enter email"
                 required
                 type="email"
+                className={errors.emailMail ? 'border-red-500' : ''}
               />
+              {errors.emailMail && (
+                <p className="text-sm text-red-500 mt-1">{errors.emailMail}</p>
+              )}
             </div>
           </div>
 
@@ -447,7 +582,11 @@ export function EditCounselorProfile() {
                 placeholder="Enter years of experience"
                 required
                 min="0"
+                className={errors.yearsOfExperience ? 'border-red-500' : ''}
               />
+              {errors.yearsOfExperience && (
+                <p className="text-sm text-red-500 mt-1">{errors.yearsOfExperience}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -460,7 +599,11 @@ export function EditCounselorProfile() {
                 onChange={handleInputChange}
                 placeholder="Enter your location"
                 required
+                className={errors.location ? 'border-red-500' : ''}
               />
+              {errors.location && (
+                <p className="text-sm text-red-500 mt-1">{errors.location}</p>
+              )}
             </div>
           </div>
 
@@ -468,28 +611,56 @@ export function EditCounselorProfile() {
             <label className="block text-sm font-medium text-foreground">
               Languages<span className="text-brand">*</span>
             </label>
-            <MultipleInput
-              items={formData.languages}
-              onItemsChange={(languages) => setFormData(prev => ({ ...prev, languages }))}
-              placeholder="Enter a language"
-              allowDuplicates={false}
-            />
+            <div className={errors.languages ? 'border border-red-500 rounded-md p-1' : ''}>
+              <MultipleInput
+                items={formData.languages}
+                onItemsChange={(languages) => {
+                  setFormData(prev => ({ ...prev, languages }));
+
+                  // Validate languages
+                  if (languages.length === 0) {
+                    setErrors(prev => ({
+                      ...prev,
+                      languages: "Please add at least one language"
+                    }));
+                  } else {
+                    setErrors(prev => ({
+                      ...prev,
+                      languages: undefined
+                    }));
+                  }
+                }}
+                placeholder="Enter a language"
+                allowDuplicates={false}
+              />
+            </div>
+            {errors.languages && (
+              <p className="text-sm text-red-500 mt-1">{errors.languages}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">
               Description<span className="text-brand">*</span>
             </label>
-            <RichTextEditor
-              value={formData.description}
-              onChange={handleEditorChange}
-            />
+            <div className={errors.description ? 'border border-red-500 rounded-md' : ''}>
+              <RichTextEditor
+                value={formData.description}
+                onChange={handleEditorChange}
+              />
+            </div>
+            {errors.description && (
+              <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">
               Image<span className="text-brand">*</span>
             </label>
+            {errors.image && (
+              <p className="text-sm text-red-500 mt-1">{errors.image}</p>
+            )}
             {showFileUploader && (
               <FileUploader
                 acceptType="image"
@@ -497,16 +668,42 @@ export function EditCounselorProfile() {
                 onUpload={files => {
                   if (files.length > 0) {
                     const file = files[0];
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                      setErrors(prev => ({
+                        ...prev,
+                        image: "Please upload an image file"
+                      }));
+                      return;
+                    }
+
+                    // Validate file size (5MB limit)
+                    if (file.size > 5 * 1024 * 1024) {
+                      setErrors(prev => ({
+                        ...prev,
+                        image: "Please upload a file smaller than 5MB"
+                      }));
+                      return;
+                    }
+
                     console.log('Selected file:', {
                       name: file.name,
                       size: file.size,
                       type: file.type
                     });
+
                     setFormData(prev => ({ ...prev, image: file }));
                     const url = URL.createObjectURL(file);
                     console.log('Created preview URL:', url);
                     setPreviewUrl(url);
                     setShowFileUploader(false);
+
+                    // Clear image error
+                    setErrors(prev => ({
+                      ...prev,
+                      image: undefined
+                    }));
                   }
                 }}
                 selectedFile={formData.image}
