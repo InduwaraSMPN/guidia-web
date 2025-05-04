@@ -1,10 +1,7 @@
 
 
-import { Search } from 'lucide-react';
-import { Input } from '../components/ui/input';
 import { DirectoryCard } from '../components/DirectoryCard';
-import { useEffect, useState, useTransition, useRef } from "react"
-import { useLocation } from "react-router-dom"
+import { useEffect, useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel";
 import { SlidersHorizontal, Building2 } from "lucide-react";
@@ -23,6 +20,7 @@ interface Company {
   companyEmail: string
   companyDescription: string
   companyLogoPath: string
+  companyType?: string
   createdAt: string
   updatedAt: string
   userID: string
@@ -34,15 +32,13 @@ export function CompaniesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [isPending, startTransition] = useTransition()
-  const location = useLocation()
+  const [, startTransition] = useTransition()
   const [isOpen, setIsOpen] = useState(false)
   const [filters, setFilters] = useState({
     countries: [] as string[],
     cities: [] as string[],
+    companyTypes: [] as string[],
   })
-
-  const filterPanelRef = useRef<HTMLDivElement>(null)
 
   // Get unique values from actual data
   const countries = companies.length > 0
@@ -53,8 +49,12 @@ export function CompaniesPage() {
     ? [...new Set(companies.map(company => company.companyCity))]
     : ["Colombo", "Karachi", "Mumbai", "Dhaka"]; // Default values based on region
 
+  const companyTypes = companies.length > 0
+    ? [...new Set(companies.map(company => company.companyType || "").filter(Boolean))] as string[]
+    : ["Technology", "Healthcare", "Finance", "Education", "Manufacturing"]; // Default values
+
   const handleFilterChange = (
-    filterType: "countries" | "cities",
+    filterType: "countries" | "cities" | "companyTypes",
     value: string
   ) => {
     setFilters((prev) => {
@@ -74,6 +74,7 @@ export function CompaniesPage() {
     setFilters({
       countries: [],
       cities: [],
+      companyTypes: [],
     })
   }
 
@@ -117,7 +118,8 @@ export function CompaniesPage() {
           (company) =>
             company.companyName.toLowerCase().includes(query) ||
             company.companyCountry.toLowerCase().includes(query) ||
-            company.companyCity.toLowerCase().includes(query)
+            company.companyCity.toLowerCase().includes(query) ||
+            (company.companyType && company.companyType.toLowerCase().includes(query))
         )
       }
 
@@ -135,13 +137,18 @@ export function CompaniesPage() {
         )
       }
 
+      // Apply company type filters
+      if (filters.companyTypes.length > 0) {
+        filtered = filtered.filter(company =>
+          company.companyType && filters.companyTypes.includes(company.companyType)
+        )
+      }
+
       setFilteredCompanies(filtered)
     })
   }, [searchQuery, companies, filters])
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-  }
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -202,6 +209,12 @@ export function CompaniesPage() {
 
   const filterSections: FilterSection[] = [
     {
+      title: "Company Type",
+      items: companyTypes,
+      selectedItems: filters.companyTypes,
+      onChange: (value) => handleFilterChange("companyTypes", value)
+    },
+    {
       title: "Country",
       items: countries,
       selectedItems: filters.countries,
@@ -217,7 +230,8 @@ export function CompaniesPage() {
 
   const activeFilterCount =
     filters.countries.length +
-    filters.cities.length;
+    filters.cities.length +
+    filters.companyTypes.length;
 
   return (
     <PageLayout>
@@ -278,7 +292,7 @@ export function CompaniesPage() {
                   type="company"
                   id={company.companyID}
                   name={company.companyName}
-                  subtitle={company.companyCategory}
+                  subtitle={company.companyType || "Company"}
                   email={company.companyEmail}
                   contactNumber={company.companyContactNumber}
                   image={company.companyLogoPath}

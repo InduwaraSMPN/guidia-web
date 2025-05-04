@@ -18,6 +18,7 @@ interface FormData {
   contactNumber: string;
   companyEmail: string;
   description: string;
+  companyType: string;
   image: File | null;
 }
 
@@ -34,6 +35,7 @@ interface FormErrors {
   contactNumber?: FieldState;
   companyEmail?: FieldState;
   description?: FieldState;
+  companyType?: FieldState;
   image?: FieldState;
 }
 
@@ -53,6 +55,7 @@ export function WelcomeEditCompanyProfile() {
     contactNumber: "",
     companyEmail: user?.email || "",
     description: "",
+    companyType: "",
     image: null,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -313,6 +316,7 @@ export function WelcomeEditCompanyProfile() {
         companyContactNumber: formData.contactNumber,
         companyEmail: formData.companyEmail,
         companyDescription: formData.description,
+        companyType: formData.companyType,
         companyLogoPath: profileImagePath
       };
 
@@ -511,6 +515,23 @@ export function WelcomeEditCompanyProfile() {
             />
             {errors.companyEmail?.error && (
               <p className="text-red-500 text-sm mt-1">{errors.companyEmail.error}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground">
+              Company Type
+            </label>
+            <Input
+              name="companyType"
+              value={formData.companyType}
+              onChange={handleInputChange}
+              placeholder="e.g. Technology, Healthcare, Finance, etc."
+              error={!!errors.companyType?.error}
+              success={errors.companyType?.isValid}
+            />
+            {errors.companyType?.error && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyType.error}</p>
             )}
           </div>
 

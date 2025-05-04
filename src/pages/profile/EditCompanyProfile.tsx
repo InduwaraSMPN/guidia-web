@@ -20,6 +20,7 @@ interface FormData {
   contactNumber: string;
   companyEmail: string;
   description: string;
+  companyType: string;
   image: File | null;
 }
 
@@ -31,6 +32,7 @@ interface FormErrors {
   contactNumber?: string;
   companyEmail?: string;
   description?: string;
+  companyType?: string;
   image?: string;
 }
 
@@ -51,6 +53,7 @@ export function EditCompanyProfile() {
     contactNumber: '',
     companyEmail: '',
     description: '',
+    companyType: '',
     image: null,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -180,6 +183,7 @@ export function EditCompanyProfile() {
           contactNumber: data.companyContactNumber || '',
           companyEmail: data.companyEmail || '',
           description: data.companyDescription || '',
+          companyType: data.companyType || '',
           image: null,
         });
 
@@ -325,6 +329,7 @@ export function EditCompanyProfile() {
         companyContactNumber: formData.contactNumber,
         companyEmail: formData.companyEmail,
         companyDescription: formData.description,
+        companyType: formData.companyType,
         companyLogoPath: logoPath,
       };
 
@@ -545,6 +550,22 @@ export function EditCompanyProfile() {
             />
             {errors.companyEmail && (
               <p className="text-sm text-red-500 mt-1">{errors.companyEmail}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground">
+              Company Type
+            </label>
+            <Input
+              name="companyType"
+              value={formData.companyType}
+              onChange={handleInputChange}
+              placeholder="e.g. Technology, Healthcare, Finance, etc."
+              className={errors.companyType ? 'border-red-500' : ''}
+            />
+            {errors.companyType && (
+              <p className="text-sm text-red-500 mt-1">{errors.companyType}</p>
             )}
           </div>
 

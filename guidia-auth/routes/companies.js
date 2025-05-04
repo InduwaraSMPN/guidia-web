@@ -65,7 +65,8 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       companyContactNumber,
       companyEmail,
       companyDescription,
-      companyLogoPath
+      companyLogoPath,
+      companyType
     } = req.body;
 
     console.log('Company profile creation request:', {
@@ -110,8 +111,9 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
         companyContactNumber,
         companyEmail,
         companyDescription,
-        companyLogoPath
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        companyLogoPath,
+        companyType
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -123,7 +125,8 @@ router.post('/profile/:userID', verifyToken, async (req, res) => {
       companyContactNumber,
       companyEmail,
       companyDescription,
-      companyLogoPath
+      companyLogoPath,
+      companyType
     ];
 
     console.log('Executing company profile insert with values:', {
@@ -265,7 +268,8 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
       companyWebsite,
       companyContactNumber,
       companyDescription,
-      companyLogoPath
+      companyLogoPath,
+      companyType
     } = req.body;
 
     // Verify that the userID matches the token
@@ -323,6 +327,10 @@ router.put('/profile/:userID', verifyToken, async (req, res) => {
     if (companyLogoPath) {
       updates.push('companyLogoPath = ?');
       values.push(companyLogoPath);
+    }
+    if (companyType) {
+      updates.push('companyType = ?');
+      values.push(companyType);
     }
 
     // Add userID to values array
@@ -516,8 +524,9 @@ router.post('/profile', verifyToken, async (req, res) => {
         companyContactNumber,
         companyEmail,
         companyDescription,
-        companyLogoPath
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        companyLogoPath,
+        companyType
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -529,7 +538,8 @@ router.post('/profile', verifyToken, async (req, res) => {
       profileData.companyContactNumber,
       profileData.companyEmail,
       profileData.companyDescription,
-      profileData.companyLogoPath
+      profileData.companyLogoPath,
+      profileData.companyType
     ];
 
     console.log('Executing company profile insert with values:', {
