@@ -145,116 +145,161 @@ export async function secureApiRequest(url: string, options: RequestInit = {}) {
     // Log the headers being sent for debugging
     console.log('Sending request with headers:', mergedOptions.headers);
 
-    // Make the request
-    const response = await fetch(url, mergedOptions);
+    // Add timeout to fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    // Store any new CSRF token from the response
-    storeCsrfToken(response);
+    try {
+      // Make the request with timeout
+      const response = await fetch(url, {
+        ...mergedOptions,
+        signal: controller.signal
+      });
 
-    // Handle 404 errors (endpoint not found)
-    if (response.status === 404) {
-      console.error(`API endpoint not found: ${url}`);
-      console.error('This could indicate that the API server is not running or the endpoint path is incorrect.');
-      return response; // Return the response so the caller can handle it
-    }
+      // Clear the timeout
+      clearTimeout(timeoutId);
 
-    // If we get a 403 with CSRF token error, try multiple times with a forced token refresh
-    if (response.status === 403) {
-      try {
-        const errorData = await response.clone().json();
-        const isCsrfError =
-          errorData.message === 'CSRF token is invalid or expired' ||
-          errorData.message === 'CSRF token missing' ||
-          errorData.error === 'Invalid CSRF token';
+      // Store any new CSRF token from the response
+      storeCsrfToken(response);
 
-        if (isCsrfError) {
-          console.log('CSRF token error detected, forcing token refresh and retrying...');
+      // Handle 404 errors (endpoint not found)
+      if (response.status === 404) {
+        console.error(`API endpoint not found: ${url}`);
+        console.error('This could indicate that the API server is not running or the endpoint path is incorrect.');
+        return response; // Return the response so the caller can handle it
+      }
 
-          // Try multiple times to refresh the token
-          let maxRetries = 3;
-          let retryCount = 0;
-          let retryResponse = null;
+      // If we get a 403 with CSRF token error, try multiple times with a forced token refresh
+      if (response.status === 403) {
+        try {
+          const errorData = await response.clone().json();
+          const isCsrfError =
+            errorData.message === 'CSRF token is invalid or expired' ||
+            errorData.message === 'CSRF token missing' ||
+            errorData.error === 'Invalid CSRF token';
 
-          while (retryCount < maxRetries) {
-            retryCount++;
-            console.log(`CSRF token retry attempt ${retryCount}/${maxRetries}`);
+          if (isCsrfError) {
+            console.log('CSRF token error detected, forcing token refresh and retrying...');
 
-            try {
-              // Force a token refresh using the dedicated endpoint
-              const response = await fetch(`${API_URL}/api/users/csrf-token`, {
-                method: 'GET',
-                headers: {
-                  'Authorization': `Bearer ${await getValidToken()}`,
-                  'Accept': 'application/json'
-                },
-                credentials: 'include'
-              });
+            // Try multiple times to refresh the token
+            let maxRetries = 3;
+            let retryCount = 0;
+            let retryResponse = null;
 
-              if (response.ok) {
-                // Store the CSRF token
-                storeCsrfToken(response);
+            while (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`CSRF token retry attempt ${retryCount}/${maxRetries}`);
 
-                // Get the token from the response body as well
-                const data = await response.json();
-                if (data.csrfToken) {
-                  localStorage.setItem('csrf_token', data.csrfToken);
-                  localStorage.setItem('csrf_token_refreshed_at', Date.now().toString());
-                  console.log('CSRF token stored from response body:', data.csrfToken);
-                }
-
-                // Get fresh headers with the new token
-                const refreshedHeaders = await getSecureHeaders();
-
-                // Log the headers for debugging
-                console.log('Retrying request with headers:', {
-                  ...refreshedHeaders,
-                  ...(options.headers || {})
+              try {
+                // Force a token refresh using the dedicated endpoint
+                const csrfResponse = await fetch(`${API_URL}/api/users/csrf-token`, {
+                  method: 'GET',
+                  headers: {
+                    'Authorization': `Bearer ${await getValidToken()}`,
+                    'Accept': 'application/json'
+                  },
+                  credentials: 'include'
                 });
 
-                // Retry the request with fresh tokens
-                const retryOptions = {
-                  ...options,
-                  headers: {
+                if (csrfResponse.ok) {
+                  // Store the CSRF token
+                  storeCsrfToken(csrfResponse);
+
+                  // Get the token from the response body as well
+                  const data = await csrfResponse.json();
+                  if (data.csrfToken) {
+                    localStorage.setItem('csrf_token', data.csrfToken);
+                    localStorage.setItem('csrf_token_refreshed_at', Date.now().toString());
+                    console.log('CSRF token stored from response body:', data.csrfToken);
+                  }
+
+                  // Get fresh headers with the new token
+                  const refreshedHeaders = await getSecureHeaders();
+
+                  // Log the headers for debugging
+                  console.log('Retrying request with headers:', {
                     ...refreshedHeaders,
                     ...(options.headers || {})
-                  },
-                  credentials: 'include' as RequestCredentials
-                };
+                  });
 
-                retryResponse = await fetch(url, retryOptions);
+                  // Retry the request with fresh tokens
+                  const retryOptions = {
+                    ...options,
+                    headers: {
+                      ...refreshedHeaders,
+                      ...(options.headers || {})
+                    },
+                    credentials: 'include' as RequestCredentials
+                  };
 
-                // If successful, break out of the retry loop
-                if (retryResponse.ok || retryResponse.status !== 403) {
-                  // Store any new CSRF token
-                  storeCsrfToken(retryResponse);
-                  return retryResponse;
+                  // Add timeout to retry request
+                  const retryController = new AbortController();
+                  const retryTimeoutId = setTimeout(() => retryController.abort(), 10000);
+
+                  try {
+                    retryResponse = await fetch(url, {
+                      ...retryOptions,
+                      signal: retryController.signal
+                    });
+
+                    // Clear the timeout
+                    clearTimeout(retryTimeoutId);
+
+                    // If successful, break out of the retry loop
+                    if (retryResponse.ok || retryResponse.status !== 403) {
+                      // Store any new CSRF token
+                      storeCsrfToken(retryResponse);
+                      return retryResponse;
+                    }
+                  } catch (error) {
+                    console.error(`Retry fetch attempt ${retryCount} failed:`, error);
+                    clearTimeout(retryTimeoutId);
+                  }
                 }
+              } catch (retryError) {
+                console.error(`Retry attempt ${retryCount} failed:`, retryError);
               }
-            } catch (retryError) {
-              console.error(`Retry attempt ${retryCount} failed:`, retryError);
+
+              // Wait a bit before retrying
+              await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            // Wait a bit before retrying
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
+            // If we have a retry response, return it even if it's not successful
+            if (retryResponse) {
+              return retryResponse;
+            }
 
-          // If we have a retry response, return it even if it's not successful
-          if (retryResponse) {
-            return retryResponse;
+            // If all retries failed, continue with the original response
+            console.error(`All ${maxRetries} CSRF token refresh attempts failed`);
           }
-
-          // If all retries failed, continue with the original response
-          console.error(`All ${maxRetries} CSRF token refresh attempts failed`);
+        } catch (parseError) {
+          console.error('Error parsing response during CSRF error handling:', parseError);
+          // Continue with the original response if we can't parse the error
         }
-      } catch (parseError) {
-        console.error('Error parsing response during CSRF error handling:', parseError);
-        // Continue with the original response if we can't parse the error
       }
-    }
 
-    return response;
+      return response;
+    } catch (error) {
+      // Clear the timeout
+      clearTimeout(timeoutId);
+
+      // Handle fetch errors (network issues, timeouts, etc.)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error(`Request to ${url} timed out after 10 seconds`);
+        throw new Error(`Request timed out. Please check your network connection and try again.`);
+      }
+
+      throw error;
+    }
   } catch (error) {
     console.error('Secure API request failed:', error);
+
+    // Create a more user-friendly error message
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.error('Network error detected. Server might be unreachable.');
+      throw new Error('Network error. Please check your connection to the server and try again.');
+    }
+
     throw error;
   }
 }

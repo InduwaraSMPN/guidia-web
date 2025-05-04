@@ -4,7 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth.js');
 const NotificationCategoryService = require('../services/notificationCategoryService');
 // Use the pool from app.locals instead of requiring it directly
 let pool;

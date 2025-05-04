@@ -92,7 +92,11 @@ export function NotificationPreferencesPage() {
   const [categoryPreferences, setCategoryPreferences] = useState<CategoryPreference[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState("JOBS")
+  const [activeTab, setActiveTab] = useState(() => {
+    // Make sure we don't try to select a tab that no longer exists
+    const savedTab = localStorage.getItem('notification-active-tab')
+    return savedTab && ['JOBS', 'PROFILE', 'MESSAGES', 'MEETINGS'].includes(savedTab) ? savedTab : 'JOBS'
+  })
   const [useCategories, setUseCategories] = useState(true)
 
   // Fetch notification preferences
@@ -102,56 +106,112 @@ export function NotificationPreferencesPage() {
 
       setIsLoading(true)
       try {
-        // First try to fetch category preferences
-        const categoryResponse = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`)
+        // Always fetch both types of preferences for completeness
+        let categoryPrefsData: CategoryPreference[] = [];
+        let individualPrefsData: NotificationPreference[] = [];
 
-        if (categoryResponse.ok) {
-          const categoryData = await categoryResponse.json()
-          setCategoryPreferences(categoryData)
-          setUseCategories(true)
+        // First fetch category preferences
+        try {
+          const categoryResponse = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`);
+          if (categoryResponse.ok) {
+            categoryPrefsData = await categoryResponse.json();
+            setCategoryPreferences(categoryPrefsData);
+            console.log("Fetched category preferences:", categoryPrefsData.length);
+            setUseCategories(true);
+          } else {
+            console.error("Failed to fetch category preferences:", categoryResponse.status);
+            setUseCategories(false);
+          }
+        } catch (categoryError) {
+          console.error("Error fetching category preferences:", categoryError);
+          setUseCategories(false);
+        }
 
-          // Convert category preferences to individual preferences for compatibility
-          const expandedPrefs: NotificationPreference[] = []
+        // Then fetch individual preferences
+        try {
+          const individualResponse = await secureApiRequest(`${API_URL}/api/notifications/preferences`);
+          if (individualResponse.ok) {
+            individualPrefsData = await individualResponse.json();
+            console.log("Fetched individual preferences:", individualPrefsData.length);
+          } else {
+            console.error("Failed to fetch individual preferences:", individualResponse.status);
+          }
+        } catch (individualError) {
+          console.error("Error fetching individual preferences:", individualError);
+        }
+
+        // If using categories, expand category preferences to individual preferences for UI
+        if (useCategories && categoryPrefsData.length > 0) {
+          const expandedPrefs: NotificationPreference[] = [];
 
           Object.entries(notificationCategories).forEach(([category, items]) => {
-            const categoryPref = categoryData.find((p: CategoryPreference) => p.category === category) || {
+            const categoryPref = categoryPrefsData.find((p: CategoryPreference) => p.category === category) || {
               isEnabled: true,
               emailEnabled: true,
               pushEnabled: true
-            }
+            };
 
+            items.forEach(item => {
+              // First check if we have an individual preference for this type
+              const individualPref = individualPrefsData.find(p => p.notificationType === item.type);
+
+              if (individualPref) {
+                // Use the individual preference if it exists
+                expandedPrefs.push(individualPref);
+              } else {
+                // Otherwise derive from category preference
+                expandedPrefs.push({
+                  notificationType: item.type,
+                  isEnabled: categoryPref.isEnabled,
+                  emailEnabled: categoryPref.emailEnabled,
+                  pushEnabled: categoryPref.pushEnabled
+                });
+              }
+            });
+          });
+
+          setPreferences(expandedPrefs);
+        } else if (individualPrefsData.length > 0) {
+          // If not using categories or no category data, use individual preferences directly
+          setPreferences(individualPrefsData);
+        } else {
+          // If no data from either source, use defaults
+          console.log("No preference data found, using defaults");
+
+          // Create default preferences
+          const defaultCategoryPrefs = Object.keys(notificationCategories).map(category => ({
+            category,
+            isEnabled: true,
+            emailEnabled: true,
+            pushEnabled: true
+          }));
+
+          setCategoryPreferences(defaultCategoryPrefs);
+
+          // Create expanded preferences
+          const expandedPrefs: NotificationPreference[] = [];
+          Object.entries(notificationCategories).forEach(([category, items]) => {
             items.forEach(item => {
               expandedPrefs.push({
                 notificationType: item.type,
-                isEnabled: categoryPref.isEnabled,
-                emailEnabled: categoryPref.emailEnabled,
-                pushEnabled: categoryPref.pushEnabled
-              })
-            })
-          })
+                isEnabled: true,
+                emailEnabled: true,
+                pushEnabled: true
+              });
+            });
+          });
 
-          setPreferences(expandedPrefs)
-        } else {
-          // Fall back to individual preferences
-          const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`)
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch notification preferences")
-          }
-
-          const data = await response.json()
-          setPreferences(data)
-          setUseCategories(false)
+          setPreferences(expandedPrefs);
         }
       } catch (error) {
-        console.error("Error fetching notification preferences:", error)
-        toast.error("Failed to load notification preferences")
+        console.error("Error fetching notification preferences:", error);
+        toast.error("Failed to load notification preferences");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchPreferences()
+    fetchPreferences();
   }, [user])
 
   // Update a notification preference
@@ -192,13 +252,14 @@ export function NotificationPreferencesPage() {
         )
 
         if (!response.ok) {
-          throw new Error("Failed to update preference")
+          console.error(`Failed to update preference: Status ${response.status}`);
+          throw new Error(`Failed to update preference: Status ${response.status}`);
         }
 
-        toast.success("Notification preference updated")
+        toast.success("Notification preference updated");
       } catch (error) {
-        console.error("Error updating notification preference:", error)
-        toast.error("Failed to update notification preference")
+        console.error("Error updating notification preference:", error);
+        toast.error("Failed to update notification preference");
 
         // Revert the change in UI
         setPreferences(prev =>
@@ -207,9 +268,20 @@ export function NotificationPreferencesPage() {
               ? { ...pref, [field]: !value }
               : pref
           )
-        )
+        );
+
+        // Try to fetch fresh data to ensure UI is in sync
+        try {
+          const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            setPreferences(data);
+          }
+        } catch (syncError) {
+          console.error("Error syncing preferences after failure:", syncError);
+        }
       } finally {
-        setIsSaving(false)
+        setIsSaving(false);
       }
     }
   }
@@ -256,13 +328,14 @@ export function NotificationPreferencesPage() {
       )
 
       if (!response.ok) {
-        throw new Error("Failed to update category preference")
+        console.error(`Failed to update category preference: Status ${response.status}`);
+        throw new Error(`Failed to update category preference: Status ${response.status}`);
       }
 
-      toast.success("Notification preferences updated")
+      toast.success("Notification preferences updated");
     } catch (error) {
-      console.error("Error updating category preference:", error)
-      toast.error("Failed to update notification preferences")
+      console.error("Error updating category preference:", error);
+      toast.error("Failed to update notification preferences");
 
       // Revert the change in UI
       setCategoryPreferences(prev =>
@@ -271,7 +344,7 @@ export function NotificationPreferencesPage() {
             ? { ...pref, [field]: !value }
             : pref
         )
-      )
+      );
 
       // Also revert individual preferences
       setPreferences(prev =>
@@ -280,9 +353,41 @@ export function NotificationPreferencesPage() {
             ? { ...pref, [field]: !value }
             : pref
         )
-      )
+      );
+
+      // Try to fetch fresh data to ensure UI is in sync
+      try {
+        const response = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategoryPreferences(data);
+
+          // Update individual preferences for UI consistency
+          const expandedPrefs: NotificationPreference[] = [];
+          Object.entries(notificationCategories).forEach(([cat, items]) => {
+            const categoryPref = data.find((p: CategoryPreference) => p.category === cat) || {
+              isEnabled: true,
+              emailEnabled: true,
+              pushEnabled: true
+            };
+
+            items.forEach(item => {
+              expandedPrefs.push({
+                notificationType: item.type,
+                isEnabled: categoryPref.isEnabled,
+                emailEnabled: categoryPref.emailEnabled,
+                pushEnabled: categoryPref.pushEnabled
+              });
+            });
+          });
+
+          setPreferences(expandedPrefs);
+        }
+      } catch (syncError) {
+        console.error("Error syncing preferences after failure:", syncError);
+      }
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -296,7 +401,8 @@ export function NotificationPreferencesPage() {
     }
   }
 
-  // Get category preference
+  // Get category preference (used for debugging)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getCategoryPreference = (category: string) => {
     return categoryPreferences.find(pref => pref.category === category) || {
       category,
@@ -315,6 +421,7 @@ export function NotificationPreferencesPage() {
     }
 
     setIsSaving(true)
+    let hasErrors = false;
 
     try {
       if (useCategories) {
@@ -328,93 +435,125 @@ export function NotificationPreferencesPage() {
           prev.map(pref => ({ ...pref, isEnabled: false }))
         )
 
-        // Make API calls for each category
-        const promises = categoryPreferences.map(pref =>
-          secureApiRequest(
-            `${API_URL}/api/notifications/category-preferences`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                category: pref.category,
-                isEnabled: false
-              })
-            }
-          )
-        )
+        // Make API calls for each category sequentially instead of in parallel
+        for (const pref of categoryPreferences) {
+          try {
+            const response = await secureApiRequest(
+              `${API_URL}/api/notifications/category-preferences`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  category: pref.category,
+                  isEnabled: false
+                })
+              }
+            )
 
-        await Promise.all(promises)
+            if (!response.ok) {
+              console.error(`Error updating category ${pref.category}: Status ${response.status}`);
+              hasErrors = true;
+            }
+
+            // Add a small delay between requests to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } catch (categoryError) {
+            console.error(`Error updating category ${pref.category}:`, categoryError);
+            hasErrors = true;
+            // Continue with other categories even if one fails
+          }
+        }
       } else {
         // Update all preferences in UI first
         setPreferences(prev =>
           prev.map(pref => ({ ...pref, isEnabled: false }))
         )
 
-        // Make API calls for each preference
-        const promises = preferences.map(pref =>
-          secureApiRequest(
-            `${API_URL}/api/notifications/preferences`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                notificationType: pref.notificationType,
-                isEnabled: false
-              })
-            }
-          )
-        )
+        // Make API calls for each preference sequentially instead of in parallel
+        for (const pref of preferences) {
+          try {
+            const response = await secureApiRequest(
+              `${API_URL}/api/notifications/preferences`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  notificationType: pref.notificationType,
+                  isEnabled: false
+                })
+              }
+            )
 
-        await Promise.all(promises)
+            if (!response.ok) {
+              console.error(`Error updating preference ${pref.notificationType}: Status ${response.status}`);
+              hasErrors = true;
+            }
+
+            // Add a small delay between requests to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } catch (prefError) {
+            console.error(`Error updating preference ${pref.notificationType}:`, prefError);
+            hasErrors = true;
+            // Continue with other preferences even if one fails
+          }
+        }
       }
 
-      toast.success("All notifications disabled")
+      if (hasErrors) {
+        toast.warning("Some notifications could not be disabled. UI may not reflect actual settings.");
+      } else {
+        toast.success("All notifications disabled");
+      }
     } catch (error) {
-      console.error("Error disabling all notifications:", error)
-      toast.error("Failed to disable all notifications")
+      console.error("Error disabling all notifications:", error);
+      toast.error("Failed to disable all notifications");
 
       // Fetch fresh data to ensure UI is in sync
-      if (useCategories) {
-        const response = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`)
-        if (response.ok) {
-          const data = await response.json()
-          setCategoryPreferences(data)
+      try {
+        if (useCategories) {
+          const response = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            setCategoryPreferences(data);
 
-          // Update individual preferences for UI consistency
-          const expandedPrefs: NotificationPreference[] = []
+            // Update individual preferences for UI consistency
+            const expandedPrefs: NotificationPreference[] = [];
 
-          Object.entries(notificationCategories).forEach(([category, items]) => {
-            const categoryPref = data.find((p: CategoryPreference) => p.category === category) || {
-              isEnabled: true,
-              emailEnabled: true,
-              pushEnabled: true
-            }
+            Object.entries(notificationCategories).forEach(([category, items]) => {
+              const categoryPref = data.find((p: CategoryPreference) => p.category === category) || {
+                isEnabled: true,
+                emailEnabled: true,
+                pushEnabled: true
+              };
 
-            items.forEach(item => {
-              expandedPrefs.push({
-                notificationType: item.type,
-                isEnabled: categoryPref.isEnabled,
-                emailEnabled: categoryPref.emailEnabled,
-                pushEnabled: categoryPref.pushEnabled
-              })
-            })
-          })
+              items.forEach(item => {
+                expandedPrefs.push({
+                  notificationType: item.type,
+                  isEnabled: categoryPref.isEnabled,
+                  emailEnabled: categoryPref.emailEnabled,
+                  pushEnabled: categoryPref.pushEnabled
+                });
+              });
+            });
 
-          setPreferences(expandedPrefs)
+            setPreferences(expandedPrefs);
+          }
+        } else {
+          const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            setPreferences(data);
+          }
         }
-      } else {
-        const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`)
-        if (response.ok) {
-          const data = await response.json()
-          setPreferences(data)
-        }
+      } catch (syncError) {
+        console.error("Error syncing preferences after failure:", syncError);
       }
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -423,6 +562,7 @@ export function NotificationPreferencesPage() {
     if (!user) return
 
     setIsSaving(true)
+    let hasErrors = false;
 
     try {
       if (useCategories) {
@@ -436,93 +576,125 @@ export function NotificationPreferencesPage() {
           prev.map(pref => ({ ...pref, isEnabled: true }))
         )
 
-        // Make API calls for each category
-        const promises = categoryPreferences.map(pref =>
-          secureApiRequest(
-            `${API_URL}/api/notifications/category-preferences`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                category: pref.category,
-                isEnabled: true
-              })
-            }
-          )
-        )
+        // Make API calls for each category sequentially instead of in parallel
+        for (const pref of categoryPreferences) {
+          try {
+            const response = await secureApiRequest(
+              `${API_URL}/api/notifications/category-preferences`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  category: pref.category,
+                  isEnabled: true
+                })
+              }
+            )
 
-        await Promise.all(promises)
+            if (!response.ok) {
+              console.error(`Error updating category ${pref.category}: Status ${response.status}`);
+              hasErrors = true;
+            }
+
+            // Add a small delay between requests to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } catch (categoryError) {
+            console.error(`Error updating category ${pref.category}:`, categoryError);
+            hasErrors = true;
+            // Continue with other categories even if one fails
+          }
+        }
       } else {
         // Update all preferences in UI first
         setPreferences(prev =>
           prev.map(pref => ({ ...pref, isEnabled: true }))
         )
 
-        // Make API calls for each preference
-        const promises = preferences.map(pref =>
-          secureApiRequest(
-            `${API_URL}/api/notifications/preferences`,
-            {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                notificationType: pref.notificationType,
-                isEnabled: true
-              })
-            }
-          )
-        )
+        // Make API calls for each preference sequentially instead of in parallel
+        for (const pref of preferences) {
+          try {
+            const response = await secureApiRequest(
+              `${API_URL}/api/notifications/preferences`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  notificationType: pref.notificationType,
+                  isEnabled: true
+                })
+              }
+            )
 
-        await Promise.all(promises)
+            if (!response.ok) {
+              console.error(`Error updating preference ${pref.notificationType}: Status ${response.status}`);
+              hasErrors = true;
+            }
+
+            // Add a small delay between requests to avoid overwhelming the server
+            await new Promise(resolve => setTimeout(resolve, 200));
+          } catch (prefError) {
+            console.error(`Error updating preference ${pref.notificationType}:`, prefError);
+            hasErrors = true;
+            // Continue with other preferences even if one fails
+          }
+        }
       }
 
-      toast.success("All notifications enabled")
+      if (hasErrors) {
+        toast.warning("Some notifications could not be enabled. UI may not reflect actual settings.");
+      } else {
+        toast.success("All notifications enabled");
+      }
     } catch (error) {
-      console.error("Error enabling all notifications:", error)
-      toast.error("Failed to enable all notifications")
+      console.error("Error enabling all notifications:", error);
+      toast.error("Failed to enable all notifications");
 
       // Fetch fresh data to ensure UI is in sync
-      if (useCategories) {
-        const response = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`)
-        if (response.ok) {
-          const data = await response.json()
-          setCategoryPreferences(data)
+      try {
+        if (useCategories) {
+          const response = await secureApiRequest(`${API_URL}/api/notifications/category-preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            setCategoryPreferences(data);
 
-          // Update individual preferences for UI consistency
-          const expandedPrefs: NotificationPreference[] = []
+            // Update individual preferences for UI consistency
+            const expandedPrefs: NotificationPreference[] = [];
 
-          Object.entries(notificationCategories).forEach(([category, items]) => {
-            const categoryPref = data.find((p: CategoryPreference) => p.category === category) || {
-              isEnabled: true,
-              emailEnabled: true,
-              pushEnabled: true
-            }
+            Object.entries(notificationCategories).forEach(([category, items]) => {
+              const categoryPref = data.find((p: CategoryPreference) => p.category === category) || {
+                isEnabled: true,
+                emailEnabled: true,
+                pushEnabled: true
+              };
 
-            items.forEach(item => {
-              expandedPrefs.push({
-                notificationType: item.type,
-                isEnabled: categoryPref.isEnabled,
-                emailEnabled: categoryPref.emailEnabled,
-                pushEnabled: categoryPref.pushEnabled
-              })
-            })
-          })
+              items.forEach(item => {
+                expandedPrefs.push({
+                  notificationType: item.type,
+                  isEnabled: categoryPref.isEnabled,
+                  emailEnabled: categoryPref.emailEnabled,
+                  pushEnabled: categoryPref.pushEnabled
+                });
+              });
+            });
 
-          setPreferences(expandedPrefs)
+            setPreferences(expandedPrefs);
+          }
+        } else {
+          const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            setPreferences(data);
+          }
         }
-      } else {
-        const response = await secureApiRequest(`${API_URL}/api/notifications/preferences`)
-        if (response.ok) {
-          const data = await response.json()
-          setPreferences(data)
-        }
+      } catch (syncError) {
+        console.error("Error syncing preferences after failure:", syncError);
       }
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
   }
 
@@ -579,7 +751,7 @@ export function NotificationPreferencesPage() {
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="container py-8">
+      <div className="container py-8 pt-32 pb-32">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Skeleton className="h-8 w-64 mb-2" />
@@ -614,15 +786,8 @@ export function NotificationPreferencesPage() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 pt-32 pb-32">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Notification Preferences</h1>
-          <p className="text-muted-foreground">
-            Manage how and when you receive notifications from Guidia.
-          </p>
-        </div>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -669,14 +834,19 @@ export function NotificationPreferencesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="JOBS" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-6 mb-4">
+            <Tabs
+              defaultValue="JOBS"
+              value={activeTab}
+              onValueChange={(value) => {
+                setActiveTab(value)
+                localStorage.setItem('notification-active-tab', value)
+              }}
+            >
+              <TabsList className="grid grid-cols-4 mb-4">
                 <TabsTrigger value="JOBS">Jobs</TabsTrigger>
                 <TabsTrigger value="PROFILE">Profile</TabsTrigger>
                 <TabsTrigger value="MESSAGES">Messages</TabsTrigger>
                 <TabsTrigger value="MEETINGS">Meetings</TabsTrigger>
-                <TabsTrigger value="SYSTEM">System</TabsTrigger>
-                <TabsTrigger value="ADMIN">Admin</TabsTrigger>
               </TabsList>
 
               <TabsContent value="JOBS" className="space-y-4">
@@ -703,17 +873,7 @@ export function NotificationPreferencesPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="SYSTEM" className="space-y-4">
-                {notificationCategories.SYSTEM.map(({ type, label }) =>
-                  renderPreferenceItem(type, label)
-                )}
-              </TabsContent>
 
-              <TabsContent value="ADMIN" className="space-y-4">
-                {notificationCategories.ADMIN.map(({ type, label }) =>
-                  renderPreferenceItem(type, label)
-                )}
-              </TabsContent>
             </Tabs>
 
             {preferences.length === 0 && !isLoading && (
