@@ -483,9 +483,9 @@ export function MeetingAvailabilitySettings() {
         <CardDescription className="text-sm">
           Set times when you're available for meetings. Others can only request meetings during these times.
           {isFirstTimeSetup && (
-            <p className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium">
+            <span className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium block">
               We've added some default times to get you started. Save to activate your schedule.
-            </p>
+            </span>
           )}
         </CardDescription>
       </CardHeader>

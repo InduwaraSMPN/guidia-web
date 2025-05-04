@@ -169,6 +169,9 @@ console.log("OpenAI routes registered.");
 app.use("/api/chat-history", chatHistoryRouter);
 console.log("Chat history routes registered.");
 
+// Import notification category routes
+const notificationCategoryRouter = require("./routes/notificationCategoryRoutes");
+
 // Initialize notification service with socket service
 app.use(
   "/api/notifications",
@@ -181,6 +184,9 @@ app.use(
   },
   notificationsRouter
 );
+
+// Register notification category routes
+app.use("/api/notifications", notificationCategoryRouter);
 
 // **Endpoints**
 
@@ -616,6 +622,19 @@ app.post(
         'INSERT INTO users (email, username, password, roleID, status) VALUES (?, ?, ?, ?, "active")',
         [userData.email, userData.username, hashedPassword, userData.roleId]
       );
+
+      const userId = userResult.insertId;
+
+      // Initialize notification preferences for the new user
+      try {
+        const NotificationService = require('./services/notificationService');
+        const notificationService = new NotificationService(connection);
+        await notificationService.initializeDefaultPreferences(userId);
+        console.log(`Initialized notification preferences for approved user ID: ${userId}`);
+      } catch (notificationError) {
+        console.error('Error initializing notification preferences for approved user:', notificationError);
+        // Continue with approval even if notification preferences initialization fails
+      }
 
       await connection.query(
         'UPDATE registrations SET status = "approved" WHERE penRegID = ?',
@@ -1291,6 +1310,17 @@ app.post("/auth/register", registrationLimiter, async (req, res) => {
       [email, username, hashedPassword, roleId]
     );
     const userId = result.insertId;
+
+    // Initialize notification preferences for the new user
+    try {
+      const NotificationService = require('./services/notificationService');
+      const notificationService = new NotificationService(pool);
+      await notificationService.initializeDefaultPreferences(userId);
+      console.log(`Initialized notification preferences for new user ID: ${userId}`);
+    } catch (notificationError) {
+      console.error('Error initializing notification preferences:', notificationError);
+      // Continue with registration even if notification preferences initialization fails
+    }
 
     const token = jwt.sign(
       { id: userId.toString(), email, roleId },

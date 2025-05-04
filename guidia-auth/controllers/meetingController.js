@@ -1332,15 +1332,15 @@ const meetingController = {
           if (period.unavailabilityID) {
             // Update existing period
             await connection.query(
-              'UPDATE meeting_unavailability SET startDateTime = ?, endDateTime = ? WHERE unavailabilityID = ? AND userID = ?',
-              [period.startDateTime, period.endDateTime, period.unavailabilityID, userID]
+              'UPDATE meeting_unavailability SET startDateTime = ?, endDateTime = ?, reason = ? WHERE unavailabilityID = ? AND userID = ?',
+              [period.startDateTime, period.endDateTime, period.reason || null, period.unavailabilityID, userID]
             );
             processedPeriodIds.add(period.unavailabilityID);
           } else {
             // Create new period
             const [result] = await connection.query(
-              'INSERT INTO meeting_unavailability (userID, startDateTime, endDateTime) VALUES (?, ?, ?)',
-              [userID, period.startDateTime, period.endDateTime]
+              'INSERT INTO meeting_unavailability (userID, startDateTime, endDateTime, reason) VALUES (?, ?, ?, ?)',
+              [userID, period.startDateTime, period.endDateTime, period.reason || null]
             );
             processedPeriodIds.add(result.insertId);
           }

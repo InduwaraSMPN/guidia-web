@@ -65,6 +65,7 @@ import ActivityFeedPage from './pages/admin/ActivityFeedPage';
 import SystemHealthPage from './pages/admin/SystemHealthPage';
 import { MeetingsPage } from './pages/MeetingsPage';
 import { MeetingAvailabilityPage } from './pages/MeetingAvailabilityPage';
+import { NotificationPreferencesPage } from './pages/settings/NotificationPreferencesPage';
 import { Toaster } from './components/ui/sonner';
 import { PublicStudentProfile } from './pages/profile/PublicStudentProfile';
 import { WelcomeEditStudentProfile } from '@/pages/welcome/WelcomeEditStudentProfile';
@@ -283,6 +284,11 @@ function AppContent() {
           <Route path="/meetings/settings" element={
             <ProtectedRoute requiredUserType={["Student", "Company", "Counselor"]}>
               <MeetingAvailabilityPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings/notifications" element={
+            <ProtectedRoute>
+              <NotificationPreferencesPage />
             </ProtectedRoute>
           } />
           <Route

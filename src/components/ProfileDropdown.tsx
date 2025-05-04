@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { User, LogOut, Settings, Edit, Clock } from "lucide-react";
+import { User, LogOut, Settings, Edit, Clock, Bell } from "lucide-react";
 import { format } from "date-fns";
 import ThemeToggle from "./ThemeToggle";
 import { motion } from "framer-motion";
@@ -586,6 +586,22 @@ export function ProfileDropdown() {
                 </span>
               </Link>
             )}
+
+            {/* Notification Preferences - available for all user types */}
+            <Link
+              to="/settings/notifications"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                setActiveDropdown(null);
+              }}
+              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary transition-colors group font-montserrat"
+              data-dropdown-content="profile-item"
+            >
+              <Bell className="h-4 w-4 text-muted-foreground dark:text-neutral-400 group-hover:text-brand transition-colors" />
+              <span className="group-hover:text-brand transition-colors font-montserrat">
+                Notification Settings
+              </span>
+            </Link>
 
             <button
               onClick={(e) => {

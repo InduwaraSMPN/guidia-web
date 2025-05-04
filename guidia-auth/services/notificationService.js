@@ -309,9 +309,88 @@ class NotificationService {
         'SELECT * FROM notification_preferences WHERE userID = ?',
         [userID]
       );
+
+      // If no preferences found, initialize default preferences
+      if (preferences.length === 0) {
+        console.log(`No notification preferences found for userID: ${userID}, initializing defaults`);
+        await this.initializeDefaultPreferences(userID);
+
+        // Fetch the newly created preferences
+        const [newPreferences] = await this.pool.execute(
+          'SELECT * FROM notification_preferences WHERE userID = ?',
+          [userID]
+        );
+        return newPreferences;
+      }
+
       return preferences;
     } catch (error) {
       console.error('Error fetching notification preferences:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Initialize default notification preferences for a user
+   * @param {number} userID - The user ID
+   * @returns {Promise<void>}
+   */
+  async initializeDefaultPreferences(userID) {
+    try {
+      // Define default notification types
+      const defaultNotificationTypes = [
+        'NEW_JOB_POSTING',
+        'JOB_APPLICATION_UPDATE',
+        'JOB_APPLICATION_DEADLINE',
+        'JOB_POSTING_EXPIRING',
+        'JOB_POSTING_STATS',
+        'NEW_JOB_APPLICATION',
+        'PROFILE_VIEW',
+        'PROFILE_INCOMPLETE',
+        'PROFILE_UPDATE',
+        'RECOMMENDED_PROFILE',
+        'NEW_MESSAGE',
+        'UNREAD_MESSAGES',
+        'GUIDANCE_REQUEST',
+        'STUDENT_PROFILE_UPDATE',
+        'STUDENT_JOB_APPLICATION',
+        'NEW_USER_REGISTRATION',
+        'USER_ACCOUNT_ISSUE',
+        'VERIFICATION_REQUEST',
+        'JOB_POSTING_REVIEW',
+        'REPORTED_CONTENT',
+        'SYSTEM_HEALTH_ALERT',
+        'ACCOUNT_NOTIFICATION',
+        'PLATFORM_ANNOUNCEMENT',
+        'PERFORMANCE_METRIC',
+        'SECURITY_ALERT',
+        'SYSTEM_UPDATE',
+        'SUPPORT_REQUEST',
+        'MEETING_REQUESTED',
+        'MEETING_ACCEPTED',
+        'MEETING_DECLINED',
+        'MEETING_REMINDER',
+        'MEETING_FEEDBACK_REQUEST'
+      ];
+
+      // Create default preferences for each notification type
+      for (const notificationType of defaultNotificationTypes) {
+        try {
+          await this.pool.execute(
+            `INSERT IGNORE INTO notification_preferences
+             (userID, notificationType, isEnabled, emailEnabled, pushEnabled)
+             VALUES (?, ?, 1, 1, 1)`,
+            [userID, notificationType]
+          );
+        } catch (insertError) {
+          console.error(`Error inserting preference for type ${notificationType}:`, insertError);
+          // Continue with other notification types even if one fails
+        }
+      }
+
+      console.log(`Default notification preferences initialized for userID: ${userID}`);
+    } catch (error) {
+      console.error('Error initializing default notification preferences:', error);
       throw error;
     }
   }
@@ -371,8 +450,46 @@ class NotificationService {
         [userID, notificationType]
       );
 
-      // If no preference is set, default to enabled
+      // If no preference is set, create default and enable
       if (preferences.length === 0) {
+        console.log(`No preference found for userID: ${userID}, notificationType: ${notificationType}, creating default`);
+
+        try {
+          // Check if the notification type is valid
+          const [validTypes] = await this.pool.execute(
+            `SELECT COLUMN_TYPE
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+             AND TABLE_NAME = 'notification_preferences'
+             AND COLUMN_NAME = 'notificationType'`
+          );
+
+          if (validTypes.length > 0) {
+            const enumValues = validTypes[0].COLUMN_TYPE
+              .replace('enum(', '')
+              .replace(')', '')
+              .split(',')
+              .map(val => val.replace(/'/g, '').trim());
+
+            if (!enumValues.includes(notificationType)) {
+              console.warn(`Invalid notification type: ${notificationType}. Using a default valid type.`);
+              // Use a default valid type if the requested one is invalid
+              return true;
+            }
+          }
+
+          // Insert default preference for this notification type
+          await this.pool.execute(
+            `INSERT IGNORE INTO notification_preferences
+             (userID, notificationType, isEnabled, emailEnabled, pushEnabled)
+             VALUES (?, ?, 1, 1, 1)`,
+            [userID, notificationType]
+          );
+        } catch (insertError) {
+          console.error(`Error creating default preference for ${notificationType}:`, insertError);
+          // Default to true if there's an error creating the preference
+        }
+
         return true;
       }
 

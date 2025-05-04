@@ -20,6 +20,7 @@ interface UnavailabilityPeriod {
   unavailabilityID?: number
   startDateTime: string
   endDateTime: string
+  reason?: string | null
 }
 
 // Define the form schema
@@ -28,6 +29,7 @@ const unavailabilityPeriodSchema = z
     unavailabilityID: z.number().optional(),
     startDateTime: z.string(),
     endDateTime: z.string(),
+    reason: z.string().nullable().optional(),
   })
   .refine(
     (data) => {
@@ -98,6 +100,7 @@ export function MeetingUnavailabilitySettings() {
               unavailabilityID: period.unavailabilityID,
               startDateTime: formatDateTimeForInput(period.startDateTime),
               endDateTime: formatDateTimeForInput(period.endDateTime),
+              reason: period.reason || "",
             })),
           });
         } else {
@@ -149,6 +152,7 @@ export function MeetingUnavailabilitySettings() {
     append({
       startDateTime: now.toISOString().slice(0, 16),
       endDateTime: tomorrow.toISOString().slice(0, 16),
+      reason: "",
     });
 
     // Scroll to the newly added period
@@ -172,6 +176,9 @@ export function MeetingUnavailabilitySettings() {
     fieldsCopy.forEach(() => {
       remove(0); // Always remove the first item as the array shifts
     });
+
+    // Explicitly mark the form as dirty to allow saving the empty state
+    form.setValue('unavailabilityPeriods', [], { shouldDirty: true });
 
     toast.success("All periods cleared");
   };
@@ -300,9 +307,9 @@ export function MeetingUnavailabilitySettings() {
           Set specific periods when you're unavailable for meetings, such as vacations, holidays, or other commitments.
           These periods will override your regular availability settings.
           {isFirstTimeSetup && (
-            <p className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium">
+            <span className="mt-2 text-amber-600 dark:text-amber-400 text-sm font-medium block">
               Add your unavailability periods to prevent meetings during those times.
-            </p>
+            </span>
           )}
         </CardDescription>
       </CardHeader>
@@ -336,6 +343,7 @@ export function MeetingUnavailabilitySettings() {
                         <tr>
                           <th className="text-left p-3 text-xs font-medium">Start Date/Time</th>
                           <th className="text-left p-3 text-xs font-medium">End Date/Time</th>
+                          <th className="text-left p-3 text-xs font-medium">Reason</th>
                           <th className="text-right p-3 text-xs font-medium w-16">Actions</th>
                         </tr>
                       </thead>
@@ -371,6 +379,15 @@ export function MeetingUnavailabilitySettings() {
                                   </span>
                                 )}
                               </div>
+                            </td>
+                            <td className="p-3">
+                              <Input
+                                type="text"
+                                placeholder="Vacation, holiday, etc."
+                                value={form.watch(`unavailabilityPeriods.${index}.reason`) || ""}
+                                onChange={(e) => form.setValue(`unavailabilityPeriods.${index}.reason`, e.target.value, { shouldDirty: true })}
+                                className="border-none shadow-none h-8 p-0 bg-transparent w-full"
+                              />
                             </td>
                             <td className="p-3 text-right">
                               <Button
@@ -431,14 +448,15 @@ export function MeetingUnavailabilitySettings() {
               <Button
                 type="button"
                 onClick={(e) => {
-                  if (!form.formState.isDirty && !isFirstTimeSetup) {
+                  if (!form.formState.isDirty && !isFirstTimeSetup && fields.length > 0) {
                     // Show toast message when trying to save without changes
+                    // Only show this message if there are periods and no changes
                     e.preventDefault();
                     toast.info("No Changes Detected", {
                       description: "Please make changes first to update unavailability periods"
                     });
                   } else {
-                    // Submit the form if there are changes or it's first time setup
+                    // Submit the form if there are changes, it's first time setup, or all periods were cleared
                     form.handleSubmit(onSubmit)(e);
                   }
                 }}
