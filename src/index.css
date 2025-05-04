@@ -344,27 +344,112 @@ html {
   font-family: inherit;
   font-size: inherit;
   border: none !important;
-  z-index: 100 !important;
   position: relative !important;
   background-color: white !important;
   border-radius: 6px;
+  z-index: 1 !important;
 }
 
 .dark .ql-container {
   background-color: #1e1e1e !important;
 }
 
+/* Fix for Quill container to ensure proper stacking */
+.ql-container.ql-snow {
+  overflow: visible !important;
+}
+
 .ql-toolbar {
   border: none !important;
   border-bottom: 1px solid #e5e7eb !important;
   background-color: rgba(255, 255, 255, 0.95) !important;
-  z-index: 101 !important;
   position: relative !important;
+  z-index: 100 !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Hide the "Input" field that appears in the toolbar */
+.ql-toolbar .ql-formats:first-child::before,
+.ql-toolbar::before,
+.ql-toolbar .ql-formats::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Remove any "Input" text that might be added by Quill */
+.ql-toolbar .ql-formats:first-child label,
+.ql-toolbar label {
+  display: none !important;
+}
+
+/* Ensure proper spacing between toolbar items */
+.ql-toolbar .ql-formats {
+  margin-right: 10px !important;
+}
+
+/* Specific styles for our custom rich text editor */
+.guidia-rich-text-editor .ql-toolbar::before,
+.guidia-rich-text-editor .ql-toolbar .ql-formats::before {
+  content: none !important;
+  display: none !important;
+}
+
+.guidia-rich-text-editor .ql-toolbar input,
+.guidia-rich-text-editor .ql-toolbar label {
+  display: none !important;
+}
+
+/* Fix for header dropdown in our custom editor */
+.guidia-rich-text-editor .ql-header .ql-picker-label {
+  padding-right: 15px !important;
+  white-space: nowrap !important;
+  min-width: 100px !important;
+}
+
+.guidia-rich-text-editor .ql-header .ql-picker-label span {
+  display: none !important;
+}
+
+.guidia-rich-text-editor .ql-header .ql-picker-label::before {
+  content: "Normal" !important;
+  display: inline-block !important;
+  padding-right: 10px !important;
+  white-space: nowrap !important;
+}
+
+.guidia-rich-text-editor .ql-header .ql-picker-label[data-value="1"]::before {
+  content: "Heading 1" !important;
+  white-space: nowrap !important;
+}
+
+.guidia-rich-text-editor .ql-header .ql-picker-label[data-value="2"]::before {
+  content: "Heading 2" !important;
+  white-space: nowrap !important;
+}
+
+.guidia-rich-text-editor .ql-header .ql-picker-label[data-value="3"]::before {
+  content: "Heading 3" !important;
+  white-space: nowrap !important;
 }
 
 .dark .ql-toolbar {
   background-color: rgba(30, 30, 30, 0.95) !important;
   border-bottom: 1px solid #333 !important;
+}
+
+/* Create proper stacking context for toolbar */
+.ql-toolbar.ql-snow {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+/* Ensure dropdowns appear above content */
+.ql-picker-options {
+  z-index: 9999 !important;
+  position: absolute !important;
 }
 
 .ql-editor {
@@ -382,6 +467,16 @@ html {
   -moz-user-select: text !important;
   -ms-user-select: text !important;
   caret-color: #800020 !important; /* Brand color for cursor */
+}
+
+/* Remove Quill branding/link */
+.ql-editor p a[href="https://quilljs.com"],
+.ql-editor a[href="https://quilljs.com"] {
+  display: none !important;
+}
+
+.ql-editor p:has(a[href="https://quilljs.com"]) {
+  display: none !important;
 }
 
 /* Quill list styles */
@@ -532,17 +627,141 @@ html {
 
 /* Fix for Quill editor pointer events */
 .ql-toolbar.ql-snow,
-.ql-container.ql-snow,
+.ql-container.ql-snow {
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  position: relative !important;
+}
+
 .ql-editor {
   pointer-events: auto !important;
   touch-action: auto !important;
   cursor: text !important;
-  z-index: 1001 !important;
   position: relative !important;
   user-select: text !important;
   -webkit-user-select: text !important;
   -moz-user-select: text !important;
   -ms-user-select: text !important;
+}
+
+/* Fix for Quill toolbar in dark mode */
+.dark .ql-snow .ql-picker-label {
+  color: #e0e0e0 !important;
+}
+
+/* Fix for Quill dropdown options in dark mode */
+.dark .ql-snow .ql-picker-options {
+  background-color: #1e1e1e !important;
+  border-color: #333 !important;
+}
+
+/* Fix for Quill dropdown options in light mode */
+.ql-snow .ql-picker-options {
+  background-color: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Specific fix for header dropdown */
+.ql-snow .ql-picker.ql-header {
+  position: relative !important;
+  z-index: 1000 !important;
+  width: auto !important;
+  min-width: 120px !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-options {
+  top: 100% !important;
+  left: 0 !important;
+  position: absolute !important;
+  z-index: 9999 !important;
+  transform: translateY(0) !important;
+  margin-top: 5px !important;
+  width: auto !important;
+  min-width: 120px !important;
+}
+
+/* Fix for header dropdown items */
+.ql-snow .ql-picker.ql-header .ql-picker-item {
+  white-space: nowrap !important;
+  padding: 5px 10px !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value=""]::before {
+  content: "Normal" !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  content: "Heading 1" !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  content: "Heading 2" !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  content: "Heading 3" !important;
+}
+
+/* Fix for dropdown label */
+.ql-snow .ql-picker.ql-header .ql-picker-label {
+  padding-right: 20px !important;
+  position: relative !important;
+}
+
+/* Fix for blank dropdown text */
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value=""] {
+  color: inherit !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value=""]:not(:empty) {
+  display: inline-block !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label:empty::before {
+  content: "Normal" !important;
+  display: inline-block !important;
+}
+
+/* Always show "Normal" for the default (no heading) option */
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value=""] span::before {
+  content: "Normal" !important;
+  display: inline-block !important;
+}
+
+/* Fix for dropdown items */
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value=""]::before {
+  content: "Normal" !important;
+}
+
+/* Ensure the dropdown arrow is visible */
+.ql-snow .ql-picker.ql-header .ql-picker-label::after {
+  content: '' !important;
+  position: absolute !important;
+  right: 5px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border-left: 4px solid transparent !important;
+  border-right: 4px solid transparent !important;
+  border-top: 4px solid currentColor !important;
+  pointer-events: none !important;
+}
+
+/* Ensure all pickers have proper stacking */
+.ql-snow .ql-picker {
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+/* Ensure editor wrapper has proper stacking */
+.quill-editor-wrapper {
+  isolation: isolate !important;
+}
+
+/* Fix for Quill toolbar container */
+.ql-toolbar-container {
+  position: relative !important;
+  z-index: 1000 !important;
 }
 
 /* Specific styles for Guidia chat editor */
@@ -571,7 +790,6 @@ html {
 /* Rich text editor container */
 .rich-text-editor-container {
   position: relative;
-  z-index: 1000;
   pointer-events: auto !important;
   isolation: isolate;
   touch-action: auto !important;

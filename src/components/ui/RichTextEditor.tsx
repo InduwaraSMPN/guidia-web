@@ -25,14 +25,16 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       placeholder,
       readOnly,
       modules: {
-        toolbar: [
-          [{ 'header': [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-          [{ 'indent': '-1' }, { 'indent': '+1' }],
-          ['link'],
-          ['clean']
-        ]
+        toolbar: {
+          container: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'indent': '-1' }, { 'indent': '+1' }],
+            ['link'],
+            ['clean']
+          ]
+        }
       },
       bounds: document.body,
     });
@@ -46,13 +48,31 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       if (quill) {
         console.log("Quill initialized");
 
-        // Set initial value when quill is initialized
+        // Set initial value when quill is initialized dropdown elements
         if (value && quill.getText().trim() === '') {
           quill.clipboard.dangerouslyPasteHTML(value);
         }
 
+        // Remove Quill branding link if it exists
+        const removeQuillBranding = () => {
+          const links = quill.root.querySelectorAll('a[href="https://quilljs.com"]');
+          links.forEach(link => {
+            const parentP = link.closest('p');
+            if (parentP) {
+              parentP.remove();
+            } else {
+              link.remove();
+            }
+          });
+        };
+
+        // Initial removal
+        removeQuillBranding();
+
         const handleChange = () => {
           console.log("Text changed");
+          // Remove branding after each change
+          removeQuillBranding();
           memoizedOnChange(quill.root.innerHTML);
         };
 
@@ -72,6 +92,8 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         const handleFocus = () => {
           console.log("Editor focused via focus event");
           setIsFocused(true);
+          // Remove branding when focused
+          removeQuillBranding();
         };
 
         const handleBlur = () => {
@@ -103,37 +125,53 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
       if (quill && value !== undefined) {
         const currentContent = quill.root.innerHTML;
         if (value !== currentContent) {
+          // Save current selection
+          const selection = quill.getSelection();
+
           // Only update if the value has actually changed
           quill.clipboard.dangerouslyPasteHTML(value);
+
+          // Restore selection if it existed
+          if (selection) {
+            // Ensure selection is within bounds of new content
+            const contentLength = quill.getLength();
+            if (selection.index < contentLength) {
+              quill.setSelection(selection.index, selection.length);
+            }
+          }
         }
       }
     }, [quill, value]);
 
-    // Set focus on the editor when it's initialized
+    // Set up the editor when it's initialized
     React.useEffect(() => {
-      if (quill && !isInitialized && !readOnly) {
+      if (quill && !isInitialized) {
         // Mark as initialized
         setIsInitialized(true);
 
-        // Set focus after a short delay to ensure the editor is fully rendered
+        // Set up the editor after a short delay to ensure it's fully rendered
         setTimeout(() => {
           try {
             // Make sure the editor is enabled and ready
             quill.enable();
-            quill.focus();
-            setIsFocused(true); // Also set the focus state
-            console.log("Editor focused and enabled on initialization");
+
+            // Only focus if not in readOnly mode
+            if (!readOnly) {
+              quill.focus();
+              setIsFocused(true);
+              console.log("Editor focused and enabled on initialization");
+            }
 
             // Force the editor to be interactive
             if (quill.root) {
-              quill.root.setAttribute('contenteditable', 'true');
+              quill.root.setAttribute('contenteditable', readOnly ? 'false' : 'true');
               quill.root.style.pointerEvents = 'auto';
               quill.root.style.userSelect = 'text';
-              quill.root.style.cursor = 'text';
+              quill.root.style.cursor = readOnly ? 'default' : 'text';
               console.log("Editor root element made explicitly editable");
             }
           } catch (error) {
-            console.error("Error focusing editor:", error);
+            console.error("Error setting up editor:", error);
           }
         }, 300); // Increased delay to ensure DOM is ready
       }
@@ -154,9 +192,11 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           quill.root.style.userSelect = 'text';
           quill.root.style.cursor = 'text';
 
-          // Try to position the cursor at the end of any content
-          const length = quill.getLength();
-          quill.setSelection(length, 0);
+          // Only position cursor at the end for empty editor or if no selection exists
+          if (!quill.getSelection() && quill.getText().trim() === '') {
+            const length = quill.getLength();
+            quill.setSelection(length, 0);
+          }
         }
 
         console.log("Editor focused and enabled via container click");
@@ -168,13 +208,21 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     return (
       <div
         className={cn(
-          "relative border border-border",
+          "relative border border-border guidia-rich-text-editor",
           className
         )}
         onClick={handleContainerClick}
-        style={{ zIndex: 1000 }}
+        style={{ isolation: 'isolate' }}
       >
-        <div ref={quillRef} style={{ pointerEvents: 'auto' }} />
+        <div
+          ref={quillRef}
+          style={{
+            pointerEvents: 'auto',
+            position: 'relative',
+            zIndex: 1
+          }}
+          className="quill-editor-wrapper"
+        />
         {/* Rich Text Editor styles are defined in index.css */}
 
         {/* Typing indicator removed */}
@@ -186,5 +234,3 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 RichTextEditor.displayName = "RichTextEditor";
 
 export { RichTextEditor };
-
-
