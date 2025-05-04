@@ -234,7 +234,7 @@ export function WelcomeEditStudentProfile() {
         imageFormData.append('image', formData.image);
         imageFormData.append('type', 'student-profile');
 
-        const uploadResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/upload`, {
+        const uploadResponse = await fetch(`/api/upload`, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
@@ -267,7 +267,8 @@ export function WelcomeEditStudentProfile() {
       console.log('Submitting profile data:', profileData);
 
       // Send data directly to the API
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/profile`, {
+      // Use relative URL instead of environment variable
+      const response = await fetch(`/api/students/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
