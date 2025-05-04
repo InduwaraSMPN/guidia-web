@@ -8,6 +8,11 @@ router.get('/availability/:userId', verifyToken, meetingController.getUserAvaila
 router.post('/availability', verifyToken, meetingController.createOrUpdateAvailability);
 router.delete('/availability/:availabilityId', verifyToken, meetingController.deleteAvailability);
 
+// Unavailability routes
+router.get('/unavailability/:userId', verifyToken, meetingController.getUserUnavailability);
+router.post('/unavailability', verifyToken, meetingController.createOrUpdateUnavailability);
+router.delete('/unavailability/:unavailabilityId', verifyToken, meetingController.deleteUnavailability);
+
 // Meeting routes
 router.post('/meetings', verifyToken, meetingController.requestMeeting);
 router.get('/meetings', verifyToken, meetingController.getUserMeetings);

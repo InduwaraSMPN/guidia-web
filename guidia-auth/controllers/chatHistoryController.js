@@ -401,9 +401,11 @@ const chatHistoryController = {
    * @param {Object} res - Response object
    */
   searchConversations: async (req, res) => {
+    console.log('searchConversations called with query params:', req.query);
     try {
       const { query, startDate, endDate, page = 1, limit = 10 } = req.query;
       const userID = req.user.userID || req.user.userId || req.user.id;
+      console.log(`Search request from userID: ${userID}`);
 
       if (!query && !startDate && !endDate) {
         return res.status(400).json({
@@ -423,10 +425,17 @@ const chatHistoryController = {
         queryParams.push(likeParam, likeParam, likeParam);
 
         // Log search query
-        await pool.query(
-          'INSERT INTO ai_chat_search_history (userID, query) VALUES (?, ?)',
-          [userID, query]
-        );
+        console.log(`Logging search query to ai_chat_search_history: userID=${userID}, query=${query}`);
+        try {
+          const [result] = await pool.query(
+            'INSERT INTO ai_chat_search_history (userID, query) VALUES (?, ?)',
+            [userID, query]
+          );
+          console.log(`Search history logged successfully, insertId: ${result.insertId}`);
+        } catch (error) {
+          console.error('Error logging search query to history:', error);
+          // Continue with the search even if logging fails
+        }
       }
 
       if (startDate) {
@@ -583,20 +592,31 @@ const chatHistoryController = {
    * @param {Object} res - Response object
    */
   getUserPreferences: async (req, res) => {
+    console.log('getUserPreferences called for user:', req.user);
     try {
       const userID = req.user.userID || req.user.userId || req.user.id;
+      console.log(`Fetching preferences for userID: ${userID}`);
 
       const [preferences] = await pool.query(
         'SELECT * FROM ai_chat_user_preferences WHERE userID = ?',
         [userID]
       );
 
+      console.log('Preferences query result:', preferences);
+
       if (preferences.length === 0) {
         // Create default preferences if not exist
-        await pool.query(
-          'INSERT INTO ai_chat_user_preferences (userID, autoDeleteDays, defaultSummarize) VALUES (?, NULL, 0)',
-          [userID]
-        );
+        console.log(`No preferences found for userID: ${userID}, creating default preferences`);
+        try {
+          const [result] = await pool.query(
+            'INSERT INTO ai_chat_user_preferences (userID, autoDeleteDays, defaultSummarize) VALUES (?, NULL, 0)',
+            [userID]
+          );
+          console.log(`Default preferences created successfully, result:`, result);
+        } catch (error) {
+          console.error('Error creating default preferences:', error);
+          // Continue with the response even if creation fails
+        }
 
         return res.status(200).json({
           success: true,
@@ -631,9 +651,11 @@ const chatHistoryController = {
    * @param {Object} res - Response object
    */
   updateUserPreferences: async (req, res) => {
+    console.log('updateUserPreferences called with body:', req.body);
     try {
       const { autoDeleteDays, defaultSummarize } = req.body;
       const userID = req.user.userID || req.user.userId || req.user.id;
+      console.log(`Updating preferences for userID: ${userID}, autoDeleteDays: ${autoDeleteDays}, defaultSummarize: ${defaultSummarize}`);
 
       // Validate autoDeleteDays
       if (autoDeleteDays !== null && (isNaN(autoDeleteDays) || autoDeleteDays < 0)) {
@@ -651,16 +673,30 @@ const chatHistoryController = {
 
       if (preferences.length === 0) {
         // Create preferences
-        await pool.query(
-          'INSERT INTO ai_chat_user_preferences (userID, autoDeleteDays, defaultSummarize) VALUES (?, ?, ?)',
-          [userID, autoDeleteDays, defaultSummarize ? 1 : 0]
-        );
+        console.log(`No existing preferences found for userID: ${userID}, creating new preferences`);
+        try {
+          const [result] = await pool.query(
+            'INSERT INTO ai_chat_user_preferences (userID, autoDeleteDays, defaultSummarize) VALUES (?, ?, ?)',
+            [userID, autoDeleteDays, defaultSummarize ? 1 : 0]
+          );
+          console.log(`Preferences created successfully, result:`, result);
+        } catch (error) {
+          console.error('Error creating preferences:', error);
+          throw error; // Rethrow to be caught by the outer try/catch
+        }
       } else {
         // Update preferences
-        await pool.query(
-          'UPDATE ai_chat_user_preferences SET autoDeleteDays = ?, defaultSummarize = ? WHERE userID = ?',
-          [autoDeleteDays, defaultSummarize ? 1 : 0, userID]
-        );
+        console.log(`Updating existing preferences for userID: ${userID}`);
+        try {
+          const [result] = await pool.query(
+            'UPDATE ai_chat_user_preferences SET autoDeleteDays = ?, defaultSummarize = ? WHERE userID = ?',
+            [autoDeleteDays, defaultSummarize ? 1 : 0, userID]
+          );
+          console.log(`Preferences updated successfully, result:`, result);
+        } catch (error) {
+          console.error('Error updating preferences:', error);
+          throw error; // Rethrow to be caught by the outer try/catch
+        }
       }
 
       return res.status(200).json({

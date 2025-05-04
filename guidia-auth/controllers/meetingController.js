@@ -1250,6 +1250,194 @@ const meetingController = {
         error: error.message
       });
     }
+  },
+
+  // Unavailability Methods
+
+  /**
+   * Get user's unavailability periods
+   */
+  getUserUnavailability: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const pool = req.app.locals.pool;
+
+      // Check if the user is authorized to view this user's unavailability
+      // Either the user is viewing their own unavailability or they are an admin
+      if (String(req.user.id) !== String(userId) && req.user.roleID !== 1) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized to view this user\'s unavailability periods'
+        });
+      }
+
+      // Get the user's unavailability periods
+      const [unavailabilityResults] = await pool.query(
+        `SELECT * FROM meeting_unavailability
+         WHERE userID = ?
+         ORDER BY startDateTime`,
+        [userId]
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: unavailabilityResults
+      });
+    } catch (error) {
+      console.error('Error fetching user unavailability:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch unavailability periods',
+        error: error.message
+      });
+    }
+  },
+
+  /**
+   * Create or update user's unavailability periods
+   */
+  createOrUpdateUnavailability: async (req, res) => {
+    try {
+      const { userID, unavailabilityPeriods } = req.body;
+      const pool = req.app.locals.pool;
+
+      // Check if the user is authorized to update this user's unavailability
+      // Either the user is updating their own unavailability or they are an admin
+      if (String(req.user.id) !== String(userID) && req.user.roleID !== 1) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized to update this user\'s unavailability periods'
+        });
+      }
+
+      // Start a transaction
+      const connection = await pool.getConnection();
+      await connection.beginTransaction();
+
+      try {
+        // Get existing unavailability periods for this user
+        const [existingPeriods] = await connection.query(
+          'SELECT unavailabilityID FROM meeting_unavailability WHERE userID = ?',
+          [userID]
+        );
+
+        // Create a map of existing period IDs
+        const existingPeriodIds = new Set(existingPeriods.map(period => period.unavailabilityID));
+
+        // Track which periods were processed
+        const processedPeriodIds = new Set();
+
+        // Process each unavailability period
+        for (const period of unavailabilityPeriods) {
+          if (period.unavailabilityID) {
+            // Update existing period
+            await connection.query(
+              'UPDATE meeting_unavailability SET startDateTime = ?, endDateTime = ? WHERE unavailabilityID = ? AND userID = ?',
+              [period.startDateTime, period.endDateTime, period.unavailabilityID, userID]
+            );
+            processedPeriodIds.add(period.unavailabilityID);
+          } else {
+            // Create new period
+            const [result] = await connection.query(
+              'INSERT INTO meeting_unavailability (userID, startDateTime, endDateTime) VALUES (?, ?, ?)',
+              [userID, period.startDateTime, period.endDateTime]
+            );
+            processedPeriodIds.add(result.insertId);
+          }
+        }
+
+        // Delete periods that weren't included in the update
+        for (const existingId of existingPeriodIds) {
+          if (!processedPeriodIds.has(existingId)) {
+            await connection.query(
+              'DELETE FROM meeting_unavailability WHERE unavailabilityID = ?',
+              [existingId]
+            );
+          }
+        }
+
+        // Commit the transaction
+        await connection.commit();
+
+        // Get the updated unavailability periods
+        const [updatedPeriods] = await pool.query(
+          'SELECT * FROM meeting_unavailability WHERE userID = ? ORDER BY startDateTime',
+          [userID]
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: 'Unavailability periods updated successfully',
+          data: updatedPeriods
+        });
+      } catch (error) {
+        // Rollback the transaction if there was an error
+        await connection.rollback();
+        throw error;
+      } finally {
+        // Release the connection
+        connection.release();
+      }
+    } catch (error) {
+      console.error('Error updating unavailability periods:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update unavailability periods',
+        error: error.message
+      });
+    }
+  },
+
+  /**
+   * Delete a specific unavailability period
+   */
+  deleteUnavailability: async (req, res) => {
+    try {
+      const { unavailabilityId } = req.params;
+      const pool = req.app.locals.pool;
+
+      // Get the unavailability period to check ownership
+      const [unavailabilityResults] = await pool.query(
+        'SELECT * FROM meeting_unavailability WHERE unavailabilityID = ?',
+        [unavailabilityId]
+      );
+
+      if (unavailabilityResults.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Unavailability period not found'
+        });
+      }
+
+      const unavailability = unavailabilityResults[0];
+
+      // Check if the user is authorized to delete this unavailability period
+      // Either the user is deleting their own unavailability or they are an admin
+      if (String(req.user.id) !== String(unavailability.userID) && req.user.roleID !== 1) {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized to delete this unavailability period'
+        });
+      }
+
+      // Delete the unavailability period
+      await pool.query(
+        'DELETE FROM meeting_unavailability WHERE unavailabilityID = ?',
+        [unavailabilityId]
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Unavailability period deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting unavailability period:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete unavailability period',
+        error: error.message
+      });
+    }
   }
 };
 

@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Tag,
   Loader2,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TagManagementDialog } from "./TagManagementDialog";
+import { ChatPreferencesDialog } from "./ChatPreferencesDialog";
 
 interface Conversation {
   conversationID: number;
@@ -96,6 +98,7 @@ export function ChatHistoryDrawer({
   const [selectedConversationTags, setSelectedConversationTags] = useState<
     string[]
   >([]);
+  const [isPreferencesDialogOpen, setIsPreferencesDialogOpen] = useState(false);
 
   // Fetch conversations with pagination support
   const fetchConversations = async (pageNum = 1, archived = false) => {
@@ -157,25 +160,68 @@ export function ChatHistoryDrawer({
     }
   };
 
-  // Filter conversations based on search query
+  // Search conversations using server-side search
   useEffect(() => {
+    // If search query is empty, just use the regular conversations
     if (searchQuery.trim() === "") {
       setFilteredConversations(conversations);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = conversations.filter(
-        (conversation) =>
-          conversation.title.toLowerCase().includes(query) ||
-          (conversation.lastMessage &&
-            conversation.lastMessage.toLowerCase().includes(query)) ||
-          (conversation.summary &&
-            conversation.summary.toLowerCase().includes(query)) ||
-          (conversation.tags &&
-            conversation.tags.some((tag) => tag.toLowerCase().includes(query)))
-      );
-      setFilteredConversations(filtered);
+      return;
     }
-  }, [searchQuery, conversations]);
+
+    // Debounce function to avoid too many requests
+    const debounceTimeout = setTimeout(async () => {
+      try {
+        setIsLoading(true);
+
+        // Import the secure API request function
+        const { secureApiRequest } = await import("@/lib/tokenHelper");
+
+        // Call the server-side search endpoint
+        console.log(`Calling search API with query: ${searchQuery}`);
+        const searchUrl = `${API_URL}/api/chat-history/search?query=${encodeURIComponent(searchQuery)}`;
+        console.log(`Search URL: ${searchUrl}`);
+        const response = await secureApiRequest(searchUrl);
+
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Search API response:", data);
+
+        // Check if the data has the expected structure
+        if (!data.data || !Array.isArray(data.data.conversations)) {
+          console.error("Unexpected search result structure:", data);
+          toast.error("Invalid search results format");
+          return;
+        }
+
+        console.log(`Found ${data.data.conversations.length} conversations matching search query`);
+        setFilteredConversations(data.data.conversations);
+      } catch (error) {
+        console.error("Error searching conversations:", error);
+        toast.error("Failed to search conversations");
+
+        // Fallback to client-side filtering if server search fails
+        const query = searchQuery.toLowerCase();
+        const filtered = conversations.filter(
+          (conversation) =>
+            conversation.title.toLowerCase().includes(query) ||
+            (conversation.lastMessage &&
+              conversation.lastMessage.toLowerCase().includes(query)) ||
+            (conversation.summary &&
+              conversation.summary.toLowerCase().includes(query)) ||
+            (conversation.tags &&
+              conversation.tags.some((tag) => tag.toLowerCase().includes(query)))
+        );
+        setFilteredConversations(filtered);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(debounceTimeout);
+  }, [searchQuery, conversations, API_URL]);
 
   // Fetch conversations when drawer opens or archived status changes
   useEffect(() => {
@@ -387,15 +433,26 @@ export function ChatHistoryDrawer({
                   Chat History
                 </h2>
               </div>
-              <motion.button
-                onClick={() => setIsOpen(false)}
-                className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95, rotate: 90 }}
-                aria-label="Close history panel"
-              >
-                <X className="h-5 w-5" />
-              </motion.button>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  onClick={() => setIsPreferencesDialogOpen(true)}
+                  className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="Chat preferences"
+                >
+                  <Settings className="h-5 w-5" />
+                </motion.button>
+                <motion.button
+                  onClick={() => setIsOpen(false)}
+                  className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95, rotate: 90 }}
+                  aria-label="Close history panel"
+                >
+                  <X className="h-5 w-5" />
+                </motion.button>
+              </div>
             </div>
 
             {/* Content based on login status */}
@@ -794,6 +851,12 @@ export function ChatHistoryDrawer({
         conversationId={conversationForTags}
         existingTags={selectedConversationTags}
         onTagsUpdated={handleTagsUpdated}
+      />
+
+      {/* Chat preferences dialog */}
+      <ChatPreferencesDialog
+        isOpen={isPreferencesDialogOpen}
+        setIsOpen={setIsPreferencesDialogOpen}
       />
     </Drawer.Root>
   );

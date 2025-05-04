@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MeetingAvailabilitySettings } from '@/components/meetings/MeetingAvailabilitySettings';
+import { MeetingUnavailabilitySettings } from '@/components/meetings/MeetingUnavailabilitySettings';
 import { MeetingAnalytics } from '@/components/meetings/MeetingAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -172,15 +173,23 @@ export function MeetingAvailabilityPage() {
 
       <Tabs defaultValue="availability" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="availability">Regular Availability</TabsTrigger>
+          <TabsTrigger value="unavailability">Unavailability</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="availability" className="space-y-6">
           <p className="text-muted-foreground">
-            Set your availability for meetings. Others will only be able to request meetings during these times.
+            Set your regular availability for meetings. Others will only be able to request meetings during these times.
           </p>
           <MeetingAvailabilitySettings />
+        </TabsContent>
+
+        <TabsContent value="unavailability" className="space-y-6">
+          <p className="text-muted-foreground">
+            Set specific periods when you're unavailable for meetings, such as vacations or holidays. These will override your regular availability.
+          </p>
+          <MeetingUnavailabilitySettings />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
