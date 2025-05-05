@@ -69,7 +69,7 @@ router.post('/student-profile', verifyToken, async (req, res) => {
         JOIN companies c ON j.companyID = c.companyID
         WHERE ja.studentID = ?
         ORDER BY ja.submittedAt DESC
-      `, [studentID]);
+      `, [student.userID]); // Use userID instead of studentID
       applications = apps;
     }
 
