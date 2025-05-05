@@ -6,7 +6,6 @@ import {
   View,
   StyleSheet,
   Image,
-  Link,
   Svg,
   Path
 } from '@react-pdf/renderer';
@@ -99,8 +98,9 @@ const parseHtmlContent = (htmlContent: string | null | undefined): RichTextLine[
     .replace(/<li[^>]*>(.*?)<\/li>/g, '• $1\n')
     .replace(/<[^>]*>/g, '');
 
-  // Check for title format
-  const titleMatch = cleanedHtml.match(/^(\*\*?)(.+?Student\s*\|\s*.*?\|.*?)(\*\*?)\n/);
+  // Check for common title formats in student descriptions
+  // This handles formats like "Undergraduate Student | Management | University of X"
+  const titleMatch = cleanedHtml.match(/^(\*\*?)(.+?(Student|Undergraduate|Graduate|Postgraduate)\s*\|\s*.*?)(\*\*?)\n/i);
   const lines: RichTextLine[] = [];
 
   let remainingContent = cleanedHtml;
@@ -109,6 +109,13 @@ const parseHtmlContent = (htmlContent: string | null | undefined): RichTextLine[
     const titleText = titleMatch[2].replace(/\*\*/g, '').trim();
     lines.push({ text: titleText, isBold: true, isTitle: true });
     remainingContent = cleanedHtml.replace(titleMatch[0], '').trim();
+  } else {
+    // Alternative title detection for other formats
+    const firstLine = cleanedHtml.split('\n')[0];
+    if (firstLine && (firstLine.includes('Student') || firstLine.includes('University') || firstLine.includes('College'))) {
+      lines.push({ text: firstLine.replace(/\*\*/g, '').trim(), isBold: true, isTitle: true });
+      remainingContent = cleanedHtml.replace(firstLine, '').trim();
+    }
   }
 
   // Process remaining content with improved segment handling
@@ -116,6 +123,9 @@ const parseHtmlContent = (htmlContent: string | null | undefined): RichTextLine[
 
   paragraphs.forEach(paragraph => {
     if (!paragraph.trim()) return;
+
+    // Check if paragraph starts with a bullet point
+    const isBulletPoint = paragraph.trim().startsWith('•');
 
     const segments = paragraph.split(/(\*\*.*?\*\*|_.*?_)/g).filter(Boolean);
 
@@ -136,6 +146,10 @@ const parseHtmlContent = (htmlContent: string | null | undefined): RichTextLine[
       }
 
       if (text.trim()) {
+        // Add indentation to bullet points for better visual hierarchy
+        if (isBulletPoint && text.startsWith('•')) {
+          text = '  ' + text;
+        }
         lines.push({ text: text.trim(), isBold, isItalic });
       }
     });
@@ -149,6 +163,8 @@ const RichText = ({ content, style }: { content: string; style?: any }) => {
   const textLines = parseHtmlContent(content);
   if (!textLines.length) return null;
 
+  // Process the text lines for better formatting
+
   return (
     <View style={{ marginBottom: 6 }}>
       {textLines.map((line, index) => {
@@ -160,11 +176,14 @@ const RichText = ({ content, style }: { content: string; style?: any }) => {
           ...(line.isTitle ? {
             fontSize: 11,
             fontWeight: 'bold',
-            marginBottom: 3,
-            color: '#333'
+            marginBottom: 4,
+            color: '#333',
+            paddingBottom: 2,
+            borderBottomWidth: 0.5,
+            borderBottomColor: '#e0e0e0',
           } : {}),
-          marginTop: index > 0 ? (line.isTitle ? 4 : 2) : 0,
-          marginBottom: 2,
+          marginTop: index > 0 ? (line.isTitle ? 6 : 3) : 0,
+          marginBottom: 3,
         };
 
         return (
@@ -261,21 +280,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     textTransform: 'uppercase',
-    letterSpacing: 0.5, // Subtle letter spacing for headings
+    letterSpacing: 1, // Subtle letter spacing for headings
   },
 
   // Student Info Components
   studentInfoContainer: {
-    marginBottom: 12,
+    marginBottom: 15,
   },
   studentInfoHeader: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 12,
     backgroundColor: '#f7f0f2', // Lighter burgundy tint for branding consistency
-    padding: 8,
+    padding: 10,
     borderRadius: 4,
-    borderLeftWidth: 3, // Thicker accent for emphasis
+    borderLeftWidth: 4, // Thicker accent for emphasis
     borderLeftColor: '#800020',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
   },
   studentInfoHeaderColumn: {
     width: '50%',
@@ -283,46 +303,51 @@ const styles = StyleSheet.create({
   studentInfoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 2,
-    marginBottom: 2,
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 4,
+    borderLeftWidth: 4, // Match the header accent
+    borderLeftColor: '#800020',
   },
   infoRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    marginBottom: 6,
     width: '100%',
   },
   infoHalfRow: {
     flexDirection: 'row',
-    marginBottom: 6, // Increased for better readability
+    marginBottom: 8, // Increased for better readability
     width: '50%', // Changed to half-width for better layout
-    paddingRight: 5,
+    paddingRight: 8,
   },
   infoLabel: {
-    fontSize: 8,
-    color: '#555',
+    fontSize: 9,
+    color: '#444',
     fontWeight: 'bold',
     width: '35%',
   },
   infoValue: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#000',
     width: '65%',
   },
 
   // Description Components
   descriptionBox: {
-    backgroundColor: '#f9f9f9',
-    padding: 8,
+    padding: 10,
     borderRadius: 4,
-    borderLeftWidth: 2,
+    borderLeftWidth: 4, // Match the header accent
     borderLeftColor: '#800020',
-    marginTop: 6,
+    marginTop: 12,
     marginBottom: 10,
   },
   description: {
-    fontSize: 8,
+    fontSize: 9,
     color: '#333',
-    lineHeight: 1.4, // Improved line height for readability
+    lineHeight: 1.5, // Improved line height for readability
+    marginBottom: 3,
   },
 
   // Pathway Components
@@ -534,14 +559,14 @@ const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
               {/* Name and ID - Prominent display */}
               <View style={styles.studentInfoHeader}>
                 <View style={styles.studentInfoHeaderColumn}>
-                  <Text style={[styles.infoLabel, { fontSize: 9 }]}>Name:</Text>
-                  <Text style={[styles.infoValue, { fontSize: 13, fontWeight: 'bold' }]}>
+                  <Text style={[styles.infoLabel, { fontSize: 10, color: '#555' }]}>Name:</Text>
+                  <Text style={[styles.infoValue, { fontSize: 14, fontWeight: 'bold', color: '#333' }]}>
                     {student.studentName || 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.studentInfoHeaderColumn}>
-                  <Text style={[styles.infoLabel, { fontSize: 9 }]}>Student Number:</Text>
-                  <Text style={[styles.infoValue, { fontSize: 13, fontWeight: 'bold' }]}>
+                  <Text style={[styles.infoLabel, { fontSize: 10, color: '#555' }]}>Student Number:</Text>
+                  <Text style={[styles.infoValue, { fontSize: 14, fontWeight: 'bold', color: '#333' }]}>
                     {student.studentNumber || 'N/A'}
                   </Text>
                 </View>
@@ -570,7 +595,14 @@ const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
               {/* Description - Enhanced formatting if available */}
               {student.studentDescription && (
                 <View style={styles.descriptionBox}>
-                  <RichText content={student.studentDescription} />
+                  <RichText
+                    content={student.studentDescription}
+                    style={{
+                      fontSize: 9,
+                      lineHeight: 1.5,
+                      color: '#333'
+                    }}
+                  />
                 </View>
               )}
             </View>
