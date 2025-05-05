@@ -317,8 +317,8 @@ export const EventItem = ({
         alt={title}
         className={`flex-shrink-0 rounded-md shadow-md ${type === "past" ? "grayscale" : ""}`}
       />
-      <div>
-        <h4 className="text-base font-medium mb-1 text-foreground dark:text-white group-hover:text-brand transition-colors">{title}</h4>
+      <div className="max-w-[180px] overflow-hidden">
+        <h4 className="text-base font-medium mb-1 text-foreground dark:text-white group-hover:text-brand transition-colors line-clamp-1 w-full">{title}</h4>
         <div className="flex items-center text-xs text-muted-foreground">
           <span className="inline-block w-3 h-3 mr-1">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">

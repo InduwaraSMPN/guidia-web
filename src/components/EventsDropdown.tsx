@@ -150,7 +150,7 @@ export function EventsDropdown() {
 
   if (loading) {
     return (
-      <div className="flex flex-col p-4 min-w-[400px]">
+      <div className="flex flex-col p-4 min-w-[400px] max-w-[450px]">
         {/* Header with Navigation Links */}
         <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
           <div className="text-sm font-medium mr-6">Upcoming Events</div>
@@ -160,7 +160,7 @@ export function EventsDropdown() {
         {/* Event Grid */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
           {[...Array(4)].map((_, index) => (
-            <div key={index} className="opacity-80">
+            <div key={index} className="opacity-80 w-full max-w-[180px]">
               <Skeleton className="h-24 w-full rounded-md mb-2" />
               <Skeleton className="h-4 w-3/4 mb-1" />
               <Skeleton className="h-3 w-1/2" />
@@ -180,7 +180,7 @@ export function EventsDropdown() {
   // If no events found
   if (upcomingEvents.length === 0 && pastEvents.length === 0) {
     return (
-      <div className="flex flex-col p-4 min-w-[400px]">
+      <div className="flex flex-col p-4 min-w-[400px] max-w-[450px]">
         {/* Header with Navigation Links */}
         <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
           <HoveredLink
@@ -280,7 +280,7 @@ export function EventsDropdown() {
 
   return (
     <div
-      className="flex flex-col p-4 min-w-[400px]"
+      className="flex flex-col p-4 min-w-[400px] max-w-[450px]"
     >
       {/* Header with Navigation Links */}
       <div className="flex border-b border-border pb-2 mb-4 gap-x-14 gap-y-4">
@@ -303,7 +303,7 @@ export function EventsDropdown() {
       {/* Event Grid */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-4">
         {upcomingEvents.map((event) => (
-          <div key={event.eventID} className="group">
+          <div key={event.eventID} className="group w-full max-w-[180px]">
             <HoveredLink href={`/events?tab=upcoming`} className="block">
               <div className="relative rounded-md overflow-hidden mb-2">
                 <img
@@ -318,7 +318,7 @@ export function EventsDropdown() {
                   Upcoming
                 </div>
               </div>
-              <h4 className="text-sm font-medium group-hover:text-brand transition-colors line-clamp-1">{event.title}</h4>
+              <h4 className="text-sm font-medium group-hover:text-brand transition-colors line-clamp-1 w-full">{event.title}</h4>
               <div className="text-xs text-muted-foreground flex items-center">
                 <span className="inline-block w-3 h-3 mr-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
@@ -335,7 +335,7 @@ export function EventsDropdown() {
         ))}
 
         {pastEvents.map((event) => (
-          <div key={event.eventID} className="group">
+          <div key={event.eventID} className="group w-full max-w-[180px]">
             <HoveredLink href={`/events?tab=past`} className="block">
               <div className="relative rounded-md overflow-hidden mb-2">
                 <img
@@ -350,7 +350,7 @@ export function EventsDropdown() {
                   Past
                 </div>
               </div>
-              <h4 className="text-sm font-medium group-hover:text-brand transition-colors line-clamp-1">{event.title}</h4>
+              <h4 className="text-sm font-medium group-hover:text-brand transition-colors line-clamp-1 w-full">{event.title}</h4>
               <div className="text-xs text-muted-foreground flex items-center">
                 <span className="inline-block w-3 h-3 mr-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
@@ -369,7 +369,7 @@ export function EventsDropdown() {
         {/* Fill empty slots with placeholders if needed */}
         {upcomingEvents.length + pastEvents.length < 4 && (
           [...Array(4 - (upcomingEvents.length + pastEvents.length))].map((_, index) => (
-            <div key={`empty-${index}`} className="opacity-50">
+            <div key={`empty-${index}`} className="opacity-50 w-full max-w-[180px]">
               <div className="rounded-md overflow-hidden mb-2 bg-secondary/50 h-24 w-full" />
               <div className="h-4 w-3/4 bg-secondary/50 rounded mb-1" />
               <div className="h-3 w-1/2 bg-secondary/50 rounded" />
