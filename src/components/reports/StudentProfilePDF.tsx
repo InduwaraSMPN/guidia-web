@@ -5,8 +5,7 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
-  Font
+  Image
 } from '@react-pdf/renderer';
 import { format as formatDate } from 'date-fns';
 
@@ -115,6 +114,7 @@ interface StudentProfilePDFProps {
     applications: any[];
     meetings: any[];
     pathways: any[];
+    documents: any[];
     generatedAt: string;
     sections: string[];
   };
@@ -122,7 +122,7 @@ interface StudentProfilePDFProps {
 
 // Create the PDF document component
 const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
-  const { student, applications, meetings, pathways, generatedAt, sections } = data;
+  const { student, applications, meetings, pathways, documents, generatedAt, sections } = data;
 
   return (
     <Document>
@@ -191,16 +191,18 @@ const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
         )}
 
         {/* Career Pathways Section */}
-        {sections.includes('pathways') && pathways.length > 0 && (
+        {sections.includes('pathways') && pathways && pathways.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Career Pathways</Text>
 
-            {pathways.map((pathway, index) => (
+            {pathways.map((pathway: any, index: number) => (
               <View key={index} style={styles.item}>
                 <Text style={styles.itemTitle}>
-                  {pathway.title || `Pathway ${index + 1}`}
+                  {typeof pathway === 'string'
+                    ? pathway
+                    : pathway.title || `Pathway ${index + 1}`}
                 </Text>
-                {pathway.description && (
+                {typeof pathway === 'object' && pathway.description && (
                   <Text style={styles.description}>{pathway.description}</Text>
                 )}
               </View>
@@ -247,6 +249,24 @@ const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
                 </Text>
                 <Text style={styles.itemDetail}>
                   Status: {meeting.status || 'Unknown'}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Documents Section */}
+        {sections.includes('documents') && documents && documents.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Documents</Text>
+
+            {documents.map((doc: any, index: number) => (
+              <View key={index} style={styles.item}>
+                <Text style={styles.itemTitle}>
+                  {doc.stuDocName || doc.title || doc.name || `Document ${index + 1}`}
+                </Text>
+                <Text style={styles.itemDetail}>
+                  Type: {doc.stuDocType || doc.type || 'Unknown type'}
                 </Text>
               </View>
             ))}

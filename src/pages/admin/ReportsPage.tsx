@@ -13,8 +13,10 @@ import {
   Search,
   User,
   GraduationCap,
-  Briefcase
+  Briefcase,
+  Eye
 } from "lucide-react";
+import { ViewDocumentModal } from "@/components/ViewDocumentModal";
 import { PageHeading } from "@/components/PageHeading";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,8 +68,7 @@ function ReportsPage() {
   // Report sections configuration
   const [reportSections, setReportSections] = useState<ReportSection[]>([
     { id: "profile", label: "Profile Information", checked: true },
-    { id: "education", label: "Education Details", checked: true },
-    { id: "career", label: "Career Pathways", checked: true },
+    { id: "pathways", label: "Career Pathways", checked: true },
     { id: "documents", label: "Documents", checked: true },
     { id: "applications", label: "Job Applications", checked: true },
     { id: "meetings", label: "Meeting History", checked: true },
@@ -132,6 +133,13 @@ function ReportsPage() {
   // State for report data and download status
   const [reportData, setReportData] = useState<any>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // State for document viewer
+  const [selectedDocument, setSelectedDocument] = useState<{
+    url: string;
+    name: string;
+    type?: string;
+  } | null>(null);
 
   // Generate and download report
   const downloadReport = async () => {
@@ -450,8 +458,12 @@ function ReportsPage() {
                     {typeof selectedStudent.studentCareerPathways === 'string'
                       ? JSON.parse(selectedStudent.studentCareerPathways).map((pathway: any, index: number) => (
                           <div key={index} className="p-3 bg-muted/50 rounded-md">
-                            <p className="font-medium">{pathway.title || 'Unnamed Pathway'}</p>
-                            {pathway.description && (
+                            <p className="font-medium">
+                              {typeof pathway === 'string'
+                                ? pathway
+                                : pathway.title || 'Unnamed Pathway'}
+                            </p>
+                            {typeof pathway === 'object' && pathway.description && (
                               <p className="text-sm text-muted-foreground mt-1">{pathway.description}</p>
                             )}
                           </div>
@@ -459,8 +471,12 @@ function ReportsPage() {
                       : Array.isArray(selectedStudent.studentCareerPathways)
                         ? selectedStudent.studentCareerPathways.map((pathway: any, index: number) => (
                             <div key={index} className="p-3 bg-muted/50 rounded-md">
-                              <p className="font-medium">{pathway.title || 'Unnamed Pathway'}</p>
-                              {pathway.description && (
+                              <p className="font-medium">
+                                {typeof pathway === 'string'
+                                  ? pathway
+                                  : pathway.title || 'Unnamed Pathway'}
+                              </p>
+                              {typeof pathway === 'object' && pathway.description && (
                                 <p className="text-sm text-muted-foreground mt-1">{pathway.description}</p>
                               )}
                             </div>
@@ -487,11 +503,24 @@ function ReportsPage() {
                       ? JSON.parse(selectedStudent.studentDocuments).map((doc: any, index: number) => (
                           <div key={index} className="p-3 bg-muted/50 rounded-md flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{doc.title || doc.name || 'Unnamed Document'}</p>
-                              <p className="text-xs text-muted-foreground">{doc.type || 'Unknown type'}</p>
+                              <p className="font-medium">
+                                {doc.stuDocName || doc.title || doc.name || 'Unnamed Document'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {doc.stuDocType || doc.type || 'Unknown type'}
+                              </p>
                             </div>
-                            <Button variant="ghost" size="sm">
-                              <FileText className="h-4 w-4" />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedDocument({
+                                url: doc.stuDocURL || doc.url,
+                                name: doc.stuDocName || doc.title || doc.name || 'Unnamed Document',
+                                type: doc.stuDocType || doc.type || 'Unknown type'
+                              })}
+                              aria-label={`View ${doc.stuDocName || doc.title || doc.name || 'document'}`}
+                            >
+                              <Eye className="h-4 w-4" />
                             </Button>
                           </div>
                         ))
@@ -499,11 +528,24 @@ function ReportsPage() {
                         ? selectedStudent.studentDocuments.map((doc: any, index: number) => (
                             <div key={index} className="p-3 bg-muted/50 rounded-md flex items-center justify-between">
                               <div>
-                                <p className="font-medium">{doc.title || doc.name || 'Unnamed Document'}</p>
-                                <p className="text-xs text-muted-foreground">{doc.type || 'Unknown type'}</p>
+                                <p className="font-medium">
+                                  {doc.stuDocName || doc.title || doc.name || 'Unnamed Document'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {doc.stuDocType || doc.type || 'Unknown type'}
+                                </p>
                               </div>
-                              <Button variant="ghost" size="sm">
-                                <FileText className="h-4 w-4" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedDocument({
+                                  url: doc.stuDocURL || doc.url,
+                                  name: doc.stuDocName || doc.title || doc.name || 'Unnamed Document',
+                                  type: doc.stuDocType || doc.type || 'Unknown type'
+                                })}
+                                aria-label={`View ${doc.stuDocName || doc.title || doc.name || 'document'}`}
+                              >
+                                <Eye className="h-4 w-4" />
                               </Button>
                             </div>
                           ))
@@ -519,6 +561,17 @@ function ReportsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Document Viewer Modal */}
+      {selectedDocument && (
+        <ViewDocumentModal
+          isOpen={true}
+          onClose={() => setSelectedDocument(null)}
+          documentUrl={selectedDocument.url}
+          documentName={selectedDocument.name}
+          documentType={selectedDocument.type}
+        />
       )}
     </div>
   );

@@ -105,6 +105,20 @@ router.post('/student-profile', verifyToken, async (req, res) => {
       }
     }
 
+    // Process documents if available
+    let documents = [];
+    if (sections.includes('documents') && student.studentDocuments) {
+      try {
+        if (typeof student.studentDocuments === 'string') {
+          documents = JSON.parse(student.studentDocuments);
+        } else if (Array.isArray(student.studentDocuments)) {
+          documents = student.studentDocuments;
+        }
+      } catch (e) {
+        console.error('Error parsing documents:', e);
+      }
+    }
+
     // Return the data for client-side report generation
     res.json({
       success: true,
@@ -113,6 +127,7 @@ router.post('/student-profile', verifyToken, async (req, res) => {
         applications: sections.includes('applications') ? applications : [],
         meetings: sections.includes('meetings') ? meetings : [],
         pathways,
+        documents,
         generatedAt: new Date().toISOString(),
         format,
         sections
