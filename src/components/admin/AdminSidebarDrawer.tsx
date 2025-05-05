@@ -24,6 +24,8 @@ import {
   Activity,
   ShieldAlert,
   Server,
+  BarChart2,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -52,6 +54,7 @@ export function AdminSidebarDrawer({ isOpen, setIsOpen }: AdminSidebarDrawerProp
     { path: "/admin/users/companies", label: "Company Users", section: "users" },
     { path: "/admin/news", label: "News", section: "main" },
     { path: "/admin/events", label: "Events", section: "main" },
+    { path: "/admin/reports", label: "Reports", section: "main" },
     { path: "/admin/security-audit", label: "Security Audit", section: "main" },
     { path: "/admin/activity-feed", label: "Activity Feed", section: "main" },
     { path: "/admin/system-health", label: "System Health", section: "main" },
@@ -457,6 +460,23 @@ export function AdminSidebarDrawer({ isOpen, setIsOpen }: AdminSidebarDrawerProp
                   >
                     <Server size={18} className="flex-shrink-0 mr-3" />
                     <span className="truncate">System Health</span>
+                  </Link>
+                )}
+
+                {/* Reports - only show if in filtered results or no search */}
+                {(searchQuery === '' || filteredNavItems.some(item => item.path === '/admin/reports')) && (
+                  <Link
+                    to="/admin/reports"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 group relative",
+                      isActive("/reports")
+                        ? "bg-rose-800/10 text-rose-800 font-semibold"
+                        : "text-foreground hover:bg-muted hover:text-rose-800"
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <BarChart2 size={18} className="flex-shrink-0 mr-3" />
+                    <span className="truncate">Reports</span>
                   </Link>
                 )}
 

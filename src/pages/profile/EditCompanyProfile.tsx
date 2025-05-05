@@ -317,7 +317,9 @@ export function EditCompanyProfile() {
         }
 
         const uploadResult = await uploadResponse.json();
-        logoPath = uploadResult.filePath;
+        console.log('Upload response:', uploadResult);
+        // Use imagePath from the response (the backend returns imagePath, not filePath)
+        logoPath = uploadResult.imagePath;
       }
 
       // Prepare profile data - ensure country is properly formatted
@@ -334,6 +336,7 @@ export function EditCompanyProfile() {
       };
 
       console.log('Sending profile update with data:', profileData);
+      console.log('Company logo path being sent:', logoPath);
 
       const response = await fetch(
         `/api/companies/profile/${user.userID}`,
