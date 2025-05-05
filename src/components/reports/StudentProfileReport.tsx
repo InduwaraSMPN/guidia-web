@@ -13,6 +13,7 @@ interface StudentProfileReportProps {
     applications: any[];
     meetings: any[];
     pathways: any[];
+    documents: any[];
     generatedAt: string;
     format: string;
     sections: string[];

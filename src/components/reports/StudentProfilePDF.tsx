@@ -1,431 +1,802 @@
 import React from 'react';
 import {
- Document,
- Page,
- Text,
- View,
- StyleSheet,
- Image // <--- Import Image component
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  Link,
+  Svg,
+  Path
 } from '@react-pdf/renderer';
 import { format as formatDate } from 'date-fns';
-// DOMPurify is typically used in a browser/Node environment before passing data.
-// For react-pdf itself, you usually pass clean strings/data.
-// If you *must* sanitize within this component (less common for PDF generation):
-// Ensure 'isomorphic-dompurify' or similar is used if running server-side.
-// import DOMPurify from 'isomorphic-dompurify'; // Or 'dompurify' if browser only
 
-// --- Helper function to parse potentially simple HTML-like content ---
-// NOTE: This is a simplified parser. Robust HTML-to-PDF requires more advanced libraries.
-// It attempts to handle specific bold/italic markers and basic structure.
-const parseHtmlContent = (htmlContent: string | null | undefined): { text: string; isBold?: boolean; isItalic?: boolean; isTitle?: boolean }[] => {
- if (!htmlContent) return [];
-
- // Basic preliminary cleaning (replace common entities and tags that might interfere)
- let cleanedHtml = (htmlContent || '')
-  .replace(/ /g, ' ')
-  .replace(/<br\s*\/?>/g, '\n')
-  .replace(/<\/p>\s*<p>/g, '\n\n') // Treat paragraph tags as double newlines
-  .replace(/<p[^>]*>/g, '') // Remove opening p tags
-  .replace(/<\/p>/g, '') // Remove closing p tags
-  .replace(/<strong>(.*?)<\/strong>/g, '**$1**') // Convert strong/b to markdown bold
-  .replace(/<b>(.*?)<\/b>/g, '**$1**')
-  .replace(/<em>(.*?)<\/em>/g, '_$1_') // Convert em/i to markdown italic
-  .replace(/<i>(.*?)<\/i>/g, '_$1_')
-  .replace(/<[^>]*>/g, ''); // Remove any other remaining HTML tags (basic strip)
-
-
- // --- Special Handling for potential "Title | Details" structure ---
- // Attempts to identify a specific title format for styling
- const titleMatch = cleanedHtml.match(/^(\*\*?)(.+?Student\s*\|\s*.*?\|.*?)(\*\*?)\n/);
- let lines: { text: string; isBold?: boolean; isItalic?: boolean; isTitle?: boolean }[] = [];
- let remainingContent = cleanedHtml;
-
- if (titleMatch) {
-  const titleText = titleMatch[2].replace(/\*\*/g, '').trim(); // Extract and clean title
-  lines.push({ text: titleText, isBold: true, isTitle: true });
-  remainingContent = cleanedHtml.replace(titleMatch[0], '').trim(); // Remove title part
- }
-
- // Process the remaining content (or all content if no title match)
- const paragraphs = remainingContent.split(/\n{2,}/); // Split into paragraphs by double newlines
-
- paragraphs.forEach(paragraph => {
-  if (!paragraph.trim()) return;
-
-  // Split paragraph into lines/segments based on markdown-like markers
-  const segments = paragraph.split(/(\*\*.*?\*\*|_.*?_)/g).filter(Boolean);
-
-  segments.forEach(segment => {
-   segment = segment.trim(); // Trim each segment
-   if (!segment) return;
-
-   let isBold = false;
-   let isItalic = false;
-   let text = segment;
-
-   if (segment.startsWith('**') && segment.endsWith('**')) {
-    isBold = true;
-    text = segment.slice(2, -2);
-   } else if (segment.startsWith('_') && segment.endsWith('_')) {
-    isItalic = true;
-    text = segment.slice(1, -1);
-   }
-
-   // Check again if the text is empty after removing markers
-   if (text.trim()) {
-    lines.push({ text: text.trim(), isBold, isItalic });
-   }
-  });
-
-  // Add a marker or logic here if you want space between paragraphs later
-  // For now, RichText component handles marginBottom for Views
- });
-
-
- return lines;
-};
-
-
-// --- Rich Text component for rendering parsed content ---
-const RichText = ({ content, style }: { content: string; style?: any }) => {
- const textLines = parseHtmlContent(content);
- if (!textLines.length) return null;
-
- return (
-  // Each RichText call creates a block, marginBottom adds space after it
-  <View style={{ marginBottom: 8 }}>
-   {textLines.map((line, index) => {
-    const lineStyle = {
-     ...styles.description, // Base style for text within RichText
-     ...style, // Override with specific style passed in props
-     ...(line.isBold ? { fontWeight: 'bold' } : {}),
-     ...(line.isItalic ? { fontStyle: 'italic' } : {}),
-     // Add specific title styling if identified by the parser
-     ...(line.isTitle ? {
-      fontSize: 12, // Example: Make title slightly larger or different
-      fontWeight: 'bold',
-      marginBottom: 6, // Space after the title line
-      color: '#333'
-     } : {}),
-     // Add a small top margin for lines following a title or for subsequent lines
-     marginTop: index > 0 ? (line.isTitle ? 6 : 2) : 0, // Add space before lines, more if it's a title
-     // Keep default marginBottom small or zero for lines within the same block
-     marginBottom: 2,
-    };
-
-    return (
-     // Render each line/segment in its own Text component
-     <Text key={index} style={lineStyle}>
-      {line.text}
-     </Text>
-    );
-   })}
-  </View>
- );
-};
-
-// --- Define styles ---
-const styles = StyleSheet.create({
- page: {
-  flexDirection: 'column',
-  backgroundColor: '#ffffff',
-  paddingBottom: 50, // Increased padding for footer space
-  paddingHorizontal: 35, // Slightly more horizontal padding
- },
- header: {
-  marginBottom: 20,
-  borderBottomWidth: 1.5, // Slightly thicker border
-  borderBottomColor: '#800020', // Accent color
-  paddingBottom: 10,
- },
- headerContent: {
-  flexDirection: 'row',
-  justifyContent: 'space-between', // Space items out
-  alignItems: 'center', // Vertically align items in the header
-  marginBottom: 5,
- },
-
- // Container for the main header content (Title Image + Subtitle)
- headerCenterContent: {
-  flex: 1, // Take up available space
-  alignItems: 'center', // Center the items horizontally
- },
-
- titleLogo: {
-  width: 160,
-  marginTop: 16,
-  marginBottom: 4,
-},
-
- // New style for subtitle and date row
- subtitleDateRow: {
-  flexDirection: 'row',          // Arrange children horizontally
-  justifyContent: 'space-between', // Push subtitle left, date right
-  alignItems: 'flex-end',        // Align vertically to bottom
-  marginTop: 5,                  // Add space below the logo row
-  paddingHorizontal: 5,          // Optional: Add slight padding
- },
-
- subtitle: {
-  fontSize: 16,
-  color: '#800020', // Accent color
-  fontWeight: 'bold',
- },
- date: {
-  fontSize: 9, // Small font size for date
-  color: '#800020', // Accent color
-
- },
- section: {
-  marginBottom: 18, // Increased space between sections
- },
- sectionTitle: {
-  fontSize: 14,
-  color: '#444444', // Slightly darker subtitle
-  fontWeight: 'bold',
-  marginBottom: 12, // More space after title
-  paddingBottom: 4, // Space for the border
- },
- row: {
-  flexDirection: 'row',
-  marginBottom: 7, // Increased space between info rows
- },
- label: {
-  fontSize: 11,
-  color: '#333333',
-  fontWeight: 'bold',
-  width: '30%', // Fixed width for labels
-  marginRight: 5, // Space between label and value
- },
- value: {
-  fontSize: 11,
-  color: '#000000',
-  width: '70%', // Fixed width for values
-  flexShrink: 1, // Allow text wrapping if value is long
- },
- // Base style for text rendered via RichText
- description: {
-  fontSize: 11,
-  color: '#333333',
-  lineHeight: 1.4, // Adjust line spacing for readability
-  textAlign: 'justify', // Justify description text
- },
- // Style for items within list sections (Applications, Meetings etc.)
- item: {
-  marginBottom: 12,
-  paddingLeft: 5, // Slight indent for items
- },
- itemTitle: {
-  fontSize: 12,
-  color: '#000000',
-  fontWeight: 'bold',
-  marginBottom: 4,
- },
- itemDetail: {
-  fontSize: 11,
-  color: '#444444',
-  marginBottom: 2,
-  marginLeft: 10, // Indent details under item title
- },
- footer: {
-  position: 'absolute',
-  bottom: 20, // Position from bottom
-  left: 35, // Match page padding
-  right: 35, // Match page padding
-  textAlign: 'center',
-  fontSize: 9,
-  color: '#888888',
-  borderTopWidth: 0.5,
-  borderTopColor: '#cccccc',
-  paddingTop: 5,
- },
-
-});
-
-// --- Define the component props interface ---
-interface StudentProfilePDFProps {
- data: {
-  student: any; // Consider defining a stricter type for student
-  applications?: any[]; // Mark as optional if they might not exist
-  meetings?: any[]; // Mark as optional
-  pathways?: any[]; // Mark as optional
-  documents?: any[]; // Mark as optional
-  generatedAt: string | Date; // Allow Date object or string
-  sections: string[];
- };
+// --- Interfaces for TypeScript type safety ---
+interface StudentData {
+  studentName?: string;
+  studentNumber?: string;
+  studentCategory?: string;
+  studentLevel?: string;
+  studentEmail?: string;
+  email?: string;
+  studentContactNumber?: string;
+  studentDescription?: string;
 }
 
-// --- Create the PDF document component ---
-const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
- // Destructure data, providing defaults for potentially missing arrays
- const {
-  student,
-  applications = [],
-  meetings = [],
-  pathways = [],
-  documents = [],
-  generatedAt,
-  sections = [] // Default to empty array if sections not provided
- } = data || {}; // Add check for data itself being null/undefined
+interface ApplicationData {
+  id?: string;
+  jobTitle?: string;
+  companyName?: string;
+  status?: string;
+  submittedAt?: string | Date;
+  deadline?: string | Date;
+  notes?: string;
+}
 
- // --- Image Paths ---
- // Assumes images are in the 'public/images' folder and served from the root URL '/'
- // Adjust these paths based on your project structure and how static assets are served.
+interface MeetingData {
+  id?: string;
+  meetingTitle?: string;
+  status?: string;
+  otherPartyName?: string;
+  meetingDate?: string | Date;
+  meetingTime?: string;
+  location?: string;
+  notes?: string;
+}
 
- // *** THIS IS THE PATH FOR YOUR TITLE LOGO ***
- // Ensure 'logo-dark.png' is in 'public/images/' folder of your project
- const titleLogoUrl = "/images/logo-dark.png";
+interface DocumentData {
+  id?: string;
+  stuDocName?: string;
+  title?: string;
+  name?: string;
+  stuDocType?: string;
+  type?: string;
+  uploadDate?: string | Date;
+}
 
- // Handle potential invalid student data
- if (!student) {
-     // Optionally render a message or return null if student data is essential
-     return (
-         <Document>
-             <Page size="A4" style={styles.page}>
-                 <Text>Error: Student data is missing.</Text>
-             </Page>
-         </Document>
-     );
- }
+interface PathwayData {
+  id?: string;
+  title?: string;
+}
 
- // Format the generation date safely
- const formattedDate = generatedAt
-  ? formatDate(new Date(generatedAt), "MMMM d, yyyy 'at' h:mm a")
-  : 'N/A';
+interface StudentProfilePDFProps {
+  data: {
+    student: StudentData;
+    applications?: ApplicationData[];
+    meetings?: MeetingData[];
+    pathways?: (PathwayData | string)[];
+    documents?: DocumentData[];
+    generatedAt: string | Date;
+    sections: string[];
+  };
+}
 
- return (
-  <Document>
-   <Page size="A4" style={styles.page}>
+interface RichTextLine {
+  text: string;
+  isBold?: boolean;
+  isItalic?: boolean;
+  isTitle?: boolean;
+}
 
-    {/* --- Header Section --- */}
-    <View style={styles.header}>
-     <View style={styles.headerContent}>
-      {/* Center Content: Title Logo */}
-      <View style={styles.headerCenterContent}>
-       {/* *** USE IMAGE INSTEAD OF TEXT *** */}
-       <Image
-        src={titleLogoUrl}
-        style={styles.titleLogo} // Apply the specific logo style
-       />
-      </View>
-     </View>
-     {/* Subtitle and Date Row */}
-     <View style={styles.subtitleDateRow}>
-       <Text style={styles.subtitle}>Student Profile Report</Text>
-       <Text style={styles.date}>Generated on: {formattedDate}</Text>
-     </View>
+// --- Enhanced HTML content parser with more comprehensive handling ---
+const parseHtmlContent = (htmlContent: string | null | undefined): RichTextLine[] => {
+  if (!htmlContent) return [];
+
+  // Enhanced cleaning with more HTML tag support
+  const cleanedHtml = (htmlContent || '')
+    .replace(/ /g, ' ')
+    .replace(/<br\s*\/?>/g, '\n')
+    .replace(/<\/p>\s*<p>/g, '\n\n')
+    .replace(/<p[^>]*>/g, '')
+    .replace(/<\/p>/g, '')
+    .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+    .replace(/<b>(.*?)<\/b>/g, '**$1**')
+    .replace(/<em>(.*?)<\/em>/g, '_$1_')
+    .replace(/<i>(.*?)<\/i>/g, '_$1_')
+    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/g, '**$1**\n')
+    .replace(/<ul[^>]*>(.*?)<\/ul>/g, '$1')
+    .replace(/<li[^>]*>(.*?)<\/li>/g, '• $1\n')
+    .replace(/<[^>]*>/g, '');
+
+  // Check for title format
+  const titleMatch = cleanedHtml.match(/^(\*\*?)(.+?Student\s*\|\s*.*?\|.*?)(\*\*?)\n/);
+  const lines: RichTextLine[] = [];
+
+  let remainingContent = cleanedHtml;
+
+  if (titleMatch) {
+    const titleText = titleMatch[2].replace(/\*\*/g, '').trim();
+    lines.push({ text: titleText, isBold: true, isTitle: true });
+    remainingContent = cleanedHtml.replace(titleMatch[0], '').trim();
+  }
+
+  // Process remaining content with improved segment handling
+  const paragraphs = remainingContent.split(/\n{2,}/);
+
+  paragraphs.forEach(paragraph => {
+    if (!paragraph.trim()) return;
+
+    const segments = paragraph.split(/(\*\*.*?\*\*|_.*?_)/g).filter(Boolean);
+
+    segments.forEach(segment => {
+      segment = segment.trim();
+      if (!segment) return;
+
+      let isBold = false;
+      let isItalic = false;
+      let text = segment;
+
+      if (segment.startsWith('**') && segment.endsWith('**')) {
+        isBold = true;
+        text = segment.slice(2, -2);
+      } else if (segment.startsWith('_') && segment.endsWith('_')) {
+        isItalic = true;
+        text = segment.slice(1, -1);
+      }
+
+      if (text.trim()) {
+        lines.push({ text: text.trim(), isBold, isItalic });
+      }
+    });
+  });
+
+  return lines;
+};
+
+// --- Optimized Rich Text component with better spacing and formatting ---
+const RichText = ({ content, style }: { content: string; style?: any }) => {
+  const textLines = parseHtmlContent(content);
+  if (!textLines.length) return null;
+
+  return (
+    <View style={{ marginBottom: 6 }}>
+      {textLines.map((line, index) => {
+        const lineStyle = {
+          ...styles.description,
+          ...style,
+          ...(line.isBold ? { fontWeight: 'bold' } : {}),
+          ...(line.isItalic ? { fontStyle: 'italic' } : {}),
+          ...(line.isTitle ? {
+            fontSize: 11,
+            fontWeight: 'bold',
+            marginBottom: 3,
+            color: '#333'
+          } : {}),
+          marginTop: index > 0 ? (line.isTitle ? 4 : 2) : 0,
+          marginBottom: 2,
+        };
+
+        return (
+          <Text key={index} style={lineStyle}>
+            {line.text}
+          </Text>
+        );
+      })}
     </View>
+  );
+};
 
-    {/* --- Student Information Section --- */}
-    {sections.includes('profile') && (
-     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Student Information</Text>
-      <View style={styles.row}><Text style={styles.label}>Name:</Text><Text style={styles.value}>{student.studentName || 'N/A'}</Text></View>
-      <View style={styles.row}><Text style={styles.label}>Student Number:</Text><Text style={styles.value}>{student.studentNumber || 'N/A'}</Text></View>
-      <View style={styles.row}><Text style={styles.label}>Category:</Text><Text style={styles.value}>{student.studentCategory || 'N/A'}</Text></View>
-      <View style={styles.row}><Text style={styles.label}>Level:</Text><Text style={styles.value}>{student.studentLevel || 'N/A'}</Text></View>
-      <View style={styles.row}><Text style={styles.label}>Email:</Text><Text style={styles.value}>{student.studentEmail || student.email || 'N/A'}</Text></View>
-      <View style={styles.row}><Text style={styles.label}>Contact:</Text><Text style={styles.value}>{student.studentContactNumber || 'N/A'}</Text></View>
-      {student.studentDescription && (
-       <>
-        <View style={styles.row}><Text style={styles.label}>Description:</Text>
-         {/* Wrap RichText in a View to allow label/value layout if needed, */}
-         {/* but here it takes full width below the label row */}
+// --- Helper function to get status color with expanded states ---
+const getStatusColor = (status: string): string => {
+  status = (status || '').toLowerCase();
+  if (status.includes('complete') || status.includes('approved') || status.includes('accepted') || status.includes('success')) {
+    return '#2e7d32'; // Green
+  } else if (status.includes('pending') || status.includes('in progress') || status.includes('review') || status.includes('wait')) {
+    return '#f57c00'; // Orange
+  } else if (status.includes('reject') || status.includes('denied') || status.includes('cancel') || status.includes('fail')) {
+    return '#c62828'; // Red
+  }
+  return '#455a64'; // Default slate blue - less harsh than burgundy for unknown statuses
+};
+
+// --- Modern design system with improved visual hierarchy ---
+const styles = StyleSheet.create({
+  // Core Layout
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 35, // Increased padding for better whitespace
+  },
+  header: {
+    marginBottom: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#800020',
+    paddingBottom: 10,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleLogo: {
+    width: 130,
+    height: 35,
+    objectFit: 'contain',
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+  },
+  title: {
+    fontSize: 16, // Increased size for better visibility
+    color: '#800020',
+    fontWeight: 'bold',
+  },
+  date: {
+    fontSize: 8,
+    color: '#555555',
+    marginTop: 3,
+  },
+
+  // Layout Section Containers
+  fullWidthSection: {
+    width: '100%',
+    marginBottom: 18, // Increased spacing between major sections
+  },
+  columnsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  primaryColumn: {
+    width: '66%', // Slightly wider for better balance
+    paddingRight: 15,
+  },
+  secondaryColumn: {
+    width: '34%',
+    borderLeftWidth: 1, // Thicker separator for clarity
+    borderLeftColor: '#e0e0e0',
+    paddingLeft: 15,
+  },
+
+  // Section Components
+  section: {
+    marginBottom: 18,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    color: '#800020',
+    fontWeight: 'bold',
+    marginBottom: 8,
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5, // Subtle letter spacing for headings
+  },
+
+  // Student Info Components
+  studentInfoContainer: {
+    marginBottom: 12,
+  },
+  studentInfoHeader: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    backgroundColor: '#f7f0f2', // Lighter burgundy tint for branding consistency
+    padding: 8,
+    borderRadius: 4,
+    borderLeftWidth: 3, // Thicker accent for emphasis
+    borderLeftColor: '#800020',
+  },
+  studentInfoHeaderColumn: {
+    width: '50%',
+  },
+  studentInfoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 5,
+    width: '100%',
+  },
+  infoHalfRow: {
+    flexDirection: 'row',
+    marginBottom: 6, // Increased for better readability
+    width: '50%', // Changed to half-width for better layout
+    paddingRight: 5,
+  },
+  infoLabel: {
+    fontSize: 8,
+    color: '#555',
+    fontWeight: 'bold',
+    width: '35%',
+  },
+  infoValue: {
+    fontSize: 8,
+    color: '#000',
+    width: '65%',
+  },
+
+  // Description Components
+  descriptionBox: {
+    backgroundColor: '#f9f9f9',
+    padding: 8,
+    borderRadius: 4,
+    borderLeftWidth: 2,
+    borderLeftColor: '#800020',
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 8,
+    color: '#333',
+    lineHeight: 1.4, // Improved line height for readability
+  },
+
+  // Pathway Components
+  pathwayContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 3,
+  },
+  pathwayTag: {
+    backgroundColor: '#f9f0f2',
+    borderRadius: 3,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    marginRight: 5,
+    marginBottom: 5,
+    borderLeftWidth: 2,
+    borderLeftColor: '#800020',
+  },
+  pathwayText: {
+    fontSize: 7,
+    color: '#333',
+    fontWeight: 'bold',
+  },
+
+  // List Item Components
+  itemContainer: {
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  itemTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 3,
+    color: '#333',
+  },
+  itemDetail: {
+    fontSize: 10,
+    color: '#444',
+    marginBottom: 2,
+    lineHeight: 1.3,
+  },
+  itemGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 2,
+  },
+  itemHalfColumn: {
+    width: '50%',
+    marginBottom: 2,
+  },
+
+  // Status Indicator Components
+  statusBadge: {
+    fontSize: 7,
+    color: '#fff',
+    backgroundColor: '#800020',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+
+  // Document Components
+  documentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  documentIcon: {
+    width: 14,
+    fontSize: 12,
+    marginRight: 5,
+    color: '#800020',
+  },
+  documentInfo: {
+    flex: 1,
+  },
+  documentTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  documentType: {
+    fontSize: 7,
+    color: '#666',
+    marginTop: 1,
+  },
+
+  // Empty State Components
+  emptyState: {
+    fontSize: 8,
+    color: '#888',
+    fontStyle: 'italic',
+    marginTop: 4,
+    marginBottom: 6,
+    paddingLeft: 2,
+  },
+
+  // Footer Components
+  footer: {
+    position: 'absolute',
+    bottom: 25,
+    left: 35,
+    right: 35,
+    textAlign: 'center',
+    fontSize: 7,
+    color: '#777',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 6,
+  },
+
+  // Additional Utility Classes
+  highlightText: {
+    color: '#800020',
+    fontWeight: 'bold',
+  },
+  clickableLink: {
+    color: '#1976d2',
+    textDecoration: 'underline',
+  },
+  infoContainer: {
+    marginBottom: 5,
+    padding: 5,
+    backgroundColor: '#f7f7f7',
+    borderRadius: 3,
+  }
+});
+
+// --- Create the optimized PDF document component ---
+const StudentProfilePDF: React.FC<StudentProfilePDFProps> = ({ data }) => {
+  const {
+    student,
+    applications = [],
+    meetings = [],
+    pathways = [],
+    documents = [],
+    generatedAt,
+    sections = []
+  } = data || {};
+
+  // Title logo path
+  const titleLogoUrl = "/images/logo-dark.png";
+
+  // Handle potential invalid student data with friendly error
+  if (!student) {
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}>
+            <Text style={{
+              fontSize: 16,
+              color: '#c62828',
+              textAlign: 'center',
+              marginBottom: 10,
+              fontWeight: 'bold'
+            }}>
+              Error: Student Profile Unavailable
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              color: '#555',
+              textAlign: 'center'
+            }}>
+              The requested student data could not be loaded.
+            </Text>
+          </View>
+        </Page>
+      </Document>
+    );
+  }
+
+  // Format the generation date safely with fallback
+  const formattedDate = generatedAt
+    ? formatDate(new Date(generatedAt), "MMMM d, yyyy 'at' h:mm a")
+    : 'Date unavailable';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* --- Enhanced Header with Improved Visibility --- */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Image src={titleLogoUrl || "/placeholder.svg"} style={styles.titleLogo} />
+            <View style={styles.headerRight}>
+              <Text style={styles.title}>Student Profile Report</Text>
+              <Text style={styles.date}>Generated on: {formattedDate}</Text>
+            </View>
+          </View>
         </View>
-        {/* Render description using RichText component */}
-        <RichText content={student.studentDescription} />
-       </>
-      )}
-     </View>
-    )}
 
-    {/* --- Career Pathways Section --- */}
-    {sections.includes('pathways') && pathways.length > 0 && (
-     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Career Pathways</Text>
-      {pathways.map((pathway: any, index: number) => (
-       <View key={pathway?.id || `pathway-${index}`} style={styles.item}>
-        <Text style={styles.itemTitle}>
-         {/* Handle pathway being a string or object */}
-         {typeof pathway === 'string' ? pathway : (pathway?.title || `Pathway ${index + 1}`)}
-        </Text>
-        {/* Render description if pathway is object and has description */}
-        {typeof pathway === 'object' && pathway?.description && (
-         <RichText content={pathway.description} />
+        {/* --- Student Information with Improved Visual Hierarchy --- */}
+        {sections.includes('profile') && (
+          <View style={styles.fullWidthSection}>
+            <Text style={styles.sectionTitle}>Student Information</Text>
+
+            <View style={styles.studentInfoContainer}>
+              {/* Name and ID - Prominent display */}
+              <View style={styles.studentInfoHeader}>
+                <View style={styles.studentInfoHeaderColumn}>
+                  <Text style={[styles.infoLabel, { fontSize: 9 }]}>Name:</Text>
+                  <Text style={[styles.infoValue, { fontSize: 13, fontWeight: 'bold' }]}>
+                    {student.studentName || 'N/A'}
+                  </Text>
+                </View>
+                <View style={styles.studentInfoHeaderColumn}>
+                  <Text style={[styles.infoLabel, { fontSize: 9 }]}>Student Number:</Text>
+                  <Text style={[styles.infoValue, { fontSize: 13, fontWeight: 'bold' }]}>
+                    {student.studentNumber || 'N/A'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Other details - Organized grid with improved spacing */}
+              <View style={styles.studentInfoGrid}>
+                <View style={styles.infoHalfRow}>
+                  <Text style={styles.infoLabel}>Category:</Text>
+                  <Text style={styles.infoValue}>{student.studentCategory || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoHalfRow}>
+                  <Text style={styles.infoLabel}>Level:</Text>
+                  <Text style={styles.infoValue}>{student.studentLevel || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoHalfRow}>
+                  <Text style={styles.infoLabel}>Email:</Text>
+                  <Text style={styles.infoValue}>{student.studentEmail || student.email || 'N/A'}</Text>
+                </View>
+                <View style={styles.infoHalfRow}>
+                  <Text style={styles.infoLabel}>Contact:</Text>
+                  <Text style={styles.infoValue}>{student.studentContactNumber || 'N/A'}</Text>
+                </View>
+              </View>
+
+              {/* Description - Enhanced formatting if available */}
+              {student.studentDescription && (
+                <View style={styles.descriptionBox}>
+                  <RichText content={student.studentDescription} />
+                </View>
+              )}
+            </View>
+          </View>
         )}
-       </View>
-      ))}
-     </View>
-    )}
 
-    {/* --- Job Applications Section --- */}
-    {sections.includes('applications') && applications.length > 0 && (
-     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Job Applications</Text>
-      {applications.map((app, index) => (
-       <View key={app?.id || `app-${index}`} style={styles.item}>
-        <Text style={styles.itemTitle}>
-         {`${index + 1}. ${app.jobTitle || 'Untitled Job'} - ${app.companyName || 'Unknown Company'}`}
-        </Text>
-        <Text style={styles.itemDetail}>
-         Status: {app.status || 'Unknown'}
-        </Text>
-        <Text style={styles.itemDetail}>
-         Submitted: {app.submittedAt ? formatDate(new Date(app.submittedAt), 'MMMM d, yyyy') : 'N/A'}
-        </Text>
-       </View>
-      ))}
-     </View>
-    )}
+        {/* --- Two-column Layout with Improved Balance --- */}
+        <View style={styles.columnsContainer}>
+          {/* --- Primary Column (2/3 width) --- */}
+          <View style={styles.primaryColumn}>
+            {/* --- Applications Section with Enhanced Readability --- */}
+            {sections.includes('applications') && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Job Applications</Text>
 
-    {/* --- Meetings Section --- */}
-    {sections.includes('meetings') && meetings.length > 0 && (
-     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Meetings</Text>
-      {meetings.map((meeting, index) => (
-       <View key={meeting?.id || `meeting-${index}`} style={styles.item}>
-        <Text style={styles.itemTitle}>
-         {`${index + 1}. ${meeting.meetingTitle || 'Untitled Meeting'}`}
-        </Text>
-        <Text style={styles.itemDetail}>
-         With: {meeting.otherPartyName || 'Unknown'}
-        </Text>
-        <Text style={styles.itemDetail}>
-         Date: {meeting.meetingDate ? formatDate(new Date(meeting.meetingDate), 'MMMM d, yyyy') : 'N/A'}
-        </Text>
-        <Text style={styles.itemDetail}>
-         Status: {meeting.status || 'Unknown'}
-        </Text>
-       </View>
-      ))}
-     </View>
-    )}
+                {applications.length > 0 ? (
+                  applications.map((app, index) => (
+                    <View key={app?.id || `app-${index}`} style={styles.itemContainer}>
+                      <Text style={styles.itemTitle}>
+                        {`${app.jobTitle || 'Untitled Position'} - ${app.companyName || 'Unknown Organization'}`}
+                      </Text>
 
-    {/* --- Documents Section --- */}
-    {sections.includes('documents') && documents.length > 0 && (
-     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Documents</Text>
-      {documents.map((doc: any, index: number) => (
-       <View key={doc?.id || `doc-${index}`} style={styles.item}>
-        <Text style={styles.itemTitle}>
-         {doc.stuDocName || doc.title || doc.name || `Document ${index + 1}`}
-        </Text>
-        <Text style={styles.itemDetail}>
-         Type: {doc.stuDocType || doc.type || 'Unknown type'}
-        </Text>
-       </View>
-      ))}
-     </View>
-    )}
+                      <Text style={[styles.statusBadge, { backgroundColor: getStatusColor(app.status || '') }]}>
+                        {app.status || 'Status Unknown'}
+                      </Text>
 
-    {/* --- Footer --- */}
-    <Text style={styles.footer}>
-    © 2025 Guidia. All rights reserved.
-    </Text>
+                      <View style={styles.itemGrid}>
+                        <View style={styles.itemHalfColumn}>
+                          <Text style={styles.itemDetail}>
+                            <Text style={{ fontWeight: 'bold' }}>Submitted: </Text>
+                            {app.submittedAt ? formatDate(new Date(app.submittedAt), 'MMM d, yyyy') : 'Not submitted'}
+                          </Text>
+                        </View>
 
-   </Page>
-  </Document>
- );
+                        {app.deadline && (
+                          <View style={styles.itemHalfColumn}>
+                            <Text style={styles.itemDetail}>
+                              <Text style={{ fontWeight: 'bold' }}>Deadline: </Text>
+                              {formatDate(new Date(app.deadline), 'MMM d, yyyy')}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {app.notes && (
+                        <View style={styles.infoContainer}>
+                          <Text style={styles.itemDetail}>
+                            <Text style={{ fontWeight: 'bold' }}>Notes: </Text>
+                            {app.notes}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyState}>No job applications have been recorded.</Text>
+                )}
+              </View>
+            )}
+
+            {/* --- Meetings Section with Enhanced Organization --- */}
+            {sections.includes('meetings') && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Meetings & Appointments</Text>
+
+                {meetings.length > 0 ? (
+                  meetings.map((meeting, index) => (
+                    <View key={meeting?.id || `meeting-${index}`} style={styles.itemContainer}>
+                      <Text style={styles.itemTitle}>
+                        {meeting.meetingTitle || 'Untitled Meeting'}
+                      </Text>
+
+                      <Text style={[styles.statusBadge, { backgroundColor: getStatusColor(meeting.status || '') }]}>
+                        {meeting.status || 'Status Unknown'}
+                      </Text>
+
+                      <View style={styles.itemGrid}>
+                        <View style={styles.itemHalfColumn}>
+                          <Text style={styles.itemDetail}>
+                            <Text style={{ fontWeight: 'bold' }}>With: </Text>
+                            {meeting.otherPartyName || 'Not specified'}
+                          </Text>
+                        </View>
+
+                        <View style={styles.itemHalfColumn}>
+                          <Text style={styles.itemDetail}>
+                            <Text style={{ fontWeight: 'bold' }}>Date: </Text>
+                            {meeting.meetingDate ? formatDate(new Date(meeting.meetingDate), 'MMM d, yyyy') : 'Not scheduled'}
+                          </Text>
+                        </View>
+
+                        {meeting.meetingTime && (
+                          <View style={styles.itemHalfColumn}>
+                            <Text style={styles.itemDetail}>
+                              <Text style={{ fontWeight: 'bold' }}>Time: </Text>
+                              {meeting.meetingTime}
+                            </Text>
+                          </View>
+                        )}
+
+                        {meeting.location && (
+                          <View style={styles.itemHalfColumn}>
+                            <Text style={styles.itemDetail}>
+                              <Text style={{ fontWeight: 'bold' }}>Location: </Text>
+                              {meeting.location}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {meeting.notes && (
+                        <View style={styles.infoContainer}>
+                          <Text style={styles.itemDetail}>
+                            <Text style={{ fontWeight: 'bold' }}>Notes: </Text>
+                            {meeting.notes}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyState}>No meetings have been scheduled.</Text>
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* --- Secondary Column (1/3 width) --- */}
+          <View style={styles.secondaryColumn}>
+            {/* --- Career Pathways Section with Improved Tag Design --- */}
+            {sections.includes('pathways') && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Career Pathways</Text>
+
+                {pathways.length > 0 ? (
+                  <View style={styles.pathwayContainer}>
+                    {pathways.map((pathway, index) => (
+                      <View key={typeof pathway === 'object' && pathway?.id ? pathway.id : `pathway-${index}`} style={styles.pathwayTag}>
+                        <Text style={styles.pathwayText}>
+                          {typeof pathway === 'string'
+                            ? pathway
+                            : (pathway?.title || `Pathway ${index + 1}`)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.emptyState}>No career pathways have been defined.</Text>
+                )}
+              </View>
+            )}
+
+            {/* --- Documents Section with Enhanced Iconography --- */}
+            {sections.includes('documents') && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Documents</Text>
+
+                {documents.length > 0 ? (
+                  documents.map((doc, index) => (
+                    <View key={doc?.id || `doc-${index}`} style={styles.documentItem}>
+                      {/* Document type icon selection - SVG paths instead of emoji */}
+                      {(() => {
+                        const docType = (doc.stuDocType || doc.type || '').toLowerCase();
+                        let iconPath = '';
+
+                        // SVG path data for different document types
+                        if (docType.includes('resume') || docType.includes('cv')) {
+                          // Clipboard/Resume icon
+                          iconPath = 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-2 17H8v-2h4v2zm6-4H6v-2h12v2zm0-4H6v-2h12v2z';
+                        } else if (docType.includes('letter')) {
+                          // Envelope/Letter icon
+                          iconPath = 'M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4.7l-8 5.334L4 8.7V6.297l8 5.333 8-5.333V8.7z';
+                        } else if (docType.includes('certificate')) {
+                          // Certificate/Graduation icon
+                          iconPath = 'M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z';
+                        } else if (docType.includes('report')) {
+                          // Chart/Report icon
+                          iconPath = 'M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z';
+                        } else if (docType.includes('form')) {
+                          // Form/Checklist icon
+                          iconPath = 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z';
+                        } else {
+                          // Default document icon
+                          iconPath = 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z';
+                        }
+
+                        return (
+                          <View style={{ width: 14, height: 14, marginRight: 5 }}>
+                            <Svg viewBox="0 0 24 24" width={14} height={14}>
+                              <Path d={iconPath} fill="#800020" />
+                            </Svg>
+                          </View>
+                        );
+                      })()}
+
+                      <View style={styles.documentInfo}>
+                        <Text style={styles.documentTitle}>
+                          {doc.stuDocName || doc.title || doc.name || `Document ${index + 1}`}
+                        </Text>
+                        <Text style={styles.documentType}>
+                          {doc.stuDocType || doc.type || 'Unknown type'}
+                        </Text>
+
+                        {doc.uploadDate && (
+                          <Text style={{ fontSize: 6, color: '#777', marginTop: 1 }}>
+                            Uploaded: {formatDate(new Date(doc.uploadDate), 'MMM d, yyyy')}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.emptyState}>No documents have been uploaded.</Text>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* --- Enhanced Footer --- */}
+        <Text style={styles.footer}>
+          © 2025 Guidia Career Services. This report is confidential and intended for authorized use only.
+        </Text>
+      </Page>
+    </Document>
+  );
 };
 
 export default StudentProfilePDF;

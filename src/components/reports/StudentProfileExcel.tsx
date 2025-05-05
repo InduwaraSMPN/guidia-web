@@ -9,6 +9,7 @@ interface StudentProfileExcelProps {
     applications: any[];
     meetings: any[];
     pathways: any[];
+    documents: any[];
     generatedAt: string;
     sections: string[];
   };
@@ -19,7 +20,7 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
   data,
   filename = 'Student_Profile_Report'
 }) => {
-  const { student, applications, meetings, pathways, generatedAt, sections } = data;
+  const { student, applications, meetings, pathways, documents = [], generatedAt, sections } = data;
   const hasGeneratedFile = useRef(false);
 
   const generateExcel = () => {
@@ -45,7 +46,16 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
       ];
 
       if (student.studentDescription) {
-        studentInfo.push(['Description', student.studentDescription]);
+        // Clean HTML from description
+        const cleanDescription = student.studentDescription
+          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'");
+
+        studentInfo.push(['Description', cleanDescription]);
       }
 
       const studentWs = XLSX.utils.aoa_to_sheet(studentInfo);
@@ -61,10 +71,29 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
       ];
 
       pathways.forEach((pathway, index) => {
-        pathwaysData.push([
-          pathway.title || `Pathway ${index + 1}`,
-          pathway.description || ''
-        ]);
+        // Handle different pathway formats
+        if (typeof pathway === 'string') {
+          // If pathway is just a string
+          pathwaysData.push([pathway, '']);
+        } else {
+          // If pathway is an object
+          const title = pathway.title || `Pathway ${index + 1}`;
+          let description = '';
+
+          // Handle description which might be HTML
+          if (pathway.description) {
+            // Simple HTML tag removal for Excel
+            description = pathway.description
+              .replace(/<[^>]*>/g, '') // Remove HTML tags
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'");
+          }
+
+          pathwaysData.push([title, description]);
+        }
       });
 
       const pathwaysWs = XLSX.utils.aoa_to_sheet(pathwaysData);
@@ -111,6 +140,25 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
 
       const meetingsWs = XLSX.utils.aoa_to_sheet(meetingsData);
       XLSX.utils.book_append_sheet(wb, meetingsWs, 'Meetings');
+    }
+
+    // Documents worksheet
+    if (sections.includes('documents') && documents.length > 0) {
+      const documentsData = [
+        ['Documents'],
+        [],
+        ['Document Name', 'Document Type']
+      ];
+
+      documents.forEach(doc => {
+        documentsData.push([
+          doc.stuDocName || doc.title || doc.name || 'Untitled Document',
+          doc.stuDocType || doc.type || 'Unknown type'
+        ]);
+      });
+
+      const documentsWs = XLSX.utils.aoa_to_sheet(documentsData);
+      XLSX.utils.book_append_sheet(wb, documentsWs, 'Documents');
     }
 
     // Generate Excel file

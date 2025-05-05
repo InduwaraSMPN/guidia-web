@@ -8,6 +8,7 @@ interface StudentProfileCSVProps {
     applications: any[];
     meetings: any[];
     pathways: any[];
+    documents: any[];
     generatedAt: string;
     sections: string[];
   };
@@ -18,7 +19,7 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
   data,
   filename = 'Student_Profile_Report'
 }) => {
-  const { student, applications, meetings, pathways, generatedAt, sections } = data;
+  const { student, applications, meetings, pathways, documents = [], generatedAt, sections } = data;
   const hasGeneratedFile = useRef(false);
 
   const generateCSV = () => {
@@ -44,7 +45,16 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
       csvData.push(['Contact', student.studentContactNumber || 'N/A']);
 
       if (student.studentDescription) {
-        csvData.push(['Description', student.studentDescription]);
+        // Clean HTML from description
+        const cleanDescription = student.studentDescription
+          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'");
+
+        csvData.push(['Description', cleanDescription]);
       }
 
       csvData.push([]);
@@ -56,10 +66,29 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
       csvData.push(['Title', 'Description']);
 
       pathways.forEach((pathway, index) => {
-        csvData.push([
-          pathway.title || `Pathway ${index + 1}`,
-          pathway.description || ''
-        ]);
+        // Handle different pathway formats
+        if (typeof pathway === 'string') {
+          // If pathway is just a string
+          csvData.push([pathway, '']);
+        } else {
+          // If pathway is an object
+          const title = pathway.title || `Pathway ${index + 1}`;
+          let description = '';
+
+          // Handle description which might be HTML
+          if (pathway.description) {
+            // Simple HTML tag removal for CSV
+            description = pathway.description
+              .replace(/<[^>]*>/g, '') // Remove HTML tags
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&amp;/g, '&')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'");
+          }
+
+          csvData.push([title, description]);
+        }
       });
 
       csvData.push([]);
@@ -93,6 +122,21 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
           meeting.otherPartyName || 'Unknown',
           formatDate(new Date(meeting.meetingDate), 'yyyy-MM-dd'),
           meeting.status || 'Unknown'
+        ]);
+      });
+
+      csvData.push([]);
+    }
+
+    // Add documents
+    if (sections.includes('documents') && documents.length > 0) {
+      csvData.push(['Documents']);
+      csvData.push(['Document Name', 'Document Type']);
+
+      documents.forEach(doc => {
+        csvData.push([
+          doc.stuDocName || doc.title || doc.name || 'Untitled Document',
+          doc.stuDocType || doc.type || 'Unknown type'
         ]);
       });
     }
