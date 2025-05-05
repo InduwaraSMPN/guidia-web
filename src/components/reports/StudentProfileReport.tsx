@@ -31,6 +31,7 @@ const StudentProfileReport: React.FC<StudentProfileReportProps> = ({
   const [showExcel, setShowExcel] = useState(false);
   const [showCSV, setShowCSV] = useState(false);
   const [pdfReady, setPdfReady] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(true);
   const pdfButtonRef = React.useRef<HTMLButtonElement>(null);
 
   const { student, format: reportFormat } = data;
@@ -61,6 +62,18 @@ const StudentProfileReport: React.FC<StudentProfileReportProps> = ({
     }
   }, [showExcel, showCSV, onDownloadComplete]);
 
+  // Handle PDF loading state change
+  useEffect(() => {
+    if (autoDownload && !isPdfLoading && !pdfReady && reportFormat === 'pdf') {
+      if (onDownloadStart) onDownloadStart();
+      // Set pdfReady to true which will trigger the useEffect to click the button
+      const timer = setTimeout(() => {
+        setPdfReady(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isPdfLoading, autoDownload, pdfReady, reportFormat, onDownloadStart]);
+
   // Auto-click the PDF download button when it's ready and autoDownload is true
   useEffect(() => {
     if (autoDownload && reportFormat === 'pdf' && pdfReady && pdfButtonRef.current) {
@@ -85,14 +98,20 @@ const StudentProfileReport: React.FC<StudentProfileReportProps> = ({
         style={{ textDecoration: 'none' }}
       >
         {({ loading }) => {
-          // When PDF is ready and autoDownload is true, notify and set pdfReady
-          if (autoDownload && !loading && !pdfReady) {
-            if (onDownloadStart) onDownloadStart();
-            // Set pdfReady to true which will trigger the useEffect to click the button
-            setTimeout(() => {
-              setPdfReady(true);
-            }, 50);
-          }
+          // Update loading state via useEffect, not during render
+          React.useEffect(() => {
+            setIsPdfLoading(loading);
+
+            // When PDF is ready and autoDownload is true, notify and set pdfReady
+            if (autoDownload && !loading && !pdfReady) {
+              if (onDownloadStart) onDownloadStart();
+              // Set pdfReady to true which will trigger the useEffect to click the button
+              const timer = setTimeout(() => {
+                setPdfReady(true);
+              }, 50);
+              return () => clearTimeout(timer);
+            }
+          }, [loading, autoDownload, pdfReady, onDownloadStart]);
 
           return (
             <Button
