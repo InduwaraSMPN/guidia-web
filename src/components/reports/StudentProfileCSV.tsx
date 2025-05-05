@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { saveAs } from 'file-saver';
 import { format as formatDate } from 'date-fns';
 
@@ -19,8 +19,12 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
   filename = 'Student_Profile_Report'
 }) => {
   const { student, applications, meetings, pathways, generatedAt, sections } = data;
+  const hasGeneratedFile = useRef(false);
 
   const generateCSV = () => {
+    // Skip if file has already been generated
+    if (hasGeneratedFile.current) return;
+    hasGeneratedFile.current = true;
     // Create CSV data
     const csvData = [];
 
@@ -110,8 +114,7 @@ const StudentProfileCSV: React.FC<StudentProfileCSVProps> = ({
     });
 
     // Generate CSV file
-    const timestamp = formatDate(new Date(), 'yyyyMMdd_HHmmss');
-    const csvFilename = `${filename}_${timestamp}.csv`;
+    const csvFilename = `${filename}.csv`;
 
     // Create Blob and save file
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8' });

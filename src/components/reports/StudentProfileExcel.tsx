@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { format as formatDate } from 'date-fns';
@@ -20,8 +20,12 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
   filename = 'Student_Profile_Report'
 }) => {
   const { student, applications, meetings, pathways, generatedAt, sections } = data;
+  const hasGeneratedFile = useRef(false);
 
   const generateExcel = () => {
+    // Skip if file has already been generated
+    if (hasGeneratedFile.current) return;
+    hasGeneratedFile.current = true;
     // Create workbook
     const wb = XLSX.utils.book_new();
 
@@ -110,8 +114,7 @@ const StudentProfileExcel: React.FC<StudentProfileExcelProps> = ({
     }
 
     // Generate Excel file
-    const timestamp = formatDate(new Date(), 'yyyyMMdd_HHmmss');
-    const excelFilename = `${filename}_${timestamp}.xlsx`;
+    const excelFilename = `${filename}.xlsx`;
 
     // Convert workbook to binary
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });

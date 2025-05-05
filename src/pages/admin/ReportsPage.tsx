@@ -20,7 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Select, Option } from "@/components/ui/Select";
+
 import reportsService from "@/services/reportsService";
 import StudentProfileReport from "@/components/reports/StudentProfileReport";
 
@@ -45,43 +46,15 @@ interface Student {
   email?: string;
 }
 
-interface JobApplication {
-  applicationID: number;
-  jobID: number;
-  status: string;
-  submittedAt: string;
-  jobTitle?: string;
-  companyName?: string;
-}
-
-interface Meeting {
-  meetingID: number;
-  meetingTitle: string;
-  meetingDate: string;
-  startTime: string;
-  endTime: string;
-  status: string;
-  meetingType: string;
-  otherPartyName?: string;
-}
-
 interface ReportSection {
   id: string;
   label: string;
   checked: boolean;
 }
 
-interface ReportFormat {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-}
-
-// Constants
-const BRAND_COLOR = "#800020";
-
 function ReportsPage() {
-  const { user } = useAuth();
+  // Using useAuth hook for authentication
+  useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
@@ -100,11 +73,11 @@ function ReportsPage() {
     { id: "meetings", label: "Meeting History", checked: true },
   ]);
 
-  // Available export formats
-  const reportFormats: ReportFormat[] = [
-    { id: "pdf", label: "PDF", icon: <FileText className="h-4 w-4" /> },
-    { id: "excel", label: "Excel", icon: <FileText className="h-4 w-4" /> },
-    { id: "csv", label: "CSV", icon: <FileText className="h-4 w-4" /> },
+  // Format options for the Select component
+  const formatOptions: Option[] = [
+    { value: "pdf", label: "PDF" },
+    { value: "excel", label: "Excel" },
+    { value: "csv", label: "CSV" },
   ];
 
   // Fetch students data
@@ -156,14 +129,20 @@ function ReportsPage() {
     );
   };
 
-  // State for report data and dialog
+  // State for report data and download status
   const [reportData, setReportData] = useState<any>(null);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  // Generate report
-  const generateReport = async () => {
+  // Generate and download report
+  const downloadReport = async () => {
     if (!selectedStudent) {
-      toast.error("Please select a student");
+      toast.error("Please select a student to generate a report", {
+        description: "Select a student from the list above",
+        action: {
+          label: "OK",
+          onClick: () => {}
+        }
+      });
       return;
     }
 
@@ -172,7 +151,13 @@ function ReportsPage() {
       .map((section) => section.id);
 
     if (enabledSections.length === 0) {
-      toast.error("Please select at least one report section");
+      toast.error("Please select at least one report section", {
+        description: "Check at least one section to include in the report",
+        action: {
+          label: "OK",
+          onClick: () => {}
+        }
+      });
       return;
     }
 
@@ -187,17 +172,28 @@ function ReportsPage() {
 
       if (result && typeof result === 'object' && 'success' in result && result.success && 'data' in result) {
         setReportData(result.data);
-        setShowReportDialog(true);
-        toast.success(`${selectedFormat.toUpperCase()} report generated successfully`);
+        // The download will start automatically via the autoDownload prop
       } else {
         toast.error("Failed to generate report data");
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error("Error generating report:", error);
       toast.error("Failed to generate report");
-    } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Handle download start
+  const handleDownloadStart = () => {
+    setIsDownloading(true);
+  };
+
+  // Handle download complete
+  const handleDownloadComplete = () => {
+    setIsDownloading(false);
+    setIsGenerating(false);
+    setReportData(null); // Clear report data after download
   };
 
   if (isLoading) {
@@ -219,17 +215,17 @@ function ReportsPage() {
         <PageHeading title="Reports" />
       </div>
 
-      {/* Report Dialog */}
-      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center p-4">
-            <h2 className="text-xl font-semibold mb-4">Your Report is Ready</h2>
-            {reportData && (
-              <StudentProfileReport data={reportData} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Hidden report component for auto-download */}
+      {reportData && (
+        <div className="hidden">
+          <StudentProfileReport
+            data={reportData}
+            autoDownload={true}
+            onDownloadStart={handleDownloadStart}
+            onDownloadComplete={handleDownloadComplete}
+          />
+        </div>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
@@ -245,7 +241,12 @@ function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Student Selection */}
             <div>
-              <h3 className="text-lg font-medium mb-4">Select Student</h3>
+              <h3 className="text-lg font-medium mb-4 flex items-center">
+                Select Student
+                <span className="ml-2 text-xs text-rose-600 font-normal">
+                  (Required)
+                </span>
+              </h3>
               <div className="space-y-4">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -311,7 +312,12 @@ function ReportsPage() {
               <div className="space-y-6">
                 {/* Report Sections */}
                 <div className="space-y-3">
-                  <Label className="text-base">Report Sections</Label>
+                  <Label className="text-base flex items-center">
+                    Report Sections
+                    <span className="ml-2 text-xs text-rose-600 font-normal">
+                      (At least one required)
+                    </span>
+                  </Label>
                   <div className="space-y-2">
                     {reportSections.map((section) => (
                       <div key={section.id} className="flex items-center space-x-2">
@@ -335,35 +341,43 @@ function ReportsPage() {
                 <div className="space-y-3">
                   <Label className="text-base">Export Format</Label>
                   <div className="relative">
-                    <select
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                      value={selectedFormat}
-                      onChange={(e) => setSelectedFormat(e.target.value)}
-                    >
-                      {reportFormats.map((format) => (
-                        <option key={format.id} value={format.id}>
-                          {format.label}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={formatOptions}
+                      value={formatOptions.find(option => option.value === selectedFormat) || null}
+                      onChange={(option) => option && setSelectedFormat(option.value)}
+                      placeholder="Select format"
+                      isSearchable={false}
+                    />
                   </div>
                 </div>
 
-                {/* Generate Button */}
+                {/* Download Button */}
                 <Button
                   className="w-full"
-                  onClick={generateReport}
-                  disabled={isGenerating || !selectedStudent}
+                  onClick={() => {
+                    if (!selectedStudent) {
+                      toast.error("Please select a student to generate a report", {
+                        description: "Select a student from the list above",
+                        action: {
+                          label: "OK",
+                          onClick: () => {}
+                        }
+                      });
+                      return;
+                    }
+                    downloadReport();
+                  }}
+                  disabled={isGenerating}
                 >
                   {isGenerating ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Generating Report...
+                      {isDownloading ? 'Downloading...' : 'Generating Report...'}
                     </>
                   ) : (
                     <>
                       <Download className="h-4 w-4 mr-2" />
-                      Generate Report
+                      Download Report
                     </>
                   )}
                 </Button>
