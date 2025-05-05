@@ -1,5 +1,3 @@
-user is deleted student table data need to be also deleted
+put rate limiter to 5 back
 
-student
-counsellor
-company
+revert sentry

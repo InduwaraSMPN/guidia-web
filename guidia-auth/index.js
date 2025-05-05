@@ -98,6 +98,7 @@ const usersRouter = require("./routes/users");
 const azureRouter = require("./routes/azure");
 const openaiRouter = require("./routes/openai");
 const chatHistoryRouter = require("./routes/chatHistory");
+const reportsRouter = require("./routes/reports");
 const NotificationSocketService = require("./services/notificationSocketService");
 const Scheduler = require("./utils/scheduler");
 app.use("/api", messagesRouter);
@@ -168,6 +169,8 @@ app.use("/api/openai", openaiRouter);
 console.log("OpenAI routes registered.");
 app.use("/api/chat-history", chatHistoryRouter);
 console.log("Chat history routes registered.");
+app.use("/api/reports", reportsRouter);
+console.log("Reports routes registered.");
 
 // Import notification category routes
 const notificationCategoryRouter = require("./routes/notificationCategoryRoutes");
