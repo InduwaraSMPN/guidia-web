@@ -55,7 +55,7 @@ export function JobApplication() {
           location: response.data.location,
           description: response.data.description,
           logo: response.data.companyLogoPath,
-          type: response.data.type || 'Full-time',
+
           endDate: response.data.endDate,
           isExpired: response.data.isExpired || (response.data.endDate && new Date(response.data.endDate) < new Date())
         };

@@ -33,22 +33,13 @@ export interface Job {
   logo?: string
   requirements?: string[]
   functions?: string[]
-  type?: string
   startDate?: string
   endDate?: string
+  isExpired?: boolean
 }
 
 interface JobCardProps {
-  job: {
-    id: string;
-    title: string;
-    company: string;
-    location: string;
-    description: string;
-    logo?: string;
-    isExpired?: boolean;
-    endDate: string;
-  };
+  job: Job;
   onApply: (id: string) => void;
   mode?: "view" | "edit";
   index?: number;
@@ -206,12 +197,6 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                     <MapPin className="h-3.5 w-3.5 mr-1.5 text-brand" />
                     <span>{job.location}</span>
                   </div>
-                  {job.type && (
-                    <div className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm">
-                      <Briefcase className="h-3.5 w-3.5 mr-1.5 text-brand" />
-                      <span>{job.type}</span>
-                    </div>
-                  )}
                   {job.sector && (
                     <div className="flex flex-wrap gap-2">
                       {job.sector.split(',').map((tag, index) => (

@@ -351,7 +351,7 @@ export function CompanyProfilePage() {
                       location: job.location,
                       description: job.description,
                       sector: job.tags,
-                      type: "Full-time",
+
                       logo: companyData.companyLogoPath || undefined,
                       startDate: new Date(job.startDate).toLocaleDateString(),
                       endDate: new Date(job.endDate).toLocaleDateString(),

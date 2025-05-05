@@ -3,3 +3,7 @@ put rate limiter to 5 back
 revert sentry
 
 add index no to public student profile
+
+
+
+logges as student but lolo is disabled 

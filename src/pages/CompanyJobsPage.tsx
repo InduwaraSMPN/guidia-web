@@ -1,85 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { JobCard, Job } from '../components/JobCard';
-import { Building2 } from 'lucide-react';
+import { Building2, MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import axiosInstance from '@/lib/axios';
+import { CompanyImage } from '@/lib/imageUtils';
 
 interface Company {
-  id: string;
-  name: string;
-  logo?: string;
-  description?: string;
+  companyID: string;
+  companyName: string;
+  companyLogoPath?: string;
+  companyDescription?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyAddress?: string;
+  companyCity?: string;
+  companyCountry?: string;
 }
-
-// Mock company data
-const mockCompanies: Company[] = [
-  {
-    id: '1',
-    name: 'Digifindr',
-    logo: '/images/company-logos/digifindr.png',
-    description: 'Data Driven by Digital Strategies',
-  },
-  {
-    id: '2',
-    name: 'PAYable Pvt Ltd',
-    logo: '/images/company-logos/payable.png',
-    description: 'Leading fintech company in Sri Lanka',
-  }
-];
-
-// Mock jobs data organized by company
-const mockJobsByCompany: Record<string, Job[]> = {
-  '1': [
-    {
-      id: '3',
-      title: 'Data Scientist',
-      company: 'Digifindr',
-      companyId: '1',
-      sector: 'Technology',
-      location: 'Colombo, Sri Lanka',
-      description: 'Join our data science team to develop cutting-edge analytics solutions for our clients.',
-      type: 'Full-time',
-      logo: '/images/company-logos/digifindr.png'
-    },
-    {
-      id: '4',
-      title: 'Digital Marketing Specialist',
-      company: 'Digifindr',
-      companyId: '1',
-      sector: 'Technology',
-      location: 'Colombo, Sri Lanka',
-      description: 'We are looking for an experienced digital marketing specialist to grow our online presence.',
-      type: 'Full-time',
-      logo: '/images/company-logos/digifindr.png'
-    }
-  ],
-  '2': [
-    {
-      id: '1',
-      title: 'Senior Software Engineer',
-      company: 'PAYable Pvt Ltd',
-      companyId: '2',
-      sector: 'Finance Technology',
-      location: 'Colombo, Sri Lanka',
-      description: 'Join our innovative team as a Senior Software Engineer and contribute to the future of financial technology.',
-      type: 'Full-time',
-      logo: '/images/company-logos/payable.png'
-    },
-    {
-      id: '2',
-      title: 'Business Analyst',
-      company: 'PAYable Pvt Ltd',
-      companyId: '2',
-      sector: 'Finance Technology',
-      location: 'Colombo, Sri Lanka',
-      description: 'We are looking for a Business Analyst to join our growing team.',
-      type: 'Full-time',
-      logo: '/images/company-logos/payable.png'
-    }
-  ]
-};
 
 export function CompanyJobsPage() {
   const { id } = useParams();
@@ -87,22 +27,62 @@ export function CompanyJobsPage() {
   const { user } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Find the company with the matching ID from our mock data
-    const companyId = id || '1';
-    const foundCompany = mockCompanies.find(c => c.id === companyId);
+    const fetchCompanyAndJobs = async () => {
+      try {
+        setIsLoading(true);
 
-    if (foundCompany) {
-      setCompany(foundCompany);
+        // Fetch company details
+        const companyResponse = await axiosInstance.get(`/api/companies/profile/${id}`);
+        const companyData = companyResponse.data;
 
-      // Get the jobs for this company
-      const companyJobs = mockJobsByCompany[companyId] || [];
-      setJobs(companyJobs);
-    } else {
-      // Fallback to first company if not found
-      setCompany(mockCompanies[0]);
-      setJobs(mockJobsByCompany['1'] || []);
+        setCompany({
+          companyID: companyData.companyID,
+          companyName: companyData.companyName,
+          companyLogoPath: companyData.companyLogoPath,
+          companyDescription: companyData.companyDescription,
+          companyEmail: companyData.companyEmail,
+          companyPhone: companyData.companyPhone,
+          companyWebsite: companyData.companyWebsite,
+          companyAddress: companyData.companyAddress,
+          companyCity: companyData.companyCity,
+          companyCountry: companyData.companyCountry
+        });
+
+        // Get jobs for this company from the postedJobs array
+        if (companyData.postedJobs && Array.isArray(companyData.postedJobs)) {
+          const jobsData = companyData.postedJobs.map((job: any) => ({
+            id: job.jobID.toString(),
+            title: job.title,
+            company: job.companyName,
+            companyId: job.companyID.toString(),
+            location: job.location,
+            description: job.description,
+
+            logo: job.companyLogoPath,
+            sector: job.tags,
+            isExpired: job.isExpired || (job.endDate && new Date(job.endDate) < new Date()),
+            endDate: job.endDate || ""
+          }));
+
+          // Filter out expired jobs if needed
+          const activeJobs = jobsData.filter((job: Job) => !job.isExpired);
+          setJobs(activeJobs);
+        }
+      } catch (error) {
+        console.error('Error fetching company and jobs:', error);
+        setError('Failed to load company information');
+        toast.error('Failed to load company information');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchCompanyAndJobs();
     }
   }, [id]);
 
@@ -122,7 +102,7 @@ export function CompanyJobsPage() {
     navigate(`/jobs/${jobId}/apply`);
   };
 
-  if (!company) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
         <div className="max-w-5xl mx-auto">
@@ -170,17 +150,35 @@ export function CompanyJobsPage() {
     );
   }
 
+  if (error || !company) {
+    return (
+      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-adaptive-dark">Company not found</h2>
+          <p className="mt-2 text-muted-foreground">The company you're looking for doesn't exist or has been removed.</p>
+          <button
+            onClick={() => navigate('/companies')}
+            className="mt-4 bg-brand text-white px-4 py-2 rounded-md hover:bg-brand-dark transition-colors"
+          >
+            View All Companies
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
       <div className="max-w-5xl mx-auto">
         {/* Company Header */}
         <div className="bg-white rounded-lg border border-border p-6 mb-8">
           <div className="flex items-start gap-6">
-            {company.logo ? (
-              <img
-                src={company.logo}
-                alt={company.name}
+            {company.companyLogoPath ? (
+              <CompanyImage
+                src={company.companyLogoPath}
+                alt={company.companyName}
                 className="w-20 h-20 object-contain rounded-lg"
+                fallbackSrc="/placeholder.svg"
               />
             ) : (
               <div className="w-20 h-20 bg-secondary-light rounded-lg flex items-center justify-center">
@@ -189,9 +187,17 @@ export function CompanyJobsPage() {
             )}
 
             <div>
-              <h1 className="text-3xl font-bold text-adaptive-dark">{company.name}</h1>
-              {company.description && (
-                <p className="mt-2 text-muted-foreground">{company.description}</p>
+              <h1 className="text-3xl font-bold text-adaptive-dark">{company.companyName}</h1>
+              {company.companyDescription && (
+                <p className="mt-2 text-muted-foreground">{company.companyDescription}</p>
+              )}
+              {company.companyCity && company.companyCountry && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {company.companyCity}, {company.companyCountry}
+                  </span>
+                </p>
               )}
             </div>
           </div>
@@ -207,11 +213,12 @@ export function CompanyJobsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {jobs.map(job => (
+              {jobs.map((job, index) => (
                 <JobCard
                   key={job.id}
                   job={job}
                   onApply={handleApply}
+                  index={index}
                 />
               ))}
             </div>

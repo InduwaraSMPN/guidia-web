@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from "react"
 import { JobSearchForm } from "../components/JobSearchForm"
 import { JobCard } from "../components/JobCard"
 import type { Job } from "../components/JobCard"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import axiosInstance from "@/lib/axios"
 import { motion } from "framer-motion"
-import { Briefcase, Filter, SlidersHorizontal, X } from "lucide-react"
+import { Briefcase, Filter, SlidersHorizontal } from "lucide-react"
 import { toast } from 'sonner'
 import { FilterPanel, type FilterSection } from "@/components/FilterPanel"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,14 +22,12 @@ export function JobsPage() {
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [filters, setFilters] = useState({
-    jobTypes: [] as string[],
     sectors: [] as string[],
-    showExpired: false, // Add this new filter
+    showExpired: false, // Show expired jobs filter
   })
 
   const filterPanelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
-  const location = useLocation()
   const { user } = useAuth()
 
   // Close filters when clicking outside
@@ -68,7 +66,7 @@ export function JobsPage() {
         companyId: job.companyID.toString(),
         location: job.location,
         description: job.description,
-        type: "Full-time",
+
         logo: job.companyLogoPath,
         sector: job.tags,
         isExpired: job.isExpired,
@@ -76,10 +74,6 @@ export function JobsPage() {
       }))
       setJobs(jobsData)
       setFilteredJobs(jobsData)
-
-      // Extract unique job types and sectors for filters
-      const uniqueJobTypes = Array.from(new Set(jobsData.map((job) => job.type).filter(Boolean)))
-      const uniqueSectors = Array.from(new Set(jobsData.map((job) => job.sector).filter(Boolean)))
     } catch (error) {
       console.error("Error fetching jobs:", error)
     } finally {
@@ -87,12 +81,12 @@ export function JobsPage() {
     }
   }
 
-  const handleSearch = (keywords: string, location: string) => {
+  const handleSearch = (keywords: string, searchLocation: string) => {
     setSearchPerformed(true)
-    applyFilters(keywords, location)
+    applyFilters(keywords, searchLocation)
   }
 
-  const applyFilters = (keywords = "", location = "") => {
+  const applyFilters = (keywords = "", searchLocation = "") => {
     setIsLoading(true)
 
     const filtered = jobs.filter((job) => {
@@ -103,18 +97,22 @@ export function JobsPage() {
           job.description.toLowerCase().includes(keywords.toLowerCase())
         : true
 
-      const matchesLocation = location ? job.location.toLowerCase().includes(location.toLowerCase()) : true
+      const matchesLocation = searchLocation ? job.location.toLowerCase().includes(searchLocation.toLowerCase()) : true
 
-      // Advanced filters
-      const matchesJobType = filters.jobTypes.length > 0 ? filters.jobTypes.includes(job.type || "") : true
+      // Advanced filters - since we removed job types, always return true for job type filter
+      const matchesJobType = true
 
       // Clean up sectors by removing empty, whitespace-only, or invalid tags
       const validSectors = filters.sectors
         .map(s => s.trim())
         .filter(s => s && s.length > 0 && !/^\d+$/.test(s) && s.length <= 50);
 
+      // Split job's sector string into individual tags
+      const jobTags = job.sector ? job.sector.split(',').map(tag => tag.trim()) : []
+
+      // Check if any of the job's tags match any of the selected sectors
       const matchesSector = validSectors.length > 0
-        ? validSectors.includes(job.sector || "")
+        ? jobTags.some(tag => validSectors.includes(tag))
         : true
 
       // Expired filter
@@ -129,7 +127,7 @@ export function JobsPage() {
     setIsLoading(false)
   }
 
-  const handleFilterChange = (filterType: "jobTypes" | "sectors", value: string) => {
+  const handleFilterChange = (filterType: "sectors", value: string) => {
     setFilters((prev) => {
       const currentValues = [...prev[filterType]]
       const newValues = currentValues.includes(value)
@@ -145,7 +143,6 @@ export function JobsPage() {
 
   const clearFilters = () => {
     setFilters({
-      jobTypes: [],
       sectors: [],
       showExpired: false,
     })
@@ -175,35 +172,29 @@ export function JobsPage() {
     navigate(`/jobs/${jobId}/apply`);
   }
 
-  // Get unique job types and sectors from active jobs only
-  const jobTypes = Array.from(new Set(jobs
-    .filter(job => !job.isExpired)
-    .map((job) => job.type)
-    .filter(Boolean))) as string[]
+  // We no longer use job types
 
+  // Split comma-separated tags into individual tags
   const sectors = Array.from(
     new Set(
       jobs
         .filter(job => !job.isExpired) // Only include sectors from active jobs
-        .map((job) => job.sector)
-        .filter(sector =>
-          sector &&
-          sector.trim().length > 0 &&
-          !/^\d+$/.test(sector) &&
-          sector.length <= 50
+        .flatMap((job) =>
+          job.sector
+            ? job.sector.split(',').map(tag => tag.trim()).filter(tag =>
+                tag &&
+                tag.length > 0 &&
+                !/^\d+$/.test(tag) &&
+                tag.length <= 50
+              )
+            : []
         )
     )
   ) as string[]
 
-  const activeFilterCount = filters.jobTypes.length + filters.sectors.length + (filters.showExpired ? 1 : 0);
+  const activeFilterCount = filters.sectors.length + (filters.showExpired ? 1 : 0);
 
   const filterSections: FilterSection[] = [
-    {
-      title: "Job Type",
-      items: jobTypes,
-      selectedItems: filters.jobTypes,
-      onChange: (value) => handleFilterChange("jobTypes", value)
-    },
     {
       title: "Tags",
       items: sectors,

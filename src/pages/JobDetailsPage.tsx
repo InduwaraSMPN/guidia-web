@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Briefcase, Building2, Bookmark, BookmarkCheck } from "lucide-react";
+import { MapPin, Briefcase, Building2, Bookmark, BookmarkCheck, Tag } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import { Job } from "@/components/JobCard";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ export function JobDetailsPage() {
           location: response.data.location,
           description: response.data.description,
           logo: response.data.companyLogoPath,
-          type: response.data.type || "Full-time",
+
           requirements: response.data.requirements?.split(",") || [],
           functions: response.data.description?.split("\n").filter(Boolean) || [],
           startDate: new Date(response.data.startDate).toLocaleDateString(),
@@ -217,28 +217,22 @@ export function JobDetailsPage() {
               <h1 className="text-3xl font-bold text-card-foreground truncate" title={job.title}>{job.title}</h1>
               <p className="text-xl text-brand mt-2 truncate">{job.company}</p>
 
-              <div className="mt-4 flex flex-wrap gap-4">
-                <div className="flex items-center text-muted-foreground">
+              <div className="mt-4">
+                <div className="flex items-center text-muted-foreground mb-3">
                   <MapPin className="h-5 w-5 mr-2" />
                   {job.location}
                 </div>
-                {job.type && (
-                  <div className="flex items-center text-muted-foreground">
-                    <Clock className="h-5 w-5 mr-2" />
-                    {job.type}
-                  </div>
-                )}
                 {job.sector && (
-                  <div className="flex items-center text-muted-foreground">
-                    <Briefcase className="h-5 w-5 mr-2" />
+                  <div className="w-full">
                     <div className="flex flex-wrap gap-2">
                       {job.sector.split(",").map((tag, index) => (
-                        <span
+                        <div
                           key={index}
-                          className="bg-secondary px-3 py-1 rounded-full text-sm"
+                          className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm"
                         >
-                          {tag.trim()}
-                        </span>
+                          <Tag className="h-3.5 w-3.5 mr-1.5 text-brand" />
+                          <span>{tag.trim()}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
