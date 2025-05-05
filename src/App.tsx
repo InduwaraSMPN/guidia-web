@@ -86,6 +86,7 @@ import { ContactPage } from './pages/ContactPage';
 import { FeaturesPage } from './pages/FeaturesPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
 import { MeetingAvailability } from './pages/MeetingAvailability';
 import { CalendarPage } from './pages/CalendarPage';
 import { GuidiaAiChat } from './features/guidia-ai-assistant';
@@ -235,6 +236,7 @@ function AppContent() {
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/faq" element={<FAQPage />} />
+          <Route path="/coming-soon" element={<ComingSoonPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           {/* Company routes */}
           <Route path="/companies/:id/jobs" element={
