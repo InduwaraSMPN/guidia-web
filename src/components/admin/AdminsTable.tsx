@@ -162,7 +162,7 @@ export function AdminsTable({
                 >
                   <td className="px-6 py-4 font-medium text-adaptive-dark">{user.email}</td>
                   <td className="px-6 py-4">{user.username}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 relative">
                     <Select
                       options={statusOptions}
                       value={user.status ? { value: user.status, label: user.status.charAt(0).toUpperCase() + user.status.slice(1) } : null}

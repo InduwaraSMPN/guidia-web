@@ -820,23 +820,32 @@ app.delete("/api/admin/users/:userType/:id", requireAdmin, async (req, res) => {
 
     const roleMap = { admins: 1, students: 2, counselors: 3, companies: 4 };
     const roleID = roleMap[req.params.userType];
+    const userId = req.params.id;
 
     if (!roleID) {
       await connection.rollback();
       return res.status(400).json({ error: "Invalid user type" });
     }
 
-    // If deleting a counselor, first delete their profile data
-    if (roleID === 3) {
-      await connection.execute("DELETE FROM counselors WHERE userID = ?", [
-        req.params.id,
-      ]);
+    // Delete related profile data based on user type
+    if (roleID === 2) {
+      // Delete student profile
+      await connection.execute("DELETE FROM students WHERE userID = ?", [userId]);
+      console.log(`Deleted student profile for user: ${userId}`);
+    } else if (roleID === 3) {
+      // Delete counselor profile
+      await connection.execute("DELETE FROM counselors WHERE userID = ?", [userId]);
+      console.log(`Deleted counselor profile for user: ${userId}`);
+    } else if (roleID === 4) {
+      // Delete company profile
+      await connection.execute("DELETE FROM companies WHERE userID = ?", [userId]);
+      console.log(`Deleted company profile for user: ${userId}`);
     }
 
     // Delete from users table
     const [result] = await connection.execute(
       "DELETE FROM users WHERE userID = ? AND roleID = ?",
-      [req.params.id, roleID]
+      [userId, roleID]
     );
 
     if (result.affectedRows === 0) {
@@ -849,11 +858,11 @@ app.delete("/api/admin/users/:userType/:id", requireAdmin, async (req, res) => {
     await connection.commit();
 
     console.log(
-      `Successfully deleted user: ${req.params.id} of type: ${req.params.userType}`
+      `Successfully deleted user: ${userId} of type: ${req.params.userType}`
     );
     res.json({
       message: "User deleted successfully",
-      deletedUserId: req.params.id,
+      deletedUserId: userId,
       userType: req.params.userType,
     });
   } catch (error) {

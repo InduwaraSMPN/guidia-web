@@ -1,6 +1,6 @@
 
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Check, ChevronDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,6 +30,7 @@ export function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const selectRef = useRef<HTMLDivElement>(null)
 
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
@@ -48,15 +49,44 @@ export function Select({
     }
   }
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    const handleResize = () => {
+      // Force re-render to update dropdown position
+      if (isOpen) {
+        setIsOpen(false)
+        setTimeout(() => setIsOpen(true), 0)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      window.addEventListener("resize", handleResize)
+      window.addEventListener("scroll", handleResize)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      window.removeEventListener("resize", handleResize)
+      window.removeEventListener("scroll", handleResize)
+    }
+  }, [isOpen])
+
   return (
-    <div className="relative w-full font-opensans">
+    <div ref={selectRef} className="relative w-full font-opensans">
       <button
         type="button"
         onClick={toggleDropdown}
         className={cn(
           "w-full h-[42px] px-3 rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand",
           "flex items-center justify-between text-left",
-          "bg-card text-card-foreground dark:bg-card dark:text-card-foreground",
+          "bg-white text-foreground dark:bg-card dark:text-card-foreground",
           disabled || isLoading ? "cursor-not-allowed opacity-75" : "cursor-pointer",
           "text-sm"
         )}
@@ -80,12 +110,23 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+        <div className="fixed z-50 w-[calc(100%-2px)] mt-1 bg-white dark:bg-card border border-border rounded-md shadow-lg max-h-[200px] overflow-y-auto"
+             style={{
+               top: selectRef.current ?
+                 // Check if dropdown would go off the bottom of the viewport
+                 (selectRef.current.getBoundingClientRect().bottom + 200 > window.innerHeight ?
+                   // Position above the select if it would go off the bottom
+                   selectRef.current.getBoundingClientRect().top - 200 + window.scrollY :
+                   // Otherwise position below the select
+                   selectRef.current.getBoundingClientRect().bottom + window.scrollY) : 0,
+               left: selectRef.current ? selectRef.current.getBoundingClientRect().left + window.scrollX : 0,
+               width: selectRef.current ? selectRef.current.offsetWidth : 'auto'
+             }}>
           {isSearchable && (
-            <div className="sticky top-0 z-10 bg-card p-2 border-b border-border">
+            <div className="sticky top-0 z-20 bg-white dark:bg-card p-2 border-b border-border">
               <input
                 type="text"
-                className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand bg-card text-card-foreground"
+                className="w-full h-[42px] px-3 text-sm rounded-md border border-border focus:outline-none focus:ring-2 focus:ring-brand bg-white dark:bg-card text-foreground dark:text-card-foreground"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,7 +135,7 @@ export function Select({
             </div>
           )}
 
-          <ul className="py-1 text-sm" role="listbox">
+          <ul className="py-1 text-sm text-foreground dark:text-card-foreground" role="listbox">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <li
@@ -102,12 +143,12 @@ export function Select({
                   role="option"
                   aria-selected={value?.value === option.value}
                   className={cn(
-                    "flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-colors duration-200",
+                    "flex items-center justify-between px-3 py-3 cursor-pointer hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-colors duration-200",
                     value?.value === option.value ? "bg-secondary text-brand dark:text-foreground" : ""
                   )}
                   onClick={() => handleSelect(option)}
                 >
-                  <span>{option.label}</span>
+                  <span className="font-medium">{option.label}</span>
                   {value?.value === option.value && <Check className="w-4 h-4 text-brand dark:text-foreground transition-colors duration-200" />}
                 </li>
               ))
