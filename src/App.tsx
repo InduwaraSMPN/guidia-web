@@ -239,6 +239,9 @@ function AppContent() {
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
+          <Route path="/pricing" element={<Navigate to="/coming-soon" replace />} />
+          <Route path="/docs" element={<Navigate to="/coming-soon" replace />} />
+          <Route path="/support" element={<Navigate to="/coming-soon" replace />} />
           <Route path="/companies" element={<CompaniesPage />} />
           {/* Company routes */}
           <Route path="/companies/:id/jobs" element={

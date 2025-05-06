@@ -24,56 +24,56 @@ export function TestimonialsPage() {
     {
       name: "Amara Perera",
       role: "Computer Science Graduate",
-      image: "/images/testimonials/avatar-1.jpg",
+      image: "/images/testimonials/Amara-Perera.jpg",
       content: "Guidia completely transformed my job search experience. The personalized counseling sessions helped me identify my strengths and the career path that was right for me. Within two months of using the platform, I secured a position at a leading tech company!",
       rating: 5,
     },
     {
       name: "Dinesh Kumar",
       role: "Engineering Student",
-      image: "/images/testimonials/avatar-2.jpg",
+      image: "/images/testimonials/Dinesh-Kumar.jpg",
       content: "As a final year engineering student, I was overwhelmed by the job market. The career counselors on Guidia provided invaluable guidance and helped me prepare for interviews. The resources available on the platform are exceptional and truly prepare you for the professional world.",
       rating: 5,
     },
     {
       name: "Fathima Rizvi",
       role: "Business Administration Graduate",
-      image: "/images/testimonials/avatar-3.jpg",
+      image: "/images/testimonials/Fathima-Rizvi.jpg",
       content: "The networking opportunities on Guidia are unmatched. I connected with industry professionals who provided insights I couldn't find anywhere else. The platform's job matching algorithm is impressive - it found opportunities that perfectly aligned with my skills and interests.",
       rating: 4,
     },
     {
       name: "Tharaka Jayasinghe",
       role: "Psychology Student",
-      image: "/images/testimonials/avatar-4.jpg",
+      image: "/images/testimonials/Tharaka-Jayasinghe",
       content: "I was unsure about which career path to pursue with my psychology degree. The career assessment tools and counseling sessions on Guidia helped me explore options I hadn't considered. I'm now confidently pursuing a career in organizational psychology thanks to their guidance.",
       rating: 5,
     },
     {
       name: "Lakshmi Navaratne",
       role: "Marketing Professional",
-      image: "/images/testimonials/avatar-5.jpg",
+      image: "/images/testimonials/Lakshmi-Navaratne.jpg",
       content: "Even as a professional with several years of experience, I found tremendous value in Guidia. The platform helped me identify opportunities for growth and connected me with mentors who have helped advance my career. The resume building tools and feedback were particularly helpful.",
       rating: 5,
     },
     {
       name: "Rajiv Mendis",
       role: "IT Graduate",
-      image: "/images/testimonials/avatar-6.jpg",
+      image: "/images/testimonials/Rajiv-Mendis.jpg",
       content: "The job application process through Guidia is seamless. I appreciated how the platform kept me updated on my application status and provided reminders for important deadlines. The interview preparation resources were comprehensive and helped me feel confident.",
       rating: 4,
     },
     {
       name: "Samantha Silva",
       role: "Hospitality Management Student",
-      image: "/images/testimonials/avatar-7.jpg",
+      image: "/images/testimonials/Samantha-Silva.jpg",
       content: "Guidia opened doors to internship opportunities I wouldn't have found elsewhere. The platform's focus on connecting students with the right opportunities based on their interests and skills is impressive. I've recommended it to all my classmates!",
       rating: 5,
     },
     {
       name: "Nihal Gunawardena",
       role: "Finance Graduate",
-      image: "/images/testimonials/avatar-8.jpg",
+      image: "/images/testimonials/Nihal-Gunawardena.jpg",
       content: "The events and workshops advertised on Guidia have been instrumental in my professional development. I've attended several networking events through the platform that led to valuable connections in the finance industry. The career guidance is top-notch.",
       rating: 5,
     },
@@ -97,21 +97,21 @@ export function TestimonialsPage() {
   const companyTestimonials = [
     {
       company: "TechSolutions Lanka",
-      logo: "/images/company-logos/techsolutions.png",
+      logo: "/images/company-logos/TechSolutions-Lanka.jpg",
       representative: "Priyanka Jayawardena",
       title: "HR Director",
       content: "Guidia has revolutionized our recruitment process. The quality of candidates we've found through the platform is exceptional. The students come well-prepared and have a clear understanding of their career goals, which makes the hiring process much more efficient.",
     },
     {
       company: "Global Finance Partners",
-      logo: "/images/company-logos/globalfinance.png",
+      logo: "/images/company-logos/Global-Finance-Partners.jpg",
       representative: "Rohan De Silva",
       title: "Talent Acquisition Manager",
       content: "We've been partnering with Guidia for our internship program for the past two years, and the results have been outstanding. The platform makes it easy to connect with talented students who are eager to learn and contribute. It's become an essential part of our recruitment strategy.",
     },
     {
       company: "Innovate Engineering",
-      logo: "/images/company-logos/innovate.png",
+      logo: "/images/company-logos/Innovate-Engineering.jpg",
       representative: "Malik Fernando",
       title: "CEO",
       content: "As a growing company, finding the right talent is crucial. Guidia has helped us connect with promising graduates who bring fresh perspectives to our team. The platform's focus on career readiness ensures that the candidates we interview are well-prepared for the professional environment.",
@@ -287,11 +287,13 @@ export function TestimonialsPage() {
                 <div className="mb-6">
                   <div className="h-12 mb-4 flex items-center">
                     {testimonial.logo ? (
-                      <img
-                        src={testimonial.logo}
-                        alt={testimonial.company}
-                        className="h-full object-contain"
-                      />
+                      <div className="h-12 w-12 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                        <img
+                          src={testimonial.logo}
+                          alt={testimonial.company}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     ) : (
                       <h3 className="text-xl font-bold text-brand">
                         {testimonial.company}

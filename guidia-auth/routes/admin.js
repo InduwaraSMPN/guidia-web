@@ -910,9 +910,18 @@ router.get(
 
       // Get meetings by type
       const [meetingsByType] = await pool.execute(`
-      SELECT meetingType, COUNT(*) as count
+      SELECT
+        CASE
+          WHEN meetingType = '' OR meetingType IS NULL THEN 'unspecified'
+          ELSE meetingType
+        END as meetingType,
+        COUNT(*) as count
       FROM meetings
-      GROUP BY meetingType
+      GROUP BY
+        CASE
+          WHEN meetingType = '' OR meetingType IS NULL THEN 'unspecified'
+          ELSE meetingType
+        END
     `);
 
       // Get average meeting success rating

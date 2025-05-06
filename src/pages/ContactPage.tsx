@@ -65,14 +65,14 @@ export function ContactPage() {
     {
       icon: Phone,
       title: "Phone",
-      details: "+94 11 234 5678",
-      link: "tel:+94112345678",
+      details: "+94 112 903 903",
+      link: "tel:+94112903903",
     },
     {
       icon: MapPin,
       title: "Address",
-      details: "University of Colombo, Colombo 00700, Sri Lanka",
-      link: "https://maps.google.com/?q=University+of+Colombo",
+      details: "University of Kelaniya, Kandy Road, Dalugama, Kelaniya 11600, Sri Lanka",
+      link: "https://maps.google.com/?q=University+of+Kelaniya",
     },
   ];
 
@@ -256,14 +256,14 @@ export function ContactPage() {
             className="bg-secondary rounded-xl overflow-hidden h-[500px] shadow-sm border border-border"
           >
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.798467512262!2d79.85741631477253!3d6.900789995012482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25926b85d1b33%3A0x2f74b8ee3f36659e!2sUniversity%20of%20Colombo!5e0!3m2!1sen!2sus!4v1651234567890!5m2!1sen!2sus"
-              width="100%"
+  src="https://www.google.com/maps?q=University+of+Kelaniya,+Sri+Lanka&output=embed" 
+  width="100%"
               height="100%"
               style={{ border: 0 }}
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="University of Colombo Map"
+              title="University of Kelaniya Map"
             ></iframe>
           </motion.div>
         </div>

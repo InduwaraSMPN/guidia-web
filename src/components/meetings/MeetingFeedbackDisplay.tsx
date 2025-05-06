@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { sanitizeHtml } from '@/lib/utils';
 
 interface MeetingFeedback {
   feedbackID: number;
@@ -77,6 +78,9 @@ export function MeetingFeedbackDisplay({ feedback }: MeetingFeedbackDisplayProps
           return null;
         }
 
+        // Sanitize HTML content for safe rendering
+        const sanitizedComments = item.comments ? sanitizeHtml(item.comments) : '';
+
         return (
           <div key={item.feedbackID} className="border rounded-md p-4 bg-secondary/30">
             <div className="flex justify-between items-start mb-2">
@@ -98,7 +102,10 @@ export function MeetingFeedbackDisplay({ feedback }: MeetingFeedbackDisplayProps
               {item.comments && (
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Comments</div>
-                  <p className="text-sm">{item.comments}</p>
+                  <div
+                    className="prose max-w-none text-sm leading-relaxed overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: sanitizedComments }}
+                  />
                 </div>
               )}
             </div>

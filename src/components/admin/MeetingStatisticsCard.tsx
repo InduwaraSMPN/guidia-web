@@ -150,11 +150,14 @@ const STATUS_COLORS = {
 
 // Define colors for meeting types
 const TYPE_COLORS = {
-  interview: "#6366f1",
-  consultation: "#0ea5e9",
-  counseling: "#8b5cf6",
-  informational: "#ec4899",
-  networking: "#14b8a6",
+  student_company: "#6366f1",
+  student_counselor: "#0ea5e9",
+  company_counselor: "#8b5cf6",
+  student_student: "#ec4899",
+  company_company: "#14b8a6",
+  counselor_counselor: "#10b981",
+  "": "#9ca3af", // Empty meeting type
+  unspecified: "#9ca3af" // Unspecified meeting type (from backend)
 }
 
 export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) {

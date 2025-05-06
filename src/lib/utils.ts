@@ -129,7 +129,7 @@ export function sanitizeHtml(html: string): string {
  * e.g., 'student_counselor' becomes 'Student ↔ Counselor'
  */
 export function formatMeetingType(type: string): string {
-  if (!type) return '';
+  if (!type) return 'Unspecified';
 
   switch (type) {
     case 'student_company':
@@ -144,12 +144,14 @@ export function formatMeetingType(type: string): string {
       return 'Company ↔ Company';
     case 'counselor_counselor':
       return 'Counselor ↔ Counselor';
+    case 'unspecified':
+      return 'Unspecified';
     default:
       // Try to format unknown types by splitting on underscore
       const parts = type.split('_');
       if (parts.length === 2) {
         return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ↔ ');
       }
-      return type;
+      return type || 'Unspecified';
   }
 }
