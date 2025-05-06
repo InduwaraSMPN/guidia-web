@@ -2,25 +2,24 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 export function ComingSoonScroll() {
   return (
-    <div className="flex flex-col overflow-hidden pb-[132px] pt-[132px]">
+    <div className="flex flex-col overflow-hidden pb-[500px] pt-[162px]">
       <ContainerScroll
         titleComponent={
           <>
             <h1 className="text-2xl md:text-2xl font-semibold text-black dark:text-white">
-            coming soon to <br />
+              coming soon to <br />
               <span className="text-[#800020] text-5xl md:text-[6rem] font-bold mt-1 leading-none">
-              <span className="font-grillmaster">Guidia</span>
-
+                <span className="font-grillmaster">Guidia</span>
               </span>
             </h1>
           </>
         }
       >
-        <div className="rounded-2xl overflow-hidden h-full relative">
+        <div className="rounded-2xl overflow-hidden h-full relative flex items-center justify-center">
           <img
             src="images/coming-soon-image.png"
             alt="Scroll Animation Demo"
-            className="mx-auto rounded-2xl object-cover h-full w-full"
+            className="mx-auto rounded-2xl object-cover h-full w-full object-center"
             draggable={false}
           />
           <div className="absolute top-4 left-4">
