@@ -22,7 +22,7 @@ export function ProfileForm({
       ...prev,
       [name]: value
     }));
-    
+
     // Propagate changes to parent component if needed
     if (onFieldChange) {
       onFieldChange(name, value);
@@ -31,7 +31,7 @@ export function ProfileForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     setIsSubmitting(true);
     try {
       await onSubmit(formState);
@@ -54,9 +54,9 @@ export function ProfileForm({
               </h2>
             )}
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {section.fields.map((field) => {
-                const gridClass = field.gridCols === 2 ? 'md:col-span-2' : '';
+                const gridClass = field.gridCols === 2 ? 'col-span-1 md:col-span-2' : '';
                 return (
                   <div key={field.name} className={gridClass}>
                     <ProfileInput
@@ -82,7 +82,7 @@ export function ProfileForm({
         >
           Cancel
         </Button>
-        <Button 
+        <Button
           type="submit"
           disabled={isSubmitting}
         >

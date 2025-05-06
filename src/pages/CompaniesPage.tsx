@@ -172,14 +172,14 @@ export function CompaniesPage() {
         <div className="relative mb-12 max-w-lg ml-auto">
           <div className="h-12 bg-secondary-dark rounded-md animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(6)].map((_, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-xs p-4 h-28 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 bg-secondary-dark rounded-lg"></div>
+            <div key={index} className="bg-white rounded-lg shadow-xs p-3 sm:p-4 h-24 sm:h-28 animate-pulse">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary-dark rounded-lg"></div>
                 <div className="flex-1">
-                  <div className="h-4 bg-secondary-dark rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-secondary-dark rounded w-1/2"></div>
+                  <div className="h-3 sm:h-4 bg-secondary-dark rounded w-3/4 mb-1 sm:mb-2"></div>
+                  <div className="h-2 sm:h-3 bg-secondary-dark rounded w-1/2"></div>
                 </div>
               </div>
             </div>
@@ -284,7 +284,7 @@ export function CompaniesPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
           >
             {filteredCompanies.map((company) => {
               // Debug company data

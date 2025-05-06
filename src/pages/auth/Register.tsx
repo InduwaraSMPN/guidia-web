@@ -68,9 +68,9 @@ export function RegisterAs() {
           <Skeleton className="h-10 w-48 mb-8" />
 
           <div className="space-y-6">
-            <div className="flex gap-4 justify-center mb-8">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center mb-6 sm:mb-8">
               {[...Array(3)].map((_, index) => (
-                <Skeleton key={index} className="h-10 w-28 rounded-md" />
+                <Skeleton key={index} className="h-10 w-full sm:w-28 rounded-md" />
               ))}
             </div>
 
@@ -92,13 +92,13 @@ export function RegisterAs() {
         <h1 className="text-3xl font-bold text-brand mb-8">Register As</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex gap-4 justify-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center mb-6 sm:mb-8">
             {(['Student', 'Counselor', 'Company'] as UserType[]).map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setSelectedType(type)}
-                className={`px-6 py-2 rounded-md text-base font-medium transition-colors ${
+                className={`px-4 sm:px-6 py-2 rounded-md text-sm sm:text-base font-medium transition-colors w-full sm:w-auto ${
                   selectedType === type
                     ? 'bg-brand text-white'
                     : 'border border-brand text-brand hover:bg-brand-dark hover:text-white'

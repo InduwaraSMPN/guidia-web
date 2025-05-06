@@ -300,26 +300,26 @@ export function CounselorsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(6)].map((_, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-14 h-14 rounded-lg" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+            <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg" />
+                <div className="flex-1 space-y-1 sm:space-y-2">
+                  <Skeleton className="h-4 sm:h-5 w-3/4" />
+                  <Skeleton className="h-3 sm:h-4 w-1/2" />
                 </div>
               </div>
-              <div className="mt-4 space-y-2">
-                <div className="flex flex-wrap gap-2">
-                  <Skeleton className="h-6 w-20 rounded-full" />
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                  <Skeleton className="h-6 w-16 rounded-full" />
+              <div className="mt-3 sm:mt-4 space-y-1 sm:space-y-2">
+                <div className="flex flex-wrap gap-1 sm:gap-2">
+                  <Skeleton className="h-5 sm:h-6 w-16 sm:w-20 rounded-full" />
+                  <Skeleton className="h-5 sm:h-6 w-20 sm:w-24 rounded-full" />
+                  <Skeleton className="h-5 sm:h-6 w-14 sm:w-16 rounded-full" />
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
-                <Skeleton className="h-9 w-full" />
-                <Skeleton className="h-9 w-full" />
+              <div className="flex gap-2 mt-3 sm:mt-4">
+                <Skeleton className="h-8 sm:h-9 w-full" />
+                <Skeleton className="h-8 sm:h-9 w-full" />
               </div>
             </div>
           ))}
@@ -397,7 +397,7 @@ export function CounselorsPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
           >
             {filteredCounselors.map((counselor) => (
               <motion.div key={counselor.userID} variants={itemVariants}>

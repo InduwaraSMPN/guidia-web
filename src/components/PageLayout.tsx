@@ -13,9 +13,9 @@ interface PageLayoutProps {
 /**
  * Standard page layout component to ensure consistent spacing and structure across pages
  */
-export function PageLayout({ 
-  children, 
-  className, 
+export function PageLayout({
+  children,
+  className,
   fullWidth = false,
   noPadding = false
 }: PageLayoutProps) {
@@ -23,23 +23,23 @@ export function PageLayout({
   const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
-    <div 
+    <div
       className={cn(
         "min-h-screen bg-white",
-        isAdminPage ? "pt-6" : "pt-32",
+        isAdminPage ? "pt-4 sm:pt-6" : "pt-20 sm:pt-24 md:pt-32", // Adjusted padding for mobile
         className
       )}
     >
-      <div 
+      <div
         className={cn(
           "mx-auto",
           !fullWidth && "max-w-[1216px]",
-          !noPadding && "px-4 sm:px-6 lg:px-8 pb-32"
+          !noPadding && "px-3 sm:px-6 lg:px-8 pb-16 sm:pb-24 md:pb-32" // Adjusted padding for mobile
         )}
       >
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {children}

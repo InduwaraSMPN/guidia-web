@@ -291,20 +291,20 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
   return (
     <nav
       className={`fixed w-full top-0 z-[40] transition-all duration-300 ${
-        isScrolled ? "bg-background/95 backdrop-blur-sm py-2" : "bg-transparent py-4"
+        isScrolled ? "bg-background/95 backdrop-blur-sm py-1 sm:py-2" : "bg-transparent py-2 sm:py-4"
       }`}
     >
-      <div className="max-w-[1216px] mx-auto px-6">
+      <div className="max-w-[1216px] mx-auto px-3 sm:px-6">
         <div className="flex items-center justify-between">
           {/* Logo and possibly News/Events when no user */}
-          <div className={`flex-shrink-0 ${!user ? 'flex-1' : 'w-[180px]'}`}>
+          <div className={`flex-shrink-0 ${!user ? 'flex-1' : 'w-[140px] sm:w-[180px]'}`}>
             <div className="flex items-center">
               <Link to="/" className="transition-transform duration-300 hover:scale-105 inline-block">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   {isDark ? (
-                    <img src="/images/logo-light.svg" alt="Guidia" className="h-8 w-auto max-w-[150px]" />
+                    <img src="/images/logo-light.svg" alt="Guidia" className="h-6 sm:h-8 w-auto max-w-[120px] sm:max-w-[150px]" />
                   ) : (
-                    <img src="/images/logo-dark.svg" alt="Guidia" className="h-8 w-auto max-w-[150px]" />
+                    <img src="/images/logo-dark.svg" alt="Guidia" className="h-6 sm:h-8 w-auto max-w-[120px] sm:max-w-[150px]" />
                   )}
                 </div>
               </Link>
@@ -604,7 +604,7 @@ export function Navbar({ logoOnly = false }: NavbarProps) {
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.3 }}
-          className="md:hidden bg-background border-t border-border overflow-hidden"
+          className="md:hidden bg-background border-t border-border overflow-hidden max-h-[calc(100vh-64px)] overflow-y-auto"
         >
            <div className="px-6 py-4 space-y-2">
             {/* News */}

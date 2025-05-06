@@ -8,5 +8,3 @@ const authLimiter = createRateLimiter({
   },
 
 revert sentry
-
-add index no to public student profile

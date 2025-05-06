@@ -280,19 +280,19 @@ export function ViewDocumentModal({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Error</h3>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="h-4 w-4" />
+            <div className="bg-white rounded-lg p-4 sm:p-6 max-w-lg w-full">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold">Error</h3>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 sm:h-8 sm:w-8">
+                  <X className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
-              <p className="text-red-500 text-center">
+              <p className="text-red-500 text-center text-sm sm:text-base">
                 Unable to load document. Please try again later.
               </p>
             </div>
@@ -354,37 +354,37 @@ export function ViewDocumentModal({
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header */}
-            <div className="p-4 border-b border-border flex items-center justify-between transition-colors duration-300">
+            <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between transition-colors duration-300">
               <div className="flex items-center">
-                <FileText className="h-5 w-5 text-brand mr-2 transition-colors duration-300" />
-                <h2 className={`text-xl font-semibold truncate ${isFullscreen ? 'max-w-[500px]' : 'max-w-[300px]'}`} title={documentName}>
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-brand mr-1 sm:mr-2 transition-colors duration-300" />
+                <h2 className={`text-base sm:text-xl font-semibold truncate ${isFullscreen ? 'max-w-[300px] sm:max-w-[500px]' : 'max-w-[150px] sm:max-w-[300px]'}`} title={documentName}>
                   {documentName}
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-1 transition-all hover:bg-brand-dark hover:text-white"
+                  className="flex items-center gap-1 transition-all hover:bg-brand-dark hover:text-white h-7 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                   onClick={handleDownload}
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Download</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center transition-all hover:bg-brand-dark hover:text-white"
+                  className="flex items-center transition-all hover:bg-brand-dark hover:text-white h-7 sm:h-9 text-xs sm:text-sm px-2 sm:px-3"
                   onClick={toggleFullscreen}
                 >
-                  {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                  {isFullscreen ? <Minimize className="h-3 w-3 sm:h-4 sm:w-4" /> : <Maximize className="h-3 w-3 sm:h-4 sm:w-4" />}
                 </Button>
                 <button
                   onClick={onClose}
                   className="p-1 rounded-full transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary-light"
                   title="Close"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
             </div>
@@ -393,7 +393,7 @@ export function ViewDocumentModal({
             <div className="flex-1 overflow-hidden bg-secondary-light relative transition-colors duration-300">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-brand"></div>
                 </div>
               ) : pdfData ? (
                 isImage ? (
@@ -481,12 +481,12 @@ export function ViewDocumentModal({
                 )
               ) : (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-center p-8">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Unable to load document.</p>
+                  <div className="text-center p-4 sm:p-8">
+                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                    <p className="text-sm sm:text-base text-muted-foreground">Unable to load document.</p>
                     <Button
                       variant="outline"
-                      className="mt-4"
+                      className="mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-9 py-0"
                       onClick={() => {
                         setLoading(true);
                         setPdfData(documentUrl);
@@ -500,10 +500,10 @@ export function ViewDocumentModal({
             </div>
 
             {/* Controls */}
-            <div className="p-3 bg-secondary border-t border-border flex justify-between items-center transition-colors duration-300">
-              <div className="flex items-center space-x-2">
+            <div className="p-2 sm:p-3 bg-secondary border-t border-border flex justify-between items-center transition-colors duration-300">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <div className="flex items-center bg-secondary-light rounded-md p-0.5 relative group">
-                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-foreground text-background text-xs rounded p-1 shadow-lg whitespace-nowrap">
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-foreground text-background text-[10px] sm:text-xs rounded p-1 shadow-lg whitespace-nowrap z-10">
                     <div className="font-medium mb-1">Zoom Shortcuts:</div>
                     <div className="flex flex-col gap-1">
                       <div><span className="font-mono bg-background/20 px-1 rounded">Ctrl + +</span> Zoom in</div>
@@ -518,14 +518,14 @@ export function ViewDocumentModal({
                     variant="ghost"
                     onClick={handleZoomOut}
                     disabled={scale <= 0.25}
-                    className="h-7 w-7 p-0 transition-all hover:bg-secondary-light rounded-l-sm"
+                    className="h-6 w-6 sm:h-7 sm:w-7 p-0 transition-all hover:bg-secondary-light rounded-l-sm"
                     title="Zoom Out (Ctrl + -)"
                   >
-                    <ZoomOut className="h-4 w-4" />
+                    <ZoomOut className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   <button
                     onClick={handleResetZoom}
-                    className={`text-sm min-w-[50px] text-center transition-colors cursor-pointer px-1 ${scale === 1 ? 'text-brand font-medium' : 'text-muted-foreground hover:text-brand'}`}
+                    className={`text-xs sm:text-sm min-w-[40px] sm:min-w-[50px] text-center transition-colors cursor-pointer px-1 ${scale === 1 ? 'text-brand font-medium' : 'text-muted-foreground hover:text-brand'}`}
                     title="Reset zoom to 100% (Ctrl + 0)"
                   >
                     {Math.round(scale * 100)}%
@@ -535,18 +535,18 @@ export function ViewDocumentModal({
                     variant="ghost"
                     onClick={handleZoomIn}
                     disabled={scale >= 3.0}
-                    className="h-7 w-7 p-0 transition-all hover:bg-secondary-light rounded-r-sm"
+                    className="h-6 w-6 sm:h-7 sm:w-7 p-0 transition-all hover:bg-secondary-light rounded-r-sm"
                     title="Zoom In (Ctrl + +)"
                   >
-                    <ZoomIn className="h-4 w-4" />
+                    <ZoomIn className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 {fileInfo && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-1" title="File information">
-                    <Info className="h-3 w-3" />
+                  <div className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1" title="File information">
+                    <Info className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     {fileInfo.isLegacyFormat ? (
                       <span>Legacy Format</span>
                     ) : (
@@ -558,7 +558,7 @@ export function ViewDocumentModal({
                     )}
                   </div>
                 )}
-                <div className="text-xs text-muted-foreground">{isImage ? "Image" : documentType?.toUpperCase() || 'Document'}</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground">{isImage ? "Image" : documentType?.toUpperCase() || 'Document'}</div>
               </div>
             </div>
           </motion.div>

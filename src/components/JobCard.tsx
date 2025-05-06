@@ -2,7 +2,7 @@
 import type React from "react"
 import { format } from "date-fns";
 
-import { Building2, MapPin, Briefcase, Tag, Calendar, ArrowUpRight, Bookmark, BookmarkCheck } from "lucide-react"
+import { Building2, MapPin, Tag, Calendar, ArrowUpRight, Bookmark, BookmarkCheck } from "lucide-react"
 import { Button } from "./ui/button"
 import { useNavigate, Link } from "react-router-dom"
 import { motion } from "framer-motion"
@@ -51,7 +51,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const isExpired = job.isExpired || (job.endDate && new Date(job.endDate) < new Date());
+  const isExpired = Boolean(job.isExpired || (job.endDate && new Date(job.endDate) < new Date()));
   const isStudent = user?.userType === "Student"
 
   // Check if job is saved when component mounts
@@ -61,7 +61,9 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
 
       try {
         const response = await axiosInstance.get(`/api/jobs/is-saved/${job.id}`);
-        setIsSaved(response.data.isSaved);
+        if (response.data && typeof response.data === 'object' && 'isSaved' in response.data) {
+          setIsSaved(Boolean(response.data.isSaved));
+        }
       } catch (error) {
         console.error('Error checking if job is saved:', error);
       }
@@ -134,7 +136,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
+      transition={{ duration: 0.3, delay: index !== undefined ? index * 0.05 : 0 }}
       className={`relative bg-card rounded-lg border border-border overflow-hidden transition-all duration-300 ${isExpired ? 'opacity-75' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -146,8 +148,8 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
     >
       <div className="h-1 w-full bg-gradient-to-r from-brand to-brand/70" />
 
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row gap-5">
+      <div className="p-4 sm:p-6"> {/* Adjusted padding for mobile */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-5"> {/* Adjusted gap for mobile */}
           <div className="flex-shrink-0">
             <motion.div
               animate={{
@@ -161,22 +163,22 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                 <CompanyImage
                   src={job.logo}
                   alt={job.company}
-                  className="w-16 h-16 object-contain rounded-lg border border-border p-1 bg-card"
+                  className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-lg border border-border p-1 bg-card" /* Smaller logo on mobile */
                   fallbackSrc="/placeholder.svg"
                 />
               ) : (
-                <div className="w-16 h-16 bg-secondary rounded-lg flex items-center justify-center border border-border">
-                  <Building2 className="w-8 h-8 text-muted-foreground" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-secondary rounded-lg flex items-center justify-center border border-border"> {/* Smaller placeholder on mobile */}
+                  <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" /> {/* Smaller icon on mobile */}
                 </div>
               )}
             </motion.div>
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-3"> {/* Adjusted gap for mobile */}
               <div className="w-full">
                 <motion.h3
-                  className="text-xl font-bold text-card-foreground truncate"
+                  className="text-lg sm:text-xl font-bold text-card-foreground truncate" /* Smaller text on mobile */
                   title={job.title}
                 >
                   {job.title}
@@ -188,23 +190,23 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   onClick={(e) => e.stopPropagation()}
                   title={job.company}
                 >
-                  <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">{job.company}</span>
+                  <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 flex-shrink-0" /> {/* Smaller icon on mobile */}
+                  <span className="truncate text-sm sm:text-base">{job.company}</span> {/* Smaller text on mobile */}
                 </Link>
 
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <div className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm">
-                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-brand" />
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3"> {/* Adjusted spacing for mobile */}
+                  <div className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm"> {/* Smaller padding and text on mobile */}
+                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5 text-brand" /> {/* Smaller icon on mobile */}
                     <span>{job.location}</span>
                   </div>
                   {job.sector && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2"> {/* Adjusted gap for mobile */}
                       {job.sector.split(',').map((tag, index) => (
                         <div
                           key={index}
-                          className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-3 py-1.5 rounded-full text-sm"
+                          className="flex items-center text-muted-foreground dark:text-neutral-400 bg-secondary px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm" /* Smaller padding and text on mobile */
                         >
-                          <Tag className="h-3.5 w-3.5 mr-1.5 text-brand" />
+                          <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5 text-brand" /> {/* Smaller icon on mobile */}
                           <span>{tag.trim()}</span>
                         </div>
                       ))}
@@ -219,7 +221,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   y: isHovered ? -2 : 0,
                 }}
                 transition={{ duration: 0.2 }}
-                className="flex gap-2"
+                className="flex gap-2 mt-2 sm:mt-0" /* Added margin-top on mobile */
               >
                 {/* Save Job Button - Only show for students and in view mode */}
                 {isStudent && mode === "view" && (
@@ -228,15 +230,15 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                     size="sm"
                     variant="outline"
                     disabled={isLoading}
-                    className="border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200"
+                    className="border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground transition-all duration-200 h-8 w-8 sm:h-9 sm:w-9 p-0" /* Adjusted size for mobile */
                     title={isSaved ? "Remove from saved jobs" : "Save job"}
                   >
                     {isLoading ? (
                       <span className="animate-pulse">...</span>
                     ) : isSaved ? (
-                      <BookmarkCheck className="h-4 w-4 text-brand" />
+                      <BookmarkCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand" /> /* Smaller icon on mobile */
                     ) : (
-                      <Bookmark className="h-4 w-4" />
+                      <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> /* Smaller icon on mobile */
                     )}
                   </Button>
                 )}
@@ -246,13 +248,13 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
                   size="sm"
                   variant={mode === "edit" ? "outline" : "default"}
                   disabled={isExpired && mode !== "edit"}
-                  className={`min-w-[120px] transition-all duration-200 ${
+                  className={`min-w-[100px] sm:min-w-[120px] text-xs sm:text-sm h-8 sm:h-9 transition-all duration-200 ${
                     mode === "edit"
                       ? " border-brand text-brand hover:text-brand"
                       : isExpired
                         ? "bg-brand  cursor-not-allowed opacity-50"
                         : "bg-brand  text-white"
-                  }`}
+                  }`} /* Adjusted size and text for mobile */
                 >
                   {mode === "edit"
                     ? "Edit Job"
@@ -265,19 +267,19 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
             </div>
 
             <div
-              className="mt-4 text-muted-foreground line-clamp-2 text-sm leading-relaxed prose prose-sm overflow-hidden"
+              className="mt-3 sm:mt-4 text-muted-foreground line-clamp-2 text-xs sm:text-sm leading-relaxed prose prose-sm overflow-hidden" /* Smaller text on mobile */
               dangerouslySetInnerHTML={{ __html: job.description.length > 300
                 ? job.description.substring(0, 300) + '...'
                 : job.description }}
             />
 
             {(job.startDate || job.endDate) && (
-              <div className="mt-4 flex items-center text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-2 text-brand" />
-                <span>
-                  {job.startDate && `Start Date: ${formatDate(job.startDate)}`}
+              <div className="mt-3 sm:mt-4 flex items-center text-xs sm:text-sm text-muted-foreground"> {/* Adjusted spacing and text for mobile */}
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-brand" /> {/* Smaller icon on mobile */}
+                <span className="truncate">
+                  {job.startDate && `Start: ${formatDate(job.startDate)}`}
                   {job.endDate && job.startDate && " | "}
-                  {job.endDate && `End Date: ${formatDate(job.endDate)}`}
+                  {job.endDate && `End: ${formatDate(job.endDate)}`}
                 </span>
               </div>
             )}
@@ -287,7 +289,7 @@ export function JobCard({ job, onApply, mode = "view", index }: JobCardProps) {
 
       {/* View details indicator */}
       <motion.div
-        className="absolute bottom-3 right-3 text-xs text-muted-foreground flex items-center"
+        className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 text-xs text-muted-foreground flex items-center" /* Adjusted position for mobile */
         animate={{
           opacity: isHovered ? 1 : 0,
           x: isHovered ? 0 : 10,

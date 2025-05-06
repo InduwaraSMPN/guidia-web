@@ -207,33 +207,33 @@ export function JobApplication() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
+      <div className="min-h-screen bg-white pt-24 sm:pt-32 pb-24 sm:pb-32 px-3 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           {/* Job Details Header Skeleton */}
-          <div className="bg-white rounded-lg border border-border p-6 mb-8">
-            <div className="flex gap-4 items-start">
-              <Skeleton className="w-16 h-16 rounded-lg" />
-              <div className="space-y-2">
-                <Skeleton className="h-7 w-64" />
-                <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-4 w-32" />
+          <div className="bg-white rounded-lg border border-border p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex gap-3 sm:gap-4 items-start">
+              <Skeleton className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg" />
+              <div className="space-y-1 sm:space-y-2">
+                <Skeleton className="h-5 sm:h-7 w-48 sm:w-64" />
+                <Skeleton className="h-4 sm:h-5 w-36 sm:w-48" />
+                <Skeleton className="h-3 sm:h-4 w-24 sm:w-32" />
               </div>
             </div>
           </div>
 
           {/* Application Info Notice Skeleton */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-            <Skeleton className="h-5 w-48 mb-2" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6 sm:mb-8">
+            <Skeleton className="h-4 sm:h-5 w-36 sm:w-48 mb-1 sm:mb-2" />
+            <div className="space-y-1 sm:space-y-2">
+              <Skeleton className="h-3 sm:h-4 w-full" />
+              <Skeleton className="h-3 sm:h-4 w-full" />
+              <Skeleton className="h-3 sm:h-4 w-3/4" />
             </div>
           </div>
 
           {/* Application Form Skeleton */}
-          <div className="bg-white rounded-lg border border-border p-6">
-            <Skeleton className="h-7 w-48 mb-6" />
+          <div className="bg-white rounded-lg border border-border p-4 sm:p-6">
+            <Skeleton className="h-5 sm:h-7 w-36 sm:w-48 mb-4 sm:mb-6" />
 
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -274,11 +274,11 @@ export function JobApplication() {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32 flex items-center justify-center">
+      <div className="min-h-screen bg-white pt-24 sm:pt-32 pb-24 sm:pb-32 px-3 sm:px-6 lg:px-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-adaptive-dark">Job not found</h2>
-          <p className="mt-2 text-muted-foreground">The job you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => navigate('/jobs')} className="mt-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-adaptive-dark">Job not found</h2>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">The job you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate('/jobs')} className="mt-4 text-sm sm:text-base py-2 h-auto">
             View All Jobs
           </Button>
         </div>
@@ -287,34 +287,34 @@ export function JobApplication() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 pb-32 px-6 lg:px-8">
+    <div className="min-h-screen bg-white pt-24 sm:pt-32 pb-24 sm:pb-32 px-3 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Job Details Header */}
-        <div className="bg-white rounded-lg border border-border p-6 mb-8">
-          <div className="flex gap-4 items-start">
+        <div className="bg-white rounded-lg border border-border p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex gap-3 sm:gap-4 items-start">
             {job.logo ? (
               <img
                 src={job.logo}
                 alt={job.company}
-                className="w-16 h-16 object-contain rounded-lg"
+                className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-lg"
               />
             ) : (
-              <div className="w-16 h-16 bg-secondary-light rounded-lg flex items-center justify-center">
-                <Building2 className="w-8 h-8 text-muted-foreground" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-secondary-light rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold text-adaptive-dark">{job.title}</h1>
-              <p className="text-lg text-muted-foreground">{job.company}</p>
-              <p className="text-sm text-muted-foreground mt-1">{job.location}</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-adaptive-dark">{job.title}</h1>
+              <p className="text-base sm:text-lg text-muted-foreground">{job.company}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">{job.location}</p>
             </div>
           </div>
         </div>
 
         {/* Application Info Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">Important Information</h3>
-          <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-6 sm:mb-8">
+          <h3 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-2">Important Information</h3>
+          <ul className="text-xs sm:text-sm text-blue-700 list-disc list-inside space-y-0.5 sm:space-y-1">
             <li>Applications cannot be modified after submission</li>
             <li>Applications can only be deleted within 24 hours of submission</li>
             <li>Applications cannot be deleted after the job posting has ended</li>
@@ -322,11 +322,11 @@ export function JobApplication() {
         </div>
 
         {/* Application Form */}
-        <div className="bg-white rounded-lg border border-border p-6">
-          <h2 className="text-xl font-bold text-adaptive-dark mb-6">Application Form</h2>
+        <div className="bg-white rounded-lg border border-border p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-bold text-adaptive-dark mb-4 sm:mb-6">Application Form</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
                   First Name<span className="text-brand">*</span>
@@ -483,17 +483,19 @@ export function JobApplication() {
               )}
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-4 mt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/jobs')}
+                className="w-full sm:w-auto order-2 sm:order-1 text-xs sm:text-sm py-2 h-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
+                className="w-full sm:w-auto order-1 sm:order-2 text-xs sm:text-sm py-2 h-auto bg-brand hover:bg-brand-dark text-white"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>

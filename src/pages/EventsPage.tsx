@@ -100,22 +100,22 @@ export function EventsPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
         >
           {[...Array(6)].map((_, index) => (
             <div key={index} className="bg-white rounded-lg shadow-sm border border-border overflow-hidden animate-pulse">
-              <Skeleton className="w-full h-48" />
-              <div className="p-5 space-y-3">
-                <Skeleton className="h-6 w-3/4" />
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-4 w-4 rounded-full" />
-                  <Skeleton className="h-4 w-32" />
+              <Skeleton className="w-full h-36 sm:h-48" />
+              <div className="p-3 sm:p-5 space-y-2 sm:space-y-3">
+                <Skeleton className="h-5 sm:h-6 w-3/4" />
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Skeleton className="h-3 w-3 sm:h-4 sm:w-4 rounded-full" />
+                  <Skeleton className="h-3 sm:h-4 w-24 sm:w-32" />
                 </div>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-                <div className="flex justify-between items-center pt-2">
-                  <Skeleton className="h-8 w-24" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-3 sm:h-4 w-full" />
+                <Skeleton className="h-3 sm:h-4 w-5/6" />
+                <div className="flex justify-between items-center pt-1 sm:pt-2">
+                  <Skeleton className="h-6 sm:h-8 w-20 sm:w-24" />
+                  <Skeleton className="h-6 w-6 sm:h-8 sm:w-8 rounded-full" />
                 </div>
               </div>
             </div>
@@ -155,7 +155,7 @@ export function EventsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8"
       >
         {filteredEvents.map((event, index) => (
           <motion.div
@@ -194,18 +194,18 @@ export function EventsPage() {
         }
       />
 
-        <div className="flex flex-col sm:flex-row gap-6 mb-12">
-          <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <div className="flex gap-2 sm:gap-4">
             {(["Upcoming", "Past"] as EventType[]).map((type) => (
               <motion.button
                 key={type}
                 onClick={() => handleTypeChange(type)}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className={`px-6 py-2 rounded-md text-base font-medium transition-all duration-200 ${
+                className={`px-4 sm:px-6 py-1.5 sm:py-2 rounded-md text-sm sm:text-base font-medium transition-all duration-200 ${
                   selectedType === type
                     ? "bg-brand text-white shadow-md"
-                    : "border border-brand text-brand  hover:bg-brand-dark hover:text-white"
+                    : "border border-brand text-brand hover:bg-brand-dark hover:text-white"
                 }`}
               >
                 {type} Events
@@ -213,7 +213,7 @@ export function EventsPage() {
             ))}
           </div>
 
-          <div className="relative flex-grow max-w-md ml-auto">
+          <div className="relative flex-grow max-w-full sm:max-w-md mt-2 sm:mt-0 sm:ml-auto">
             <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search events..." />
           </div>
         </div>

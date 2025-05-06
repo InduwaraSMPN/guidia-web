@@ -84,30 +84,30 @@ export function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
-        <div className="w-full max-w-sm px-4 sm:px-6">
+      <div className="min-h-screen bg-white pt-12 sm:pt-16 flex items-center justify-center px-4 sm:px-6">
+        <div className="w-full max-w-sm">
           <div>
-            <Skeleton className="h-10 w-32 mb-6" />
+            <Skeleton className="h-8 sm:h-10 w-28 sm:w-32 mb-6" />
 
-            <div className="mt-8">
-              <div className="space-y-6">
+            <div className="mt-6 sm:mt-8">
+              <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <Skeleton className="h-5 w-32 mb-1" />
-                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-4 sm:h-5 w-28 sm:w-32 mb-1" />
+                  <Skeleton className="h-9 sm:h-10 w-full" />
                 </div>
 
                 <div>
-                  <Skeleton className="h-5 w-32 mb-1" />
-                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-4 sm:h-5 w-28 sm:w-32 mb-1" />
+                  <Skeleton className="h-9 sm:h-10 w-full" />
                   <div className="mt-1 text-right">
-                    <Skeleton className="h-4 w-32 inline-block" />
+                    <Skeleton className="h-3 sm:h-4 w-24 sm:w-32 inline-block" />
                   </div>
                 </div>
 
-                <Skeleton className="h-12 w-full rounded-md" />
+                <Skeleton className="h-10 sm:h-12 w-full rounded-md" />
 
-                <div className="mt-6">
-                  <Skeleton className="h-5 w-full" />
+                <div className="mt-5 sm:mt-6">
+                  <Skeleton className="h-4 sm:h-5 w-full" />
                 </div>
               </div>
             </div>
@@ -118,19 +118,19 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-16 flex items-center justify-center">
-      <div className="w-full max-w-sm px-4 sm:px-6">
+    <div className="min-h-screen bg-white pt-12 sm:pt-16 flex items-center justify-center px-4 sm:px-6">
+      <div className="w-full max-w-sm">
         <div>
-          <h2 className="text-3xl font-extrabold text-brand text-left">Login</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-brand text-left">Login</h2>
 
           {error && (
-            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
               {error}
             </div>
           )}
 
-          <div className="mt-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mt-6 sm:mt-8">
+            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-foreground text-left mb-1">
                   Email Address<span className="text-brand">*</span>
@@ -166,29 +166,29 @@ export function Login() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-muted-foreground" />
+                      <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-5 w-5 text-muted-foreground" />
+                      <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>
                 <div className="mt-1 text-right">
                   <Link
                     to="/auth/forgot-password"
-                    className="text-sm text-brand hover:text-brand-dark"
+                    className="text-xs sm:text-sm text-brand hover:text-brand-dark"
                   >
                     forgot password?
                   </Link>
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full">
+              <Button type="submit" size="lg" className="w-full py-2 sm:py-3 h-auto text-sm sm:text-base">
                 Login
               </Button>
             </form>
 
-            <div className="mt-6">
-              <p className="text-sm text-muted-foreground">
+            <div className="mt-5 sm:mt-6">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Don't Have an account?{' '}
                 <Link
                   to="/auth/register"

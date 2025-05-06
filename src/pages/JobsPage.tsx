@@ -275,20 +275,20 @@ export function JobsPage() {
             className="space-y-6"
           >
             {[...Array(3)].map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-6 animate-pulse">
-                <div className="flex items-start gap-4">
-                  <Skeleton className="h-16 w-16 rounded-md flex-shrink-0" />
-                  <div className="flex-1 space-y-4">
-                    <Skeleton className="h-6 w-3/4" />
-                    <div className="flex flex-wrap gap-2">
-                      <Skeleton className="h-5 w-24" />
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-5 w-28" />
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-border p-4 sm:p-6 animate-pulse">
+                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                  <Skeleton className="h-12 w-12 sm:h-16 sm:w-16 rounded-md flex-shrink-0" />
+                  <div className="flex-1 space-y-3 sm:space-y-4 w-full">
+                    <Skeleton className="h-5 sm:h-6 w-3/4" />
+                    <div className="flex flex-wrap gap-1 sm:gap-2">
+                      <Skeleton className="h-4 sm:h-5 w-20 sm:w-24" />
+                      <Skeleton className="h-4 sm:h-5 w-24 sm:w-32" />
+                      <Skeleton className="h-4 sm:h-5 w-20 sm:w-28" />
                     </div>
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-3 sm:h-4 w-full" />
+                    <Skeleton className="h-3 sm:h-4 w-5/6" />
                     <div className="flex justify-end">
-                      <Skeleton className="h-9 w-28" />
+                      <Skeleton className="h-8 sm:h-9 w-24 sm:w-28" />
                     </div>
                   </div>
                 </div>

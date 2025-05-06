@@ -119,8 +119,7 @@ export function MeetingRequestForm({
             actualRecipientID = companyUserID;
             console.log(`Using provided company userID: ${companyUserID}`);
 
-            // Add to cache for future use
-            addCompanyUserMapping(recipientID, companyUserID);
+            // Cache mapping is handled by the getCompanyUserID utility
           } else {
             try {
               // Fallback to API call if companyUserID is not provided
@@ -251,8 +250,7 @@ export function MeetingRequestForm({
           actualRecipientID = companyUserID;
           console.log(`Using provided company userID for meeting request: ${companyUserID}`);
 
-          // Add to cache for future use
-          addCompanyUserMapping(recipientID, companyUserID);
+          // Cache mapping is handled by the getCompanyUserID utility
         } else {
           try {
             // Fallback to API call if companyUserID is not provided
@@ -391,18 +389,20 @@ export function MeetingRequestForm({
             )}
           />
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2 mt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={isSubmitting}
+              className="w-full sm:w-auto order-2 sm:order-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || !selectedDate || !selectedSlot}
+              className="w-full sm:w-auto order-1 sm:order-2"
             >
               {isSubmitting ? 'Sending...' : 'Request Meeting'}
             </Button>

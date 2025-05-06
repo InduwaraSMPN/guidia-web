@@ -184,47 +184,47 @@ export function StudentProfilePage() {
   // Show loading state with skeleton screens
   if (loading) {
     return (
-      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <main className="min-h-screen bg-white pt-24 sm:pt-32 px-3 sm:px-6 lg:px-8 pb-24 sm:pb-32">
+        <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
           {/* Profile Header Skeleton */}
           <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
-            <div className="h-40 bg-gradient-to-r from-gray-200 to-gray-300 relative"></div>
-            <div className="p-8">
-              <div className="flex flex-col md:flex-row gap-12">
+            <div className="h-24 sm:h-40 bg-gradient-to-r from-gray-200 to-gray-300 relative"></div>
+            <div className="p-4 sm:p-8">
+              <div className="flex flex-col md:flex-row gap-6 sm:gap-12">
                 <div className="flex-shrink-0 relative">
-                  <Skeleton className="w-32 h-32 md:w-40 md:h-40 rounded-xl absolute -top-20 md:-top-24" />
-                  <Skeleton className="h-10 w-full mt-16 md:mt-20" />
+                  <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-xl absolute -top-12 sm:-top-20 md:-top-24" />
+                  <Skeleton className="h-8 sm:h-10 w-full mt-14 sm:mt-16 md:mt-20" />
                 </div>
                 <div className="flex-1 pt-4 md:pt-0">
-                  <Skeleton className="h-10 w-3/4 mb-2" />
-                  <Skeleton className="h-6 w-1/2 mb-4" />
-                  <Skeleton className="h-4 w-2/3 mb-6" />
-                  <div className="flex flex-wrap gap-3">
-                    <Skeleton className="h-10 w-40" />
-                    <Skeleton className="h-10 w-40" />
+                  <Skeleton className="h-8 sm:h-10 w-3/4 mb-2" />
+                  <Skeleton className="h-5 sm:h-6 w-1/2 mb-3 sm:mb-4" />
+                  <Skeleton className="h-3 sm:h-4 w-2/3 mb-4 sm:mb-6" />
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                    <Skeleton className="h-8 sm:h-10 w-32 sm:w-40" />
+                    <Skeleton className="h-8 sm:h-10 w-32 sm:w-40" />
                   </div>
                 </div>
               </div>
-              <Skeleton className="h-32 w-full mt-8" />
+              <Skeleton className="h-24 sm:h-32 w-full mt-6 sm:mt-8" />
             </div>
           </div>
 
           {/* Career Pathways Skeleton */}
-          <div className="bg-white rounded-xl shadow-sm border border-border p-8">
-            <Skeleton className="h-8 w-48 mb-6" />
-            <div className="flex flex-wrap gap-3">
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4 sm:p-8">
+            <Skeleton className="h-6 sm:h-8 w-36 sm:w-48 mb-4 sm:mb-6" />
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-10 w-32" />
+                <Skeleton key={i} className="h-8 sm:h-10 w-24 sm:w-32" />
               ))}
             </div>
           </div>
 
           {/* Documents Skeleton */}
-          <div className="bg-white rounded-xl shadow-sm border border-border p-8">
-            <Skeleton className="h-8 w-48 mb-6" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4 sm:p-8">
+            <Skeleton className="h-6 sm:h-8 w-36 sm:w-48 mb-4 sm:mb-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-40 w-full rounded-xl" />
+                <Skeleton key={i} className="h-32 sm:h-40 w-full rounded-xl" />
               ))}
             </div>
           </div>
@@ -236,12 +236,15 @@ export function StudentProfilePage() {
   // Show error state
   if (error || !studentData) {
     return (
-      <main className="min-h-screen bg-white pt-32 px-6 lg:px-8 pb-32" aria-labelledby="error-title">
-        <div className="max-w-5xl mx-auto text-center p-8 bg-secondary rounded-lg shadow-sm">
-          <h1 id="error-title" className="text-xl font-semibold text-adaptive-dark mb-4">
+      <main className="min-h-screen bg-white pt-24 sm:pt-32 px-3 sm:px-6 lg:px-8 pb-24 sm:pb-32" aria-labelledby="error-title">
+        <div className="max-w-5xl mx-auto text-center p-6 sm:p-8 bg-secondary rounded-lg shadow-sm">
+          <h1 id="error-title" className="text-lg sm:text-xl font-semibold text-adaptive-dark mb-4">
             {error || (!userID ? "Invalid profile URL" : "Student profile not found")}
           </h1>
-          <Button onClick={() => navigate(-1)} className="bg-brand hover:bg-brand-dark text-white transition-colors">
+          <Button
+            onClick={() => navigate(-1)}
+            className="bg-brand hover:bg-brand-dark text-white transition-colors text-sm sm:text-base py-2 h-auto"
+          >
             Go Back
           </Button>
         </div>
@@ -260,12 +263,12 @@ export function StudentProfilePage() {
 
   return (
     <main
-      className="min-h-screen bg-secondary/20 pt-32 pb-32 px-6 lg:px-8"
+      className="min-h-screen bg-secondary/20 pt-24 sm:pt-32 pb-24 sm:pb-32 px-3 sm:px-6 lg:px-8"
       ref={mainContentRef}
       tabIndex={-1}
       aria-labelledby="profile-heading"
     >
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         {/* Card with Profile Header */}
         <motion.section
           className="bg-white rounded-xl shadow-sm border border-border overflow-hidden"
@@ -275,14 +278,14 @@ export function StudentProfilePage() {
           aria-labelledby="profile-heading"
         >
           {/* Header Banner */}
-          <div className="relative h-24 bg-brand" role="presentation"></div>
+          <div className="relative h-16 sm:h-24 bg-brand" role="presentation"></div>
 
-          <div className="p-8">
-            <div className="flex flex-col md:flex-row gap-12">
+          <div className="p-4 sm:p-8">
+            <div className="flex flex-col md:flex-row gap-6 sm:gap-12">
               {/* Profile Photo and Student Number - Square image with proper positioning */}
               <div className="flex-shrink-0 relative">
                 <div
-                  className="w-32 h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-md transition-transform hover:scale-105 duration-300 absolute -top-20 md:-top-24 bg-white"
+                  className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 border-4 border-white overflow-hidden rounded-xl shadow-md transition-transform hover:scale-105 duration-300 absolute -top-12 sm:-top-20 md:-top-24 bg-white"
                   aria-hidden="true"
                 >
                   <StudentImage
@@ -293,7 +296,7 @@ export function StudentProfilePage() {
                     userType="student"
                   />
                 </div>
-                <div className="inline-block px-4 py-2 bg-brand text-white font-semibold mt-16 md:mt-20 text-center w-32 md:w-40 rounded-lg shadow-sm">
+                <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-brand text-white font-semibold mt-14 sm:mt-16 md:mt-20 text-center w-24 sm:w-32 md:w-40 rounded-lg shadow-sm text-xs sm:text-sm md:text-base">
                   <span className="sr-only">Student ID:</span>
                   {studentData.studentNumber}
                 </div>
@@ -303,29 +306,29 @@ export function StudentProfilePage() {
               <div className="flex-1 pt-4 md:pt-0">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h1 id="profile-heading" className="text-3xl font-bold text-adaptive-dark">
+                    <h1 id="profile-heading" className="text-xl sm:text-2xl md:text-3xl font-bold text-adaptive-dark">
                       {studentData.studentName}
                     </h1>
-                    <p className="text-lg text-brand font-medium mt-1">
+                    <p className="text-sm sm:text-base md:text-lg text-brand font-medium mt-1">
                       {studentData.studentCategory} · {studentData.studentLevel}
                     </p>
                     {studentData.studentTitle && (
-                      <p className="text-muted-foreground italic mt-2">{studentData.studentTitle}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground italic mt-1 sm:mt-2">{studentData.studentTitle}</p>
                     )}
 
                     {/* Contact buttons */}
-                    <div className="mt-6 flex flex-wrap gap-3">
+                    <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
                       <a
                         href={`mailto:${studentData.studentEmail}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm"
+                        className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card border border-border rounded-md text-xs sm:text-sm font-medium text-foreground hover:bg-secondary transition-colors hover:shadow-sm"
                         aria-label={`Email ${studentData.studentName} at ${studentData.studentEmail}`}
                       >
-                        <Mail className="w-4 h-4 text-brand" aria-hidden="true" />
-                        <span className="truncate max-w-[180px]">{studentData.studentEmail}</span>
+                        <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-brand" aria-hidden="true" />
+                        <span className="truncate max-w-[120px] sm:max-w-[180px]">{studentData.studentEmail}</span>
                       </a>
                       {studentData.studentContactNumber && (
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-md text-sm font-medium text-foreground">
-                          <Phone className="w-4 h-4 text-brand" aria-hidden="true" />
+                        <div className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-card border border-border rounded-md text-xs sm:text-sm font-medium text-foreground">
+                          <Phone className="w-3 h-3 sm:w-4 sm:h-4 text-brand" aria-hidden="true" />
                           <span>{studentData.studentContactNumber}</span>
                         </div>
                       )}
@@ -337,13 +340,13 @@ export function StudentProfilePage() {
 
             {/* About section - Aligned with profile image */}
             {studentData.studentDescription && (
-              <div className="mt-8 bg-secondary/30 rounded-xl p-6 border border-border/50 hover:border-border transition-colors duration-300">
-                <h2 className="text-lg font-semibold text-adaptive-dark mb-3 flex items-center gap-2">
-                  <User className="w-5 h-5 text-brand" aria-hidden="true" />
+              <div className="mt-6 sm:mt-8 bg-secondary/30 rounded-xl p-4 sm:p-6 border border-border/50 hover:border-border transition-colors duration-300">
+                <h2 className="text-base sm:text-lg font-semibold text-adaptive-dark mb-2 sm:mb-3 flex items-center gap-1 sm:gap-2">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-brand" aria-hidden="true" />
                   About Me
                 </h2>
                 <div
-                  className="prose max-w-none text-muted-foreground text-sm leading-relaxed overflow-hidden"
+                  className="prose max-w-none text-muted-foreground text-xs sm:text-sm leading-relaxed overflow-hidden"
                   dangerouslySetInnerHTML={{
                     __html: studentData.studentDescription.length > 500
                       ? studentData.studentDescription.substring(0, 500) + '...'
@@ -357,37 +360,37 @@ export function StudentProfilePage() {
 
         {/* Career Pathways - Card Layout */}
         <motion.section
-          className="bg-card rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.1 }}
           aria-labelledby="career-pathways-heading"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 id="career-pathways-heading" className="text-2xl font-bold text-adaptive-dark flex items-center">
-              <span className="w-1.5 h-6 bg-brand rounded-full mr-3 inline-block" aria-hidden="true"></span>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 id="career-pathways-heading" className="text-xl sm:text-2xl font-bold text-adaptive-dark flex items-center">
+              <span className="w-1 sm:w-1.5 h-5 sm:h-6 bg-brand rounded-full mr-2 sm:mr-3 inline-block" aria-hidden="true"></span>
               Career Pathways
             </h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                 onClick={() => navigate(`/students/profile/career-pathways/edit/${userID}`)}
                 aria-label="Edit career pathways"
               >
-                <Pencil className="w-4 h-4 mr-2" aria-hidden="true" />
+                <Pencil className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" aria-hidden="true" />
                 Edit Pathways
               </Button>
             )}
           </div>
 
           {studentData.studentCareerPathways && studentData.studentCareerPathways.length > 0 ? (
-            <div className="flex flex-wrap gap-3" role="list" aria-label="Career pathways">
+            <div className="flex flex-wrap gap-2 sm:gap-3" role="list" aria-label="Career pathways">
               {studentData.studentCareerPathways.map((pathway, index) => (
                 <motion.div
                   key={index}
-                  className="px-6 py-3 text-brand rounded-lg font-semibold border border-brand hover:bg-brand hover:text-white transition-colors duration-300 cursor-default"
+                  className="px-4 sm:px-6 py-2 sm:py-3 text-brand rounded-lg font-semibold border border-brand hover:bg-brand hover:text-white transition-colors duration-300 cursor-default text-xs sm:text-sm"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 + index * 0.05 }}
@@ -398,11 +401,11 @@ export function StudentProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-secondary/30 rounded-lg">
-              <p className="text-muted-foreground italic">No career pathways added yet.</p>
+            <div className="text-center py-6 sm:py-8 bg-secondary/30 rounded-lg">
+              <p className="text-muted-foreground italic text-sm">No career pathways added yet.</p>
               {isCurrentUser && (
                 <Button
-                  className="mt-4 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                  className="mt-3 sm:mt-4 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                   onClick={() => navigate(`/students/profile/career-pathways/edit/${userID}`)}
                 >
                   Add Career Pathways
@@ -414,26 +417,26 @@ export function StudentProfilePage() {
 
         {/* Documents - Card Layout with Better Grid */}
         <motion.section
-          className="bg-card rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.2 }}
           aria-labelledby="documents-heading"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 id="documents-heading" className="text-2xl font-bold text-adaptive-dark flex items-center">
-              <span className="w-1.5 h-6 bg-brand rounded-full mr-3 inline-block" aria-hidden="true"></span>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 id="documents-heading" className="text-xl sm:text-2xl font-bold text-adaptive-dark flex items-center">
+              <span className="w-1 sm:w-1.5 h-5 sm:h-6 bg-brand rounded-full mr-2 sm:mr-3 inline-block" aria-hidden="true"></span>
               Documents
             </h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                 onClick={() => navigate(`/students/profile/documents/edit/${userID}`)}
                 aria-label="Manage your documents"
               >
-                <Files className="w-4 h-4 mr-2" aria-hidden="true" />
+                <Files className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" aria-hidden="true" />
                 Manage Documents
               </Button>
             )}
@@ -441,7 +444,7 @@ export function StudentProfilePage() {
 
           {studentData.studentDocuments && studentData.studentDocuments.length > 0 ? (
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
               role="list"
               aria-label="Student documents"
             >
@@ -466,12 +469,12 @@ export function StudentProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-secondary/30 rounded-lg">
-              <Files className="w-12 h-12 text-gray-300 mx-auto mb-3" aria-hidden="true" />
-              <p className="text-muted-foreground mb-2">No documents uploaded yet</p>
+            <div className="text-center py-6 sm:py-8 bg-secondary/30 rounded-lg">
+              <Files className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground mb-2">No documents uploaded yet</p>
               {isCurrentUser && (
                 <Button
-                  className="mt-2 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                  className="mt-2 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                   onClick={() => navigate(`/students/profile/documents/edit/${userID}`)}
                 >
                   Upload Documents
@@ -483,23 +486,23 @@ export function StudentProfilePage() {
 
         {/* Job Applications section */}
         <motion.section
-          className="bg-card rounded-xl shadow-sm border border-border p-8"
+          className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-8"
           variants={sectionVariants}
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.3 }}
           aria-labelledby="job-applications-heading"
         >
-          <div className="flex justify-between items-center mb-6">
-            <h2 id="job-applications-heading" className="text-2xl font-bold text-adaptive-dark flex items-center">
-              <span className="w-1.5 h-6 bg-brand rounded-full mr-3 inline-block" aria-hidden="true"></span>
-              <Briefcase className="w-6 h-6 text-brand mr-2" aria-hidden="true" />
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 id="job-applications-heading" className="text-xl sm:text-2xl font-bold text-adaptive-dark flex items-center">
+              <span className="w-1 sm:w-1.5 h-5 sm:h-6 bg-brand rounded-full mr-2 sm:mr-3 inline-block" aria-hidden="true"></span>
+              <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-brand mr-1 sm:mr-2" aria-hidden="true" />
               Job Applications
             </h2>
             {isCurrentUser && (
               <Button
                 variant="outline"
-                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                 onClick={() => navigate(`/profile/jobs-applications/edit/${userID}`)}
                 aria-label="View all your job applications"
               >
@@ -510,14 +513,14 @@ export function StudentProfilePage() {
 
           {jobApplications.length > 0 ? (
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
               role="list"
               aria-label="Job applications"
             >
               {jobApplications.map((application, index) => (
                 <motion.div
                   key={application.applicationID}
-                  className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
+                  className="bg-card rounded-lg border border-border p-3 sm:p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + index * 0.05 }}
@@ -532,9 +535,9 @@ export function StudentProfilePage() {
                   role="listitem"
                   aria-label={`Application for ${application.jobTitle} at ${application.companyName}`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     {application.companyLogoPath ? (
-                      <div className="w-14 h-14 bg-white rounded-lg border border-border p-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg border border-border p-1.5 sm:p-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                         <img
                           src={application.companyLogoPath || "/placeholder.svg?height=56&width=56"}
                           alt=""
@@ -543,22 +546,22 @@ export function StudentProfilePage() {
                         />
                       </div>
                     ) : (
-                      <div className="w-14 h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                        <Building2 className="w-7 h-7 text-muted-foreground" aria-hidden="true" />
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" aria-hidden="true" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300">
+                      <h3 className="text-sm sm:text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300">
                         {application.jobTitle}
                       </h3>
-                      <p className="text-sm text-muted-foreground truncate">{application.companyName}</p>
-                      <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" aria-hidden="true" />
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{application.companyName}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2 flex items-center gap-1">
+                        <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
                         <span>Applied on: {formatDate(application.submittedAt || application.createdAt)}</span>
                       </p>
-                      <div className="mt-3 flex items-center">
+                      <div className="mt-2 sm:mt-3 flex items-center">
                         <button
-                          className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline bg-transparent border-none p-0 cursor-pointer"
+                          className="text-brand hover:text-brand-dark text-[10px] sm:text-xs font-medium inline-flex items-center gap-1 hover:underline bg-transparent border-none p-0 cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedDocument({
@@ -569,7 +572,7 @@ export function StudentProfilePage() {
                           }}
                           aria-label={`View resume for ${application.jobTitle} application`}
                         >
-                          <FileText className="w-3 h-3" aria-hidden="true" /> View Resume
+                          <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" /> View Resume
                         </button>
                       </div>
                     </div>
@@ -578,12 +581,12 @@ export function StudentProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 bg-secondary/30 rounded-lg">
-              <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" aria-hidden="true" />
-              <p className="text-muted-foreground mb-2">No job applications submitted yet</p>
+            <div className="text-center py-6 sm:py-8 bg-secondary/30 rounded-lg">
+              <Briefcase className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground mb-2">No job applications submitted yet</p>
               {isCurrentUser && (
                 <Button
-                  className="mt-2 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                  className="mt-2 bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                   onClick={() => navigate("/jobs")}
                 >
                   Browse Jobs
@@ -596,22 +599,22 @@ export function StudentProfilePage() {
         {/* Saved Jobs section */}
         {isCurrentUser && (
           <motion.section
-            className="bg-card rounded-xl shadow-sm border border-border p-8"
+            className="bg-card rounded-xl shadow-sm border border-border p-4 sm:p-8"
             variants={sectionVariants}
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.4 }}
             aria-labelledby="saved-jobs-heading"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 id="saved-jobs-heading" className="text-2xl font-bold text-adaptive-dark flex items-center">
-                <span className="w-1.5 h-6 bg-brand rounded-full mr-3 inline-block" aria-hidden="true"></span>
-                <Bookmark className="w-6 h-6 text-brand mr-2" aria-hidden="true" />
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
+              <h2 id="saved-jobs-heading" className="text-xl sm:text-2xl font-bold text-adaptive-dark flex items-center">
+                <span className="w-1 sm:w-1.5 h-5 sm:h-6 bg-brand rounded-full mr-2 sm:mr-3 inline-block" aria-hidden="true"></span>
+                <Bookmark className="w-5 h-5 sm:w-6 sm:h-6 text-brand mr-1 sm:mr-2" aria-hidden="true" />
                 Saved Jobs
               </h2>
               <Button
                 variant="outline"
-                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                className="border-brand text-brand hover:bg-brand hover:text-white transition-all duration-300 focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                 onClick={() => navigate(`/saved-jobs`)}
                 aria-label="View all saved jobs"
               >
@@ -620,20 +623,20 @@ export function StudentProfilePage() {
             </div>
 
             {loadingSavedJobs ? (
-              <div className="flex justify-center py-12" aria-live="polite" aria-busy="true">
+              <div className="flex justify-center py-8 sm:py-12" aria-live="polite" aria-busy="true">
                 <div
-                  className="animate-spin rounded-full h-10 w-10 border-4 border-brand border-r-transparent"
+                  className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-3 sm:border-4 border-brand border-r-transparent"
                   role="status"
                 >
                   <span className="sr-only">Loading saved jobs...</span>
                 </div>
               </div>
             ) : savedJobs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list" aria-label="Saved jobs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" role="list" aria-label="Saved jobs">
                 {savedJobs.map((job, index) => (
                   <motion.div
                     key={job.jobID}
-                    className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 cursor-pointer group"
+                    className="bg-card rounded-lg border border-border p-3 sm:p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 cursor-pointer group"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + index * 0.05 }}
@@ -648,9 +651,9 @@ export function StudentProfilePage() {
                     role="listitem"
                     aria-label={`${job.title} at ${job.companyName}${job.isExpired ? " (Expired)" : ""}`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       {job.companyLogoPath ? (
-                        <div className="w-14 h-14 bg-white rounded-lg border border-border p-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg border border-border p-1.5 sm:p-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                           <img
                             src={job.companyLogoPath || "/placeholder.svg?height=56&width=56"}
                             alt=""
@@ -659,29 +662,29 @@ export function StudentProfilePage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-14 h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                          <Building2 className="w-7 h-7 text-muted-foreground" aria-hidden="true" />
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                          <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" aria-hidden="true" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300">
+                        <h3 className="text-sm sm:text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300">
                           {job.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground truncate">{job.companyName}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Calendar className="w-3 h-3" aria-hidden="true" />
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{job.companyName}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 mt-1 sm:mt-2">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
                             <span>Deadline: {formatDate(job.endDate)}</span>
                           </p>
                           {job.location && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="w-3 h-3" aria-hidden="true" />
+                            <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-0.5 sm:mt-0">
+                              <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
                               <span>{job.location}</span>
                             </p>
                           )}
                         </div>
                         {job.isExpired && (
-                          <span className="inline-block px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded mt-2">
+                          <span className="inline-block px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-red-100 text-red-800 rounded mt-1 sm:mt-2">
                             Expired
                           </span>
                         )}
@@ -691,15 +694,15 @@ export function StudentProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 bg-secondary/30 rounded-lg">
-                <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-3" aria-hidden="true" />
-                <p className="text-muted-foreground mb-2">No saved jobs yet</p>
-                <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
+              <div className="text-center py-6 sm:py-10 bg-secondary/30 rounded-lg">
+                <Bookmark className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" aria-hidden="true" />
+                <p className="text-sm text-muted-foreground mb-1 sm:mb-2">No saved jobs yet</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 max-w-md mx-auto">
                   Save jobs you're interested in to receive notifications about application deadlines.
                 </p>
                 <Button
                   onClick={() => navigate("/jobs")}
-                  className="bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                  className="bg-brand hover:bg-brand-dark text-white transition-colors focus:ring-2 focus:ring-brand focus:ring-offset-2 text-xs sm:text-sm h-8 sm:h-9 py-0"
                 >
                   Browse Jobs
                 </Button>

@@ -105,16 +105,17 @@ export function EventCard({ event, onDelete }: EventCardProps) {
           <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
         </div>
 
-        <div className="p-5">
-          <h3 className="text-xl font-semibold text-adaptive-dark line-clamp-2 mb-2">{event.title}</h3>
+        <div className="p-3 sm:p-5"> {/* Adjusted padding for mobile */}
+          <h3 className="text-lg sm:text-xl font-semibold text-adaptive-dark line-clamp-2 mb-2">{event.title}</h3> {/* Responsive font size */}
 
-          <div className="flex items-center text-muted-foreground mt-3">
-            <Calendar className="h-4 w-4 mr-2" />
-            <p className="text-sm">{formatDate(event.eventDate)}</p>
+          <div className="flex items-center text-muted-foreground mt-2 sm:mt-3"> {/* Adjusted margin for mobile */}
+            <Calendar className="h-4 w-4 mr-2 flex-shrink-0" /> {/* Added flex-shrink-0 to prevent icon from shrinking */}
+            <p className="text-xs sm:text-sm truncate">{formatDate(event.eventDate)}</p> {/* Added truncate and responsive font size */}
           </div>
 
+          {/* Adjusted margin for mobile */}
           <motion.div
-            className="mt-4 text-brand text-sm font-medium"
+            className="mt-3 sm:mt-4 text-brand text-sm font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: isHovered ? 1 : 0 }}
             transition={{ duration: 0.2 }}
@@ -123,22 +124,24 @@ export function EventCard({ event, onDelete }: EventCardProps) {
           </motion.div>
         </div>
 
+        {/* Admin delete button - Adjusted position for mobile */}
         {user?.userType === "Admin" && (
           <motion.div
-            className="absolute top-3 right-3 z-10"
+            className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <Button
               variant="destructive"
               size="sm"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-brand hover:bg-brand-dark shadow-md"
+              className="bg-brand hover:bg-brand-dark shadow-md h-7 w-7 sm:h-8 sm:w-8 p-0"
             >
-              <Trash2 className="h-4 w-4" />
+              {/* Smaller icon on mobile */}
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="sr-only">Delete event</span>
             </Button>
           </motion.div>

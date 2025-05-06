@@ -48,26 +48,26 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
     <>
       <div
         ref={cardRef}
-        className="bg-card rounded-lg border border-border p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
+        className="bg-card rounded-lg border border-border p-3 sm:p-5 hover:shadow-md transition-all duration-300 hover:border-brand/30 group"
         role="article"
         aria-labelledby={`doc-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
       >
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-            <div className="text-muted-foreground w-7 h-7" aria-hidden="true">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+            <div className="text-muted-foreground w-6 h-6 sm:w-7 sm:h-7" aria-hidden="true">
               {getFileIcon()}
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <h3
               id={`doc-title-${title.replace(/\s+/g, "-").toLowerCase()}`}
-              className="text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300"
+              className="text-sm sm:text-base font-semibold text-adaptive-dark truncate group-hover:text-brand transition-colors duration-300"
             >
               {title}
             </h3>
             {document && (
               <p
-                className="text-sm text-muted-foreground truncate"
+                className="text-xs sm:text-sm text-muted-foreground truncate"
                 title={document.name}
               >
                 {document.name}
@@ -75,14 +75,14 @@ export function StudentDocumentCard({ title, isUploaded, document }: StudentDocu
             )}
 
             {isUploaded && document && (
-              <div className="mt-3 flex items-center">
+              <div className="mt-2 sm:mt-3 flex items-center">
                 <button
                   onClick={handleViewDocument}
                   onKeyDown={handleKeyDown}
-                  className="text-brand hover:text-brand-dark text-xs font-medium inline-flex items-center gap-1 hover:underline"
+                  className="text-brand hover:text-brand-dark text-[10px] sm:text-xs font-medium inline-flex items-center gap-1 hover:underline"
                   aria-label={`View ${document.name}`}
                 >
-                  <Eye className="h-3 w-3" aria-hidden="true" />
+                  <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                   <span>View Document</span>
                 </button>
               </div>

@@ -151,64 +151,64 @@ export function CompanyApplicationsPage() {
     }
 
     return (
-      <span className={`${bgColor} ${textColor} text-xs font-medium px-2.5 py-0.5 rounded-full`}>
+      <span className={`${bgColor} ${textColor} text-[10px] sm:text-xs font-medium px-2 sm:px-2.5 py-0.5 rounded-full`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
   return (
-    <div className="container mt-32 mb-32 max-w-[1216px] mx-auto px-4 sm:px-6 lg:px-8 pb-32">
-      <h1 className="text-2xl font-bold mb-6">Job Applications</h1>
+    <div className="container mt-24 sm:mt-32 mb-24 sm:mb-32 max-w-[1216px] mx-auto px-3 sm:px-6 lg:px-8 pb-24 sm:pb-32">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Job Applications</h1>
 
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-3 sm:p-4 border-b border-border">
                 <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-4 w-64" />
+                  <div className="space-y-1 sm:space-y-2">
+                    <Skeleton className="h-5 sm:h-6 w-36 sm:w-48" />
+                    <Skeleton className="h-3 sm:h-4 w-48 sm:w-64" />
                   </div>
-                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-5 sm:h-6 w-20 sm:w-24 rounded-full" />
                 </div>
               </div>
-              <div className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+              <div className="p-3 sm:p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1 sm:space-y-2">
+                    <Skeleton className="h-3 sm:h-4 w-full" />
+                    <Skeleton className="h-3 sm:h-4 w-3/4" />
+                    <Skeleton className="h-3 sm:h-4 w-1/2" />
                   </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
+                  <div className="space-y-1 sm:space-y-2">
+                    <Skeleton className="h-3 sm:h-4 w-full" />
+                    <Skeleton className="h-3 sm:h-4 w-full" />
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-3 bg-secondary flex justify-between">
-                <Skeleton className="h-9 w-32" />
-                <Skeleton className="h-9 w-32" />
+              <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary flex justify-between">
+                <Skeleton className="h-8 sm:h-9 w-24 sm:w-32" />
+                <Skeleton className="h-8 sm:h-9 w-24 sm:w-32" />
               </div>
             </div>
           ))}
         </div>
       ) : applications.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-muted-foreground">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 text-center">
+          <p className="text-muted-foreground text-sm sm:text-base">
             You haven't received any job applications yet.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {applications.map((application) => (
             <div key={application.applicationID} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-3 sm:p-4 border-b border-border">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-lg font-semibold">{application.firstName} {application.lastName}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="text-base sm:text-lg font-semibold">{application.firstName} {application.lastName}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Applied for: <span className="font-medium">{application.jobTitle}</span> ({application.jobLocation})
                     </p>
                   </div>
@@ -216,32 +216,32 @@ export function CompanyApplicationsPage() {
                 </div>
               </div>
 
-              <div className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-3 sm:p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Email: {application.email}</p>
-                    <p className="text-sm text-muted-foreground">Phone: {application.phone}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">Email: {application.email}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Phone: {application.phone}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Applied: {formatDistanceToNow(new Date(application.submittedAt), { addSuffix: true })}
                     </p>
                     {application.statusUpdatedAt && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         Status updated: {formatDistanceToNow(new Date(application.statusUpdatedAt), { addSuffix: true })}
                       </p>
                     )}
                   </div>
                   <div>
                     {application.notes && (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium">Notes:</p>
-                        <p className="text-sm text-muted-foreground">{application.notes}</p>
+                      <div className="mt-1 sm:mt-2">
+                        <p className="text-xs sm:text-sm font-medium">Notes:</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{application.notes}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="px-4 py-3 bg-secondary flex justify-between">
+              <div className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary flex flex-col sm:flex-row gap-2 sm:justify-between">
                 <Button
                   variant="outline"
                   size="sm"
@@ -252,15 +252,17 @@ export function CompanyApplicationsPage() {
                       type: getFileExtension(application.resumePath)
                     });
                   }}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto justify-center sm:justify-start"
                 >
-                  <FileText className="h-4 w-4" />
-                  View Resume
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">View Resume</span>
+                  <span className="sm:hidden">Resume</span>
                 </Button>
                 <Button
                   variant="default"
                   size="sm"
                   onClick={() => openStatusModal(application)}
+                  className="text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto"
                 >
                   Update Status
                 </Button>
@@ -271,19 +273,19 @@ export function CompanyApplicationsPage() {
       )}
 
       {isModalOpen && selectedApplication && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b border-border">
-              <h2 className="text-xl font-semibold">Update Application Status</h2>
-              <p className="text-sm text-muted-foreground mt-1">
+            <div className="p-3 sm:p-4 border-b border-border">
+              <h2 className="text-lg sm:text-xl font-semibold">Update Application Status</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Update status for {selectedApplication.firstName} {selectedApplication.lastName}'s application
                 for {selectedApplication.jobTitle}
               </p>
             </div>
 
-            <div className="p-4 space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="status" className="block text-sm font-medium">Status</label>
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+              <div className="space-y-1 sm:space-y-2">
+                <label htmlFor="status" className="block text-xs sm:text-sm font-medium">Status</label>
                 <Select
                   options={statusOptions}
                   value={newStatus ? { value: newStatus, label: newStatus.charAt(0).toUpperCase() + newStatus.slice(1) } : null}
@@ -294,26 +296,31 @@ export function CompanyApplicationsPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="notes" className="block text-sm font-medium">Notes</label>
+              <div className="space-y-1 sm:space-y-2">
+                <label htmlFor="notes" className="block text-xs sm:text-sm font-medium">Notes</label>
                 <textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add notes about this application"
                   rows={4}
-                  className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#800020]"
+                  className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-[#800020] text-xs sm:text-sm"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-secondary flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+            <div className="p-3 sm:p-4 bg-secondary flex flex-col sm:flex-row gap-2 sm:gap-0 sm:justify-end sm:space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+                className="text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto order-2 sm:order-1"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleStatusChange}
                 disabled={isSubmitting || newStatus === selectedApplication?.status}
+                className="text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto order-1 sm:order-2"
               >
                 {isSubmitting ? 'Updating...' : 'Update Status'}
               </Button>

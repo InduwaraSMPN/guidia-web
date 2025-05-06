@@ -157,9 +157,9 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
   return (
     <motion.div
       whileHover={{ y: -3, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-      className="bg-card rounded-lg p-4 flex flex-col transition-all duration-300 border border-border"
+      className="bg-card rounded-lg p-3 sm:p-4 flex flex-col transition-all duration-300 border border-border" // Adjusted padding for mobile
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3"> {/* Reduced gap on mobile */}
         {image ? (
           <div className="overflow-hidden flex-shrink-0 rounded-lg">
             <motion.div
@@ -170,28 +170,28 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
                 <StudentImage
                   src={image}
                   alt={name}
-                  className="w-14 h-14 object-cover"
+                  className="w-12 h-12 sm:w-14 sm:h-14 object-cover" // Smaller image on mobile
                   fallbackSrc="/student-avatar.png"
                 />
               ) : type === "counselor" ? (
                 <CounselorImage
                   src={image}
                   alt={name}
-                  className="w-14 h-14 object-cover"
+                  className="w-12 h-12 sm:w-14 sm:h-14 object-cover" // Smaller image on mobile
                   fallbackSrc="/counselor-avatar.png"
                 />
               ) : type === "company" ? (
                 <CompanyImage
                   src={image}
                   alt={name}
-                  className="w-14 h-14 object-cover"
+                  className="w-12 h-12 sm:w-14 sm:h-14 object-cover" // Smaller image on mobile
                   fallbackSrc="/company-logo.png"
                 />
               ) : (
                 <AzureImage
                   src={image}
                   alt={name}
-                  className="w-14 h-14 object-cover"
+                  className="w-12 h-12 sm:w-14 sm:h-14 object-cover" // Smaller image on mobile
                   userType={type}
                 />
               )}
@@ -199,42 +199,42 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
           </div>
         ) : (
           <div
-            className="rounded-lg bg-secondary-light flex items-center justify-center flex-shrink-0 w-14 h-14"
+            className="rounded-lg bg-secondary-light flex items-center justify-center flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14" // Smaller placeholder on mobile
           >
-            <User className="w-6 h-6 text-muted-foreground" />
+            <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" /> {/* Smaller icon on mobile */}
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-card-foreground truncate">{name}</h3>
-          {subtitle && <p className="text-sm text-brand truncate mt-0.5 font-medium">{subtitle}</p>}
+          <h3 className="text-sm sm:text-base font-semibold text-card-foreground truncate">{name}</h3> {/* Smaller text on mobile */}
+          {subtitle && <p className="text-xs sm:text-sm text-brand truncate mt-0.5 font-medium">{subtitle}</p>} {/* Smaller text on mobile */}
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mt-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 sm:mt-3 text-xs sm:text-sm"> {/* Added flex-wrap and adjusted spacing */}
         {email && (
           <motion.a
             whileHover={{ scale: 1.05 }}
             href={`mailto:${email}`}
-            className="flex items-center gap-1.5 text-muted-foreground hover:underline"
+            className="flex items-center gap-1 sm:gap-1.5 text-muted-foreground hover:underline"
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            <Mail className="w-4 h-4" />
-            <span className="truncate max-w-[120px]">{email}</span>
+            <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" /> {/* Smaller icon on mobile */}
+            <span className="truncate max-w-[100px] sm:max-w-[120px]">{email}</span> {/* Adjusted truncation width */}
           </motion.a>
         )}
         {contactNumber && (
-          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-1.5 text-muted-foreground">
-            <Phone className="w-4 h-4" />
+          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-1 sm:gap-1.5 text-muted-foreground">
+            <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" /> {/* Smaller icon on mobile */}
             <span className="truncate">{contactNumber}</span>
           </motion.div>
         )}
       </div>
 
-      <div className="flex gap-2 mt-3">
+      <div className="flex gap-2 mt-2 sm:mt-3"> {/* Adjusted spacing */}
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs h-8 transition-all duration-300 border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground"
+          className="flex-1 text-xs h-7 sm:h-8 transition-all duration-300 border-border text-foreground hover:bg-secondary hover:text-brand dark:hover:text-foreground px-2 sm:px-3" // Adjusted height and padding
           onClick={handleViewProfile}
         >
           Profile
@@ -242,11 +242,11 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
         <Button
           size="sm"
           disabled={!isAdmin && isCurrentUser}
-          className={`flex-1 text-xs h-8 transition-all duration-300 ${
+          className={`flex-1 text-xs h-7 sm:h-8 transition-all duration-300 px-2 sm:px-3 ${
             !isAdmin && isCurrentUser
               ? 'bg-brand hover:bg-brand-dark cursor-not-allowed opacity-50'
               : 'bg-brand hover:bg-brand-dark'
-          }`}
+          }`} // Adjusted height and padding
           onClick={handleChat}
           title={!isAdmin && isCurrentUser ? "You cannot chat with yourself" : ""}
         >
@@ -259,7 +259,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
           variant="outline"
           size="sm"
           disabled={!isAdmin && isCurrentUser}
-          className={`w-full text-xs h-8 transition-all duration-300 ${!isAdmin && isCurrentUser ? 'cursor-not-allowed opacity-50' : ''}`}
+          className={`w-full text-xs h-7 sm:h-8 transition-all duration-300 ${!isAdmin && isCurrentUser ? 'cursor-not-allowed opacity-50' : ''}`} // Adjusted height
           onClick={(e) => {
             e.preventDefault();
             if (isAdmin || !isCurrentUser) {
@@ -269,7 +269,7 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
           }}
           title={!isAdmin && isCurrentUser ? "You cannot request a meeting with yourself" : ""}
         >
-          <Calendar className="mr-2 h-4 w-4" />
+          <Calendar className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" /> {/* Smaller icon on mobile */}
           Request Meeting
         </Button>
         {/* Hidden trigger for the meeting request dialog */}
