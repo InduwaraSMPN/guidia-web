@@ -240,14 +240,14 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
           >
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <Eye className="h-4 w-4 text-brand" />
-              <span>Most Viewed Jobs</span>
+              <span>Most Viewed Jobs (10+)</span>
             </h3>
             <AnimatedChartContainer className="h-96 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.mostViewedJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="title" tick={false} />
-                  <YAxis tick={{ fill: "var(--foreground)" }} />
+                  <YAxis tick={{ fill: "var(--foreground)" }} domain={[10, 'auto']} />
                   <Tooltip
                     animationDuration={200}
                     animationEasing="ease-out"
@@ -301,14 +301,14 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
           >
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <Eye className="h-4 w-4 text-brand" />
-              <span>Least Viewed Jobs</span>
+              <span>Least Viewed Jobs (0-9)</span>
             </h3>
             <AnimatedChartContainer className="h-96 mb-6" delay={0.1}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.leastViewedJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="title" tick={false} />
-                  <YAxis tick={{ fill: "var(--foreground)" }} />
+                  <YAxis tick={{ fill: "var(--foreground)" }} domain={[0, 9]} />
                   <Tooltip
                     animationDuration={200}
                     animationEasing="ease-out"
@@ -362,14 +362,14 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
           >
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <FileText className="h-4 w-4 text-brand" />
-              <span>Jobs with Most Applications</span>
+              <span>Jobs with Most Applications (10+)</span>
             </h3>
             <AnimatedChartContainer className="h-96 mb-6" delay={0.2}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.mostApplicationJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="title" tick={false} />
-                  <YAxis tick={{ fill: "var(--foreground)" }} />
+                  <YAxis tick={{ fill: "var(--foreground)" }} domain={[10, 'auto']} />
                   <Tooltip
                     animationDuration={200}
                     animationEasing="ease-out"
@@ -423,14 +423,14 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
           >
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <FileText className="h-4 w-4 text-brand" />
-              <span>Jobs with Least Applications</span>
+              <span>Jobs with Least Applications (0-9)</span>
             </h3>
             <AnimatedChartContainer className="h-96 mb-6" delay={0.3}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={jobStats.leastApplicationJobs}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
                   <XAxis dataKey="title" tick={false} />
-                  <YAxis tick={{ fill: "var(--foreground)" }} />
+                  <YAxis tick={{ fill: "var(--foreground)" }} domain={[0, 9]} />
                   <Tooltip
                     animationDuration={200}
                     animationEasing="ease-out"

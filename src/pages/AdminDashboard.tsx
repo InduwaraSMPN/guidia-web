@@ -708,7 +708,7 @@ export function AdminDashboard() {
                               } else {
                                 // Show a message that we're throttling
                                 toast.info("Refresh throttled", {
-                                  description: `Please wait ${Math.ceil((UPDATE_THROTTLE_MS - (now - lastUpdateTime)) / 1000)} seconds before refreshing again`,
+                                  description: `Please wait ${Math.ceil((UPDATE_THROTTLE_MS - (now - lastUpdateTime)) / 100)} seconds before refreshing again`,
                                 });
                               }
                             }}

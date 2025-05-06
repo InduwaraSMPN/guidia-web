@@ -671,7 +671,7 @@ router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
       [nowFormatted, nextSevenDaysFormatted]
     );
 
-    // Get most viewed jobs
+    // Get most viewed jobs (at least 10 views)
     const [mostViewedJobs] = await pool.execute(
       `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(jv.viewID) as viewCount
@@ -680,13 +680,13 @@ router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
       LEFT JOIN companies c ON j.companyID = c.companyID
       WHERE j.status = "active" AND j.endDate >= ?
       GROUP BY j.jobID
+      HAVING viewCount >= 10
       ORDER BY viewCount DESC
-      LIMIT 5
     `,
       [nowFormatted]
     );
 
-    // Get least viewed jobs
+    // Get least viewed jobs (fewer than 10 views, including 0 views)
     const [leastViewedJobs] = await pool.execute(
       `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(jv.viewID) as viewCount
@@ -695,13 +695,13 @@ router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
       LEFT JOIN companies c ON j.companyID = c.companyID
       WHERE j.status = "active" AND j.endDate >= ?
       GROUP BY j.jobID
+      HAVING viewCount < 10
       ORDER BY viewCount ASC
-      LIMIT 5
     `,
       [nowFormatted]
     );
 
-    // Get jobs with most applications
+    // Get jobs with most applications (at least 10 applications)
     const [mostApplicationJobs] = await pool.execute(
       `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(ja.applicationID) as applicationCount
@@ -710,13 +710,13 @@ router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
       LEFT JOIN companies c ON j.companyID = c.companyID
       WHERE j.status = "active" AND j.endDate >= ?
       GROUP BY j.jobID
+      HAVING applicationCount >= 10
       ORDER BY applicationCount DESC
-      LIMIT 5
     `,
       [nowFormatted]
     );
 
-    // Get jobs with least applications
+    // Get jobs with least applications (fewer than 10 applications)
     const [leastApplicationJobs] = await pool.execute(
       `
       SELECT j.jobID, j.title, j.companyID, c.companyName, COUNT(ja.applicationID) as applicationCount
@@ -725,8 +725,8 @@ router.get("/job-statistics", verifyToken, verifyAdmin, async (req, res) => {
       LEFT JOIN companies c ON j.companyID = c.companyID
       WHERE j.status = "active" AND j.endDate >= ?
       GROUP BY j.jobID
+      HAVING applicationCount < 10
       ORDER BY applicationCount ASC
-      LIMIT 5
     `,
       [nowFormatted]
     );
