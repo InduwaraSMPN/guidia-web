@@ -19,6 +19,7 @@ interface MeetingRequestButtonProps {
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
   id?: string; // Added id prop for DOM identification
+  'data-userid'?: string; // Add data-userid attribute for companies
 }
 
 export function MeetingRequestButton({
@@ -29,6 +30,7 @@ export function MeetingRequestButton({
   size = 'default',
   className,
   id,
+  'data-userid': userID,
 }: MeetingRequestButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -61,6 +63,7 @@ export function MeetingRequestButton({
           recipientType={recipientType}
           onSuccess={handleSuccess}
           onCancel={handleCancel}
+          companyUserID={recipientType === 'Company' && userID ? parseInt(userID) : undefined}
         />
       </DialogContent>
     </Dialog>

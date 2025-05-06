@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Files,
   MessageSquare,
-  Calendar
+  Calendar,
+  IdCard
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,7 @@ const ProfileSkeleton = () => (
       <Skeleton className="h-32 w-32 rounded-full" />
       <div className="space-y-4 flex-1">
         <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-6 w-32" /> {/* Student number skeleton */}
         <Skeleton className="h-6 w-1/2" />
         <div className="flex gap-4">
           <Skeleton className="h-8 w-24" />
@@ -214,6 +216,22 @@ export function PublicStudentProfile() {
             >
               {studentData.studentName}
             </motion.h1>
+
+            <motion.div
+              initial={{ y: -5, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.15 }}
+              className="flex items-center gap-2 mb-2"
+            >
+              <Badge
+                variant="outline"
+                className="text-sm font-medium text-brand border-brand flex items-center gap-1 px-3 py-1"
+                aria-label={`Student ID: ${studentData.studentNumber}`}
+              >
+                <IdCard className="h-3.5 w-3.5" aria-hidden="true" />
+                {studentData.studentNumber}
+              </Badge>
+            </motion.div>
 
             <motion.div
               initial={{ y: -5, opacity: 0 }}

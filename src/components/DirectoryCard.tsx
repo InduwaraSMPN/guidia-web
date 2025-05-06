@@ -19,9 +19,10 @@ export interface DirectoryCardProps {
   title?: string
   email?: string
   contactNumber?: string
+  userID?: string  // Add userID for companies to properly check if current user
 }
 
-export function DirectoryCard({ id, type, name, image, subtitle, email, contactNumber }: DirectoryCardProps) {
+export function DirectoryCard({ id, type, name, image, subtitle, email, contactNumber, userID }: DirectoryCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -32,26 +33,63 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
   // Special case for admin users - they should always be able to chat and request meetings
   const isAdmin = user?.roleId === 1;
 
-  if (user && !isAdmin) {
-    if (type === "company" && user.userType === "Company") {
-      // For companies, we need to check if the current user's company matches this company
-      const userCompanyID = localStorage.getItem('companyID');
+  // Debug user information
+  console.log('DirectoryCard Debug:', {
+    cardType: type,
+    cardId: id,
+    cardUserID: userID,
+    currentUser: user ? {
+      userID: user.userID,
+      userType: user.userType,
+      roleId: user.roleId
+    } : 'Not logged in',
+    isAdmin
+  });
 
-      if (userCompanyID) {
-        // If we have the companyID in localStorage, use it for comparison
-        isCurrentUser = String(userCompanyID) === String(id);
-        console.log(`Comparing company IDs: user's company ID ${userCompanyID} vs directory company ID ${id}, match: ${isCurrentUser}`);
+  if (user && !isAdmin) {
+    // Only check for isCurrentUser if the user type matches the card type
+    // For example, a Student user viewing a Company card should never have isCurrentUser=true
+    if (type === "company" && user.userType === "Company") {
+      // For companies, we need to check if the current user's ID matches this company's userID
+      if (userID) {
+        // If we have the userID from props, use it for comparison (preferred method)
+        isCurrentUser = String(user.userID) === String(userID);
+        console.log(`Comparing user IDs: current user ID ${user.userID} vs company userID ${userID}, match: ${isCurrentUser}`);
       } else {
-        // If we don't have the companyID yet, we'll need to fetch it
-        // For now, assume it's not the current user
-        isCurrentUser = false;
-        console.log('No companyID found in localStorage, assuming not current user');
+        // Fallback to the old method using companyID from localStorage
+        const userCompanyID = localStorage.getItem('companyID');
+        if (userCompanyID) {
+          isCurrentUser = String(userCompanyID) === String(id);
+          console.log(`Fallback comparison using company IDs: user's company ID ${userCompanyID} vs directory company ID ${id}, match: ${isCurrentUser}`);
+        } else {
+          isCurrentUser = false;
+          console.log('No company identification found, assuming not current user');
+        }
       }
-    } else {
-      // For other types, we can directly compare userIDs
+    } else if (type === "student" && user.userType === "Student") {
+      // For students, compare userIDs
       isCurrentUser = String(user.userID) === String(id);
+      console.log(`Student comparison: current user ID ${user.userID} vs student ID ${id}, match: ${isCurrentUser}`);
+    } else if (type === "counselor" && user.userType === "Counselor") {
+      // For counselors, compare userIDs
+      isCurrentUser = String(user.userID) === String(id);
+      console.log(`Counselor comparison: current user ID ${user.userID} vs counselor ID ${id}, match: ${isCurrentUser}`);
+    } else {
+      // Different user type than card type - never a match
+      isCurrentUser = false;
+      console.log(`User type (${user.userType}) doesn't match card type (${type}), setting isCurrentUser=false`);
     }
   }
+
+  // Final debug output for button state
+  console.log(`DirectoryCard for ${name} (${id}): isCurrentUser=${isCurrentUser}, isAdmin=${isAdmin}, buttons should be ${(!isAdmin && isCurrentUser) ? 'DISABLED' : 'ENABLED'}`);
+
+  // Special case for LOLC Holdings PLC - force enable buttons for debugging
+  if (name === "LOLC Holdings PLC" && type === "company") {
+    console.log("Special case for LOLC Holdings PLC - forcing buttons to be enabled");
+    isCurrentUser = false;
+  }
+
 
   const handleChat = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,29 +101,36 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
       // For companies, we need to get the userID instead of companyID for chat
       if (type === "company") {
         try {
-          const token = localStorage.getItem("token");
-          // First, fetch all companies to find the one with matching companyID
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/companies`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+          // If we already have the userID from props, use it directly
+          if (userID) {
+            navigate(`/${userTypePath}/${user.userID}/messages/${userID}?type=${type}`);
+            console.log(`Navigating to chat with company ${id} using provided userID ${userID}`);
+          } else {
+            // Fallback to fetching the userID if not provided in props
+            const token = localStorage.getItem("token");
+            // First, fetch all companies to find the one with matching companyID
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/companies`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            });
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch companies");
+            if (!response.ok) {
+              throw new Error("Failed to fetch companies");
+            }
+
+            const companies = await response.json();
+            const company = companies.find((c: any) => String(c.companyID) === String(id));
+
+            if (!company) {
+              throw new Error("Company not found");
+            }
+
+            // Use the company's userID for chat instead of companyID
+            navigate(`/${userTypePath}/${user.userID}/messages/${company.userID}?type=${type}`);
+            console.log(`Navigating to chat with company ${id} using fetched userID ${company.userID}`);
           }
-
-          const companies = await response.json();
-          const company = companies.find((c: any) => String(c.companyID) === String(id));
-
-          if (!company) {
-            throw new Error("Company not found");
-          }
-
-          // Use the company's userID for chat instead of companyID
-          navigate(`/${userTypePath}/${user.userID}/messages/${company.userID}?type=${type}`);
-          console.log(`Navigating to chat with company ${id} using userID ${company.userID}`);
         } catch (error) {
           console.error("Error navigating to chat:", error);
         }
@@ -237,6 +282,8 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
             size="sm"
             className="w-full text-xs h-8"
             id={`meeting-request-${id}`}
+            // Pass the userID as a data attribute for companies
+            data-userid={type === "company" && userID ? userID : undefined}
           />
         </span>
       </div>

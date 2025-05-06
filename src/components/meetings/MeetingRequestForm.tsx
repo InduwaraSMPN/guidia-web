@@ -30,6 +30,7 @@ interface MeetingRequestFormProps {
   recipientType: 'Student' | 'Company' | 'Counselor';
   onSuccess?: () => void;
   onCancel?: () => void;
+  companyUserID?: number; // Add companyUserID for direct mapping without API call
 }
 
 // Define the form schema
@@ -49,6 +50,7 @@ export function MeetingRequestForm({
   recipientType,
   onSuccess,
   onCancel,
+  companyUserID,
 }: MeetingRequestFormProps) {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
@@ -112,11 +114,21 @@ export function MeetingRequestForm({
         // For companies, we need to get the user ID associated with the company ID
         let actualRecipientID = recipientID;
         if (recipientType === 'Company') {
-          try {
-            actualRecipientID = await getCompanyUserID(recipientID);
-          } catch (error) {
-            console.error('Error mapping company ID to user ID:', error);
-            // Continue with the original ID if mapping fails
+          if (companyUserID) {
+            // Use the provided companyUserID if available
+            actualRecipientID = companyUserID;
+            console.log(`Using provided company userID: ${companyUserID}`);
+
+            // Add to cache for future use
+            addCompanyUserMapping(recipientID, companyUserID);
+          } else {
+            try {
+              // Fallback to API call if companyUserID is not provided
+              actualRecipientID = await getCompanyUserID(recipientID);
+            } catch (error) {
+              console.error('Error mapping company ID to user ID:', error);
+              // Continue with the original ID if mapping fails
+            }
           }
         }
 
@@ -234,11 +246,21 @@ export function MeetingRequestForm({
       // For companies, we need to use the user ID instead of the company ID
       let actualRecipientID = recipientID;
       if (recipientType === 'Company') {
-        try {
-          actualRecipientID = await getCompanyUserID(recipientID);
-        } catch (error) {
-          console.error('Error mapping company ID to user ID:', error);
-          // Continue with the original ID if mapping fails
+        if (companyUserID) {
+          // Use the provided companyUserID if available
+          actualRecipientID = companyUserID;
+          console.log(`Using provided company userID for meeting request: ${companyUserID}`);
+
+          // Add to cache for future use
+          addCompanyUserMapping(recipientID, companyUserID);
+        } else {
+          try {
+            // Fallback to API call if companyUserID is not provided
+            actualRecipientID = await getCompanyUserID(recipientID);
+          } catch (error) {
+            console.error('Error mapping company ID to user ID:', error);
+            // Continue with the original ID if mapping fails
+          }
         }
       }
 

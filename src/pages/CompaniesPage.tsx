@@ -286,19 +286,29 @@ export function CompaniesPage() {
             animate="visible"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            {filteredCompanies.map((company) => (
-              <motion.div key={company.companyID} variants={itemVariants}>
-                <DirectoryCard
-                  type="company"
-                  id={company.companyID}
-                  name={company.companyName}
-                  subtitle={company.companyType || "Company"}
-                  email={company.companyEmail}
-                  contactNumber={company.companyContactNumber}
-                  image={company.companyLogoPath}
-                />
-              </motion.div>
-            ))}
+            {filteredCompanies.map((company) => {
+              // Debug company data
+              console.log(`Company card for ${company.companyName}:`, {
+                companyID: company.companyID,
+                userID: company.userID,
+                companyType: company.companyType
+              });
+
+              return (
+                <motion.div key={company.companyID} variants={itemVariants}>
+                  <DirectoryCard
+                    type="company"
+                    id={company.companyID}
+                    name={company.companyName}
+                    subtitle={company.companyType || "Company"}
+                    email={company.companyEmail}
+                    contactNumber={company.companyContactNumber}
+                    image={company.companyLogoPath}
+                    userID={company.userID}
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
     </PageLayout>
