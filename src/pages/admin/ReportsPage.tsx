@@ -15,7 +15,6 @@ import {
   Eye
 } from "lucide-react";
 import { ViewDocumentModal } from "@/components/ViewDocumentModal";
-import { PageHeading } from "@/components/PageHeading";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -217,8 +216,8 @@ function ReportsPage() {
 
   return (
     <div className="p-6 max-w-[1216px] mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <PageHeading title="Reports" />
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-brand">Reports</h1>
       </div>
 
       {/* Hidden report component for auto-download */}

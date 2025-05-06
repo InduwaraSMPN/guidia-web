@@ -1,8 +1,9 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, XCircle, Clock, Server, Database, Calendar } from "lucide-react"
+import { CheckCircle, XCircle, Clock, Server, Database, Calendar, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 interface SystemHealthProps {
   systemHealth: {
@@ -16,15 +17,31 @@ interface SystemHealthProps {
     databaseStatus: string
     serverTime: string
   }
+  onRefresh?: () => void
+  refreshing?: boolean
 }
 
-export function SystemHealthCard({ systemHealth }: SystemHealthProps) {
+export function SystemHealthCard({ systemHealth, onRefresh, refreshing = false }: SystemHealthProps) {
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
-        <div className="flex items-center gap-2">
-          <Server className="h-5 w-5 text-brand" />
-          <CardTitle>System Health</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Server className="h-5 w-5 text-brand" />
+            <CardTitle>System Health</CardTitle>
+          </div>
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          )}
         </div>
         <CardDescription>Overview of system components and scheduled tasks</CardDescription>
       </CardHeader>

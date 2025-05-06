@@ -2,11 +2,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ShieldCheck, ShieldAlert, ShieldX, UserCheck, LogIn, LogOut, ShieldOff, BarChart3 } from "lucide-react"
+import { ShieldCheck, ShieldAlert, ShieldX, UserCheck, LogIn, LogOut, ShieldOff, BarChart3, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer, Tooltip } from "recharts"
 import { StatusTooltip } from "@/components/ui/chart-tooltip"
 import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
+import { Button } from "@/components/ui/button"
 
 interface SecurityStatisticsProps {
   securityStats: {
@@ -23,6 +24,8 @@ interface SecurityStatisticsProps {
     }>
     accountStatusChanges: number
   }
+  onRefresh?: () => void
+  refreshing?: boolean
 }
 
 // Event type icons
@@ -68,7 +71,7 @@ const LOGIN_COLORS = {
   account_status_change: "#8b5cf6", // Purple color for account status changes
 }
 
-export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
+export function SecurityAuditCard({ securityStats, onRefresh, refreshing = false }: SecurityStatisticsProps) {
   // Check if date is valid
   const isValidDate = (date: Date) => {
     return date instanceof Date && !isNaN(date.getTime());
@@ -197,22 +200,36 @@ export function SecurityAuditCard({ securityStats }: SecurityStatisticsProps) {
   }
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border w-full">
       <CardHeader className="bg-card/50 pb-4">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-brand" />
-          <CardTitle>Security Audit</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-brand" />
+            <CardTitle>Security Audit</CardTitle>
+          </div>
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          )}
         </div>
         <CardDescription>Overview of security events and login activity</CardDescription>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-8 mb-8">
           <div>
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-brand" />
               <span>Security Activity</span>
             </h3>
-            <AnimatedChartContainer className="h-96">
+            <AnimatedChartContainer className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

@@ -15,13 +15,14 @@ import {
   Cell,
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, PieChartIcon, BarChart3, Star, Users, TrendingUp, TrendingDown, CheckCircle, XCircle, AlertCircle } from "lucide-react"
+import { Calendar, Clock, PieChartIcon, BarChart3, Star, Users, TrendingUp, TrendingDown, CheckCircle, XCircle, AlertCircle, Download } from "lucide-react"
 import { cn, formatMeetingType } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { MeetingStatusTooltip, ScheduleTooltip } from "@/components/ui/chart-tooltip"
 import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect, useMemo } from "react"
+import { CsvExporter } from "./CsvExporter"
 
 interface MeetingStatisticsProps {
   meetingStats: {
@@ -160,6 +161,16 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
   const [counselorSearch, setCounselorSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
+
+  // Define CSV columns for counselor performance data
+  const counselorCsvColumns = useMemo(() => [
+    { id: 'counselorName', header: 'Counselor Name' },
+    { id: 'totalMeetings', header: 'Total Meetings' },
+    { id: 'acceptanceRate', header: 'Acceptance Rate (%)' },
+    { id: 'completionRate', header: 'Completion Rate (%)' },
+    { id: 'declineRate', header: 'Decline Rate (%)' },
+    { id: 'cancellationRate', header: 'Cancellation Rate (%)' },
+  ], []);
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -723,16 +734,20 @@ export function MeetingStatisticsCard({ meetingStats }: MeetingStatisticsProps) 
                           </button>
                         )}
                       </div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+                      <CsvExporter
+                        data={filteredCounselors}
+                        columns={counselorCsvColumns}
+                        tableName="counselor-performance"
                       >
-                        <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Export CSV
-                      </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-white border border-border rounded-lg hover:bg-secondary focus:ring-2 focus:ring-[#800020]/20 focus:outline-none"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Export CSV
+                        </motion.button>
+                      </CsvExporter>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left text-muted-foreground">

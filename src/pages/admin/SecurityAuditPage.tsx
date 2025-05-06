@@ -5,8 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SecurityAuditCard } from "@/components/admin/SecurityAuditCard";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 
 interface SecurityStatistics {
   recentEvents: Array<{
@@ -65,20 +63,9 @@ function SecurityAuditPage() {
   };
 
   return (
-    <div className="container py-8">
-      <div className="mb-8">
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-        </div>
+    <div className="p-6 max-w-[1216px] mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-brand">Security Audit</h1>
       </div>
 
       {loading ? (
@@ -86,7 +73,11 @@ function SecurityAuditPage() {
           <Skeleton className="h-[600px] w-full rounded-xl" />
         </div>
       ) : securityStats ? (
-        <SecurityAuditCard securityStats={securityStats} />
+        <SecurityAuditCard
+          securityStats={securityStats}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+        />
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           <p>No security data available</p>

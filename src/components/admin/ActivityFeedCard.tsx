@@ -2,9 +2,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { UserPlus, Briefcase, FileText, Calendar, LogIn, Activity } from "lucide-react"
+import { UserPlus, Briefcase, FileText, Calendar, LogIn, Activity, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
 
 interface ActivityFeedProps {
   activities: Array<{
@@ -12,6 +13,8 @@ interface ActivityFeedProps {
     timestamp: string
     data: any
   }>
+  onRefresh?: () => void
+  refreshing?: boolean
 }
 
 // Activity type icons
@@ -32,7 +35,7 @@ const ACTIVITY_COLORS = {
   login: "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-300",
 }
 
-export function ActivityFeedCard({ activities }: ActivityFeedProps) {
+export function ActivityFeedCard({ activities, onRefresh, refreshing = false }: ActivityFeedProps) {
   // Function to render activity content based on type
   const renderActivityContent = (activity: { type: string; data: any }) => {
     switch (activity.type) {
@@ -111,9 +114,23 @@ export function ActivityFeedCard({ activities }: ActivityFeedProps) {
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
       <CardHeader className="bg-card/50 pb-4">
-        <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-brand" />
-          <CardTitle>Activity Feed</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-brand" />
+            <CardTitle>Activity Feed</CardTitle>
+          </div>
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          )}
         </div>
         <CardDescription>Recent activities across the platform</CardDescription>
       </CardHeader>
