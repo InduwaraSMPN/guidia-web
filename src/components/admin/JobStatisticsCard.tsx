@@ -17,6 +17,9 @@ import { Badge } from "@/components/ui/badge"
 import { Briefcase, TrendingUp, Eye, FileText } from "lucide-react"
 import { ChartTooltip, JobBarTooltip } from "@/components/ui/chart-tooltip"
 import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
+import { TablePagination } from "@/components/ui/table-pagination"
+import { useState, useMemo } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 
 interface JobStatisticsProps {
   jobStats: {
@@ -64,6 +67,13 @@ interface JobStatisticsProps {
 }
 
 export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
+  // Pagination state
+  const [currentPageMostViewed, setCurrentPageMostViewed] = useState(1);
+  const [currentPageLeastViewed, setCurrentPageLeastViewed] = useState(1);
+  const [currentPageMostApplications, setCurrentPageMostApplications] = useState(1);
+  const [currentPageLeastApplications, setCurrentPageLeastApplications] = useState(1);
+  const itemsPerPage = 5; // Number of items to show per page
+
   // Format date for trend data
   const formatTrendData = (data: Array<{ date: string; count: number }>) => {
     return data.map((item) => ({
@@ -74,6 +84,27 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
 
   const formattedJobPostingTrend = jobStats.jobPostingTrend ? formatTrendData(jobStats.jobPostingTrend) : []
   const formattedJobViewsTrend = jobStats.jobViewsTrend ? formatTrendData(jobStats.jobViewsTrend) : []
+
+  // Create paginated data for each table
+  const paginatedMostViewedJobs = useMemo(() => {
+    const startIndex = (currentPageMostViewed - 1) * itemsPerPage;
+    return jobStats.mostViewedJobs.slice(startIndex, startIndex + itemsPerPage);
+  }, [jobStats.mostViewedJobs, currentPageMostViewed, itemsPerPage]);
+
+  const paginatedLeastViewedJobs = useMemo(() => {
+    const startIndex = (currentPageLeastViewed - 1) * itemsPerPage;
+    return jobStats.leastViewedJobs.slice(startIndex, startIndex + itemsPerPage);
+  }, [jobStats.leastViewedJobs, currentPageLeastViewed, itemsPerPage]);
+
+  const paginatedMostApplicationJobs = useMemo(() => {
+    const startIndex = (currentPageMostApplications - 1) * itemsPerPage;
+    return jobStats.mostApplicationJobs.slice(startIndex, startIndex + itemsPerPage);
+  }, [jobStats.mostApplicationJobs, currentPageMostApplications, itemsPerPage]);
+
+  const paginatedLeastApplicationJobs = useMemo(() => {
+    const startIndex = (currentPageLeastApplications - 1) * itemsPerPage;
+    return jobStats.leastApplicationJobs.slice(startIndex, startIndex + itemsPerPage);
+  }, [jobStats.leastApplicationJobs, currentPageLeastApplications, itemsPerPage]);
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
@@ -279,19 +310,45 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobStats.mostViewedJobs.map((job, index) => (
-                    <tr key={job.jobID} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
-                      <td className="py-3 px-4 font-medium">{job.title}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
-                      <td className="text-right py-3 px-4">
-                        <Badge variant="secondary" className="font-mono">
-                          {job.viewCount}
-                        </Badge>
+                  <AnimatePresence>
+                    {paginatedMostViewedJobs.map((job) => (
+                      <motion.tr
+                        key={job.jobID}
+                        className="border-t border-border transition-all duration-200 hover:bg-muted/40"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <td className="py-3 px-4 font-medium">{job.title}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
+                        <td className="text-right py-3 px-4">
+                          <Badge variant="secondary" className="font-mono">
+                            {job.viewCount}
+                          </Badge>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                  {jobStats.mostViewedJobs.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-10 text-center text-muted-foreground">
+                        No job view data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {jobStats.mostViewedJobs.length > itemsPerPage && (
+                <TablePagination
+                  currentPage={currentPageMostViewed}
+                  totalItems={jobStats.mostViewedJobs.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPageMostViewed}
+                />
+              )}
             </div>
           </TabsContent>
 
@@ -340,19 +397,45 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobStats.leastViewedJobs.map((job) => (
-                    <tr key={job.jobID} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
-                      <td className="py-3 px-4 font-medium">{job.title}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
-                      <td className="text-right py-3 px-4">
-                        <Badge variant="secondary" className="font-mono">
-                          {job.viewCount}
-                        </Badge>
+                  <AnimatePresence>
+                    {paginatedLeastViewedJobs.map((job) => (
+                      <motion.tr
+                        key={job.jobID}
+                        className="border-t border-border transition-all duration-200 hover:bg-muted/40"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <td className="py-3 px-4 font-medium">{job.title}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
+                        <td className="text-right py-3 px-4">
+                          <Badge variant="secondary" className="font-mono">
+                            {job.viewCount}
+                          </Badge>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                  {jobStats.leastViewedJobs.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-10 text-center text-muted-foreground">
+                        No job view data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {jobStats.leastViewedJobs.length > itemsPerPage && (
+                <TablePagination
+                  currentPage={currentPageLeastViewed}
+                  totalItems={jobStats.leastViewedJobs.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPageLeastViewed}
+                />
+              )}
             </div>
           </TabsContent>
 
@@ -401,19 +484,45 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobStats.mostApplicationJobs.map((job) => (
-                    <tr key={job.jobID} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
-                      <td className="py-3 px-4 font-medium">{job.title}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
-                      <td className="text-right py-3 px-4">
-                        <Badge variant="secondary" className="font-mono">
-                          {job.applicationCount}
-                        </Badge>
+                  <AnimatePresence>
+                    {paginatedMostApplicationJobs.map((job) => (
+                      <motion.tr
+                        key={job.jobID}
+                        className="border-t border-border transition-all duration-200 hover:bg-muted/40"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <td className="py-3 px-4 font-medium">{job.title}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
+                        <td className="text-right py-3 px-4">
+                          <Badge variant="secondary" className="font-mono">
+                            {job.applicationCount}
+                          </Badge>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                  {jobStats.mostApplicationJobs.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-10 text-center text-muted-foreground">
+                        No job application data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {jobStats.mostApplicationJobs.length > itemsPerPage && (
+                <TablePagination
+                  currentPage={currentPageMostApplications}
+                  totalItems={jobStats.mostApplicationJobs.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPageMostApplications}
+                />
+              )}
             </div>
           </TabsContent>
 
@@ -462,19 +571,45 @@ export function JobStatisticsCard({ jobStats }: JobStatisticsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobStats.leastApplicationJobs.map((job) => (
-                    <tr key={job.jobID} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
-                      <td className="py-3 px-4 font-medium">{job.title}</td>
-                      <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
-                      <td className="text-right py-3 px-4">
-                        <Badge variant="secondary" className="font-mono">
-                          {job.applicationCount}
-                        </Badge>
+                  <AnimatePresence>
+                    {paginatedLeastApplicationJobs.map((job) => (
+                      <motion.tr
+                        key={job.jobID}
+                        className="border-t border-border transition-all duration-200 hover:bg-muted/40"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <td className="py-3 px-4 font-medium">{job.title}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{job.companyName}</td>
+                        <td className="text-right py-3 px-4">
+                          <Badge variant="secondary" className="font-mono">
+                            {job.applicationCount}
+                          </Badge>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                  {jobStats.leastApplicationJobs.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-10 text-center text-muted-foreground">
+                        No job application data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination */}
+              {jobStats.leastApplicationJobs.length > itemsPerPage && (
+                <TablePagination
+                  currentPage={currentPageLeastApplications}
+                  totalItems={jobStats.leastApplicationJobs.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPageLeastApplications}
+                />
+              )}
             </div>
           </TabsContent>
         </Tabs>

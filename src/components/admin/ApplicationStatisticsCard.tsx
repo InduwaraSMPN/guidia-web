@@ -20,6 +20,9 @@ import { Badge } from "@/components/ui/badge"
 import { FileText, TrendingUp, BarChart3, PieChartIcon } from "lucide-react"
 import { ChartTooltip, StatusTooltip } from "@/components/ui/chart-tooltip"
 import { AnimatedChartContainer } from "@/components/ui/animated-chart-container"
+import { TablePagination } from "@/components/ui/table-pagination"
+import { useState, useMemo } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 
 interface ApplicationStatisticsProps {
   applicationStats: {
@@ -48,6 +51,10 @@ const STATUS_COLORS = {
 }
 
 export function ApplicationStatisticsCard({ applicationStats }: ApplicationStatisticsProps) {
+  // Pagination state
+  const [currentPageStatusTable, setCurrentPageStatusTable] = useState(1);
+  const itemsPerPage = 5; // Number of items to show per page
+
   // Format date for trend data
   const formatTrendData = (data: Array<{ date: string; count: number }>) => {
     return data.map((item) => ({
@@ -66,6 +73,12 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
 
   // Format conversion rate as percentage (already in percentage form from backend)
   const formattedConversionRate = `${parseFloat(applicationStats.conversionRate).toFixed(1)}%`
+
+  // Create paginated data for status table
+  const paginatedStatusData = useMemo(() => {
+    const startIndex = (currentPageStatusTable - 1) * itemsPerPage;
+    return applicationStats.applicationsByStatus.slice(startIndex, startIndex + itemsPerPage);
+  }, [applicationStats.applicationsByStatus, currentPageStatusTable, itemsPerPage]);
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-border/60 hover:border-border">
@@ -265,31 +278,57 @@ export function ApplicationStatisticsCard({ applicationStats }: ApplicationStati
                     </tr>
                   </thead>
                   <tbody>
-                    {applicationStats.applicationsByStatus.map((status, index) => (
-                      <tr key={index} className="border-t border-border transition-all duration-200 hover:bg-muted/40">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: getStatusColor(status.status) }}
-                            ></div>
-                            <span className="font-medium">{status.status}</span>
-                          </div>
-                        </td>
-                        <td className="text-right py-3 px-4">
-                          <Badge variant="secondary" className="font-mono">
-                            {status.count}
-                          </Badge>
-                        </td>
-                        <td className="text-right py-3 px-4">
-                          <Badge variant="outline" className="font-mono">
-                            {((status.count / applicationStats.totalApplications) * 100).toFixed(1)}%
-                          </Badge>
+                    <AnimatePresence>
+                      {paginatedStatusData.map((status, index) => (
+                        <motion.tr
+                          key={index}
+                          className="border-t border-border transition-all duration-200 hover:bg-muted/40"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: getStatusColor(status.status) }}
+                              ></div>
+                              <span className="font-medium">{status.status}</span>
+                            </div>
+                          </td>
+                          <td className="text-right py-3 px-4">
+                            <Badge variant="secondary" className="font-mono">
+                              {status.count}
+                            </Badge>
+                          </td>
+                          <td className="text-right py-3 px-4">
+                            <Badge variant="outline" className="font-mono">
+                              {((status.count / applicationStats.totalApplications) * 100).toFixed(1)}%
+                            </Badge>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                    {applicationStats.applicationsByStatus.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-10 text-center text-muted-foreground">
+                          No application status data available
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
+
+                {/* Pagination */}
+                {applicationStats.applicationsByStatus.length > itemsPerPage && (
+                  <TablePagination
+                    currentPage={currentPageStatusTable}
+                    totalItems={applicationStats.applicationsByStatus.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPageStatusTable}
+                  />
+                )}
               </div>
             </div>
           </TabsContent>
