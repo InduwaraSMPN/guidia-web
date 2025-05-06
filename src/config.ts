@@ -21,7 +21,7 @@ export const APP_SETTINGS = {
   // Application version
   APP_VERSION: '1.0.0',
   // Support email
-  SUPPORT_EMAIL: 'support@guidia.com',
+  SUPPORT_EMAIL: 'guidia.web@gmail.com',
 };
 
 // Date format settings

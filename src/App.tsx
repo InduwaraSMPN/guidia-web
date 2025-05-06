@@ -88,6 +88,9 @@ import { FeaturesPage } from './pages/FeaturesPage';
 import { TestimonialsPage } from './pages/TestimonialsPage';
 import { FAQPage } from './pages/FAQPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
+import { DocumentationPage } from './pages/DocumentationPage';
+import { SupportPage } from './pages/SupportPage';
+import { PricingPage } from './pages/PricingPage';
 import { MeetingAvailability } from './pages/MeetingAvailability';
 import { CalendarPage } from './pages/CalendarPage';
 import { GuidiaAiChat } from './features/guidia-ai-assistant';
@@ -239,9 +242,9 @@ function AppContent() {
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/faq" element={<FAQPage />} />
           <Route path="/coming-soon" element={<ComingSoonPage />} />
-          <Route path="/pricing" element={<Navigate to="/coming-soon" replace />} />
-          <Route path="/docs" element={<Navigate to="/coming-soon" replace />} />
-          <Route path="/support" element={<Navigate to="/coming-soon" replace />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/docs" element={<DocumentationPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/companies" element={<CompaniesPage />} />
           {/* Company routes */}
           <Route path="/companies/:id/jobs" element={

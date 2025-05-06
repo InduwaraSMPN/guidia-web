@@ -1,14 +1,15 @@
-const getPasswordResetTemplate = (email, resetUrl) => {
+const getContactThankYouTemplate = (email, name, message) => {
   return {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'Password Reset Request',
+    subject: 'Thank you for contacting Guidia',
+    text: `Dear ${name},\n\nThank you for reaching out to us. We have received your message and will get back to you as soon as possible.\n\nFor your reference, here's a copy of your message:\n\n${message}\n\nBest regards,\nThe Guidia Team`,
     html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Password Reset</title>
+  <title>Thank You for Contacting Guidia</title>
   <style type="text/css">
     /* Basic Reset */
     body, table, td, a { margin: 0; padding: 0; }
@@ -34,20 +35,22 @@ const getPasswordResetTemplate = (email, resetUrl) => {
           <tr>
             <td style="padding: 48px;" class="content">
               <img src="https://ik.imagekit.io/pasindunaduninduwara/logo.svg" alt="Guidia Logo" style="width: 161px; display: block; margin: 0 auto 24px;">
-              <h1 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 32px; color: #000000; margin: 0 0 24px; text-align: center;">Password Reset Request</h1>
-              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px; font-weight: 600;">Hello!</p>
-              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 24px;">We received a request to reset your password. Click the button below to create a new password:</p>
+              <h1 style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 32px; color: #000000; margin: 0 0 24px; text-align: center;">Thank You for Contacting Us</h1>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px; font-weight: 600;">Hello ${name}!</p>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 24px;">Thank you for reaching out to us. We have received your message and will get back to you as soon as possible.</p>
 
-              <table width="100%" style="border-collapse: collapse;" role="presentation">
-                <tr>
-                  <td align="center" style="padding: 32px 0;">
-                    <a href="${resetUrl}" target="_blank" style="background-color: #800020; color: white; padding: 16px 32px; text-decoration: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 16px; display: inline-block;">Reset Password</a>
-                  </td>
-                </tr>
-              </table>
+              <!-- Message Box -->
+              <div style="margin: 24px 0 32px; padding: 24px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <h3 style="font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 18px; color: #800020; margin: 0 0 16px;">Your Message:</h3>
+                <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0; white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</p>
+              </div>
 
               <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px;">
-                This link will expire in 1 hour. If you didn't request this reset, please ignore this email.
+                If you have any additional questions or information to provide, please feel free to reply to this email.
+              </p>
+              <p style="font-family: 'Open Sans', sans-serif; font-size: 16px; color: #1f2937; margin: 0 0 16px;">
+                Best regards,<br>
+                The Guidia Team
               </p>
             </td>
           </tr>
@@ -80,4 +83,4 @@ const getPasswordResetTemplate = (email, resetUrl) => {
   };
 };
 
-module.exports = getPasswordResetTemplate;
+module.exports = getContactThankYouTemplate;

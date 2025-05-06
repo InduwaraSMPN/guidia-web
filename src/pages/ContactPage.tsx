@@ -33,21 +33,43 @@ export function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      toast.success("Your message has been sent successfully!");
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Your message has been sent successfully!");
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        toast.error(data.message || "Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error sending contact form:', error);
+      toast.error("An error occurred. Please try again later.");
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   const fadeIn = {
@@ -256,7 +278,7 @@ export function ContactPage() {
             className="bg-secondary rounded-xl overflow-hidden h-[500px] shadow-sm border border-border"
           >
             <iframe
-  src="https://www.google.com/maps?q=University+of+Kelaniya,+Sri+Lanka&output=embed" 
+  src="https://www.google.com/maps?q=University+of+Kelaniya,+Sri+Lanka&output=embed"
   width="100%"
               height="100%"
               style={{ border: 0 }}
