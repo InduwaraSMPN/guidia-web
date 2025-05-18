@@ -165,7 +165,8 @@ export function WelcomeEditStudentProfile() {
           label: 'Student E-Mail',
           type: 'email',
           placeholder: 'Enter student email',
-          required: true
+          required: true,
+          gridCols: 2
         }
       ]
     },
@@ -205,14 +206,16 @@ export function WelcomeEditStudentProfile() {
           label: 'Tell us about yourself',
           type: 'richtext',
           required: true,
-          placeholder: 'Share a brief introduction about yourself...'
+          placeholder: 'Share a brief introduction about yourself...',
+          gridCols: 2
         },
         {
           name: 'image',
           label: 'Profile Picture',
           type: 'file',
           required: true,
-          options: [{ value: 'image', label: 'Image files' }]
+          options: [{ value: 'image', label: 'Image files' }],
+          gridCols: 2
         }
       ]
     }

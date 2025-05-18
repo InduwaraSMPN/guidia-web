@@ -68,13 +68,11 @@ export function Select({
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside)
       window.addEventListener("resize", handleResize)
-      window.addEventListener("scroll", handleResize)
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
       window.removeEventListener("resize", handleResize)
-      window.removeEventListener("scroll", handleResize)
     }
   }, [isOpen])
 
@@ -110,17 +108,14 @@ export function Select({
       </button>
 
       {isOpen && (
-        <div className="fixed z-50 w-[calc(100%-2px)] mt-1 bg-white dark:bg-card border border-border rounded-md shadow-lg max-h-[200px] overflow-y-auto"
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-card border border-border rounded-md shadow-lg max-h-[200px] overflow-y-auto"
              style={{
-               top: selectRef.current ?
-                 // Check if dropdown would go off the bottom of the viewport
-                 (selectRef.current.getBoundingClientRect().bottom + 200 > window.innerHeight ?
-                   // Position above the select if it would go off the bottom
-                   selectRef.current.getBoundingClientRect().top - 200 + window.scrollY :
-                   // Otherwise position below the select
-                   selectRef.current.getBoundingClientRect().bottom + window.scrollY) : 0,
-               left: selectRef.current ? selectRef.current.getBoundingClientRect().left + window.scrollX : 0,
-               width: selectRef.current ? selectRef.current.offsetWidth : 'auto'
+               // Check if dropdown would go off the bottom of the viewport
+               top: selectRef.current && selectRef.current.getBoundingClientRect().bottom + 200 > window.innerHeight
+                 ? // Position above the select if it would go off the bottom
+                   `-${200 + selectRef.current.offsetHeight}px`
+                 : // Otherwise position below the select
+                   `${selectRef.current?.offsetHeight || 0}px`
              }}>
           {isSearchable && (
             <div className="sticky top-0 z-20 bg-white dark:bg-card p-2 border-b border-border">
