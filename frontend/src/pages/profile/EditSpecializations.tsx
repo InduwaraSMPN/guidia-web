@@ -45,12 +45,16 @@ export function EditSpecializations() {
       }
 
       try {
+        // Use the proxy endpoint instead of direct API URL
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/counselors/${user.userID}`,
+          `/api/counselors/${user.userID}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache'
             },
+            credentials: 'include', // Include cookies if any
           }
         );
 
@@ -101,20 +105,29 @@ export function EditSpecializations() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/specializations`, {
+      // Log the request details for debugging
+      console.log('Sending request to:', `/api/counselors/specializations`);
+      console.log('Request payload:', { specializations: selectedSpecializations, userID: user.userID });
+
+      const response = await fetch(`/api/counselors/specializations`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
           specializations: selectedSpecializations,
           userID: user.userID
         }),
+        credentials: 'include', // Include cookies if any
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update specializations');
+        const errorData = await response.json().catch(() => null);
+        console.error('Server response:', errorData);
+        throw new Error(errorData?.message || 'Failed to update specializations');
       }
 
       toast.success('Specializations updated successfully');

@@ -43,7 +43,7 @@ export function EventCard({ event, onDelete }: EventCardProps) {
             onClick: async () => {
               try {
                 setIsDeleting(true)
-                const response = await fetch(`http://localhost:3001/api/events/${event.eventID}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/events/${event.eventID}`, {
                   method: "DELETE",
                 })
 

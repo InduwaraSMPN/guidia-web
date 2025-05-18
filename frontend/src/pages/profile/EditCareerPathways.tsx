@@ -44,12 +44,16 @@ export function EditCareerPathways() {
       }
 
       try {
+        // Use the proxy endpoint instead of direct API URL
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/students/${userID}`,
+          `/api/students/${userID}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache'
             },
+            credentials: 'include', // Include cookies if any
           }
         );
 
@@ -100,19 +104,29 @@ export function EditCareerPathways() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/career-pathways`, {
+      // Use the proxy endpoint instead of direct API URL
+      // This will route through Vite's dev server proxy
+      console.log('Sending request to:', `/api/students/career-pathways`);
+      console.log('Request payload:', { pathways: selectedPaths });
+
+      const response = await fetch(`/api/students/career-pathways`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
           pathways: selectedPaths
         }),
+        credentials: 'include', // Include cookies if any
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update career pathways');
+        const errorData = await response.json().catch(() => null);
+        console.error('Server response:', errorData);
+        throw new Error(errorData?.message || 'Failed to update career pathways');
       }
 
       toast.success('Career pathways updated successfully');

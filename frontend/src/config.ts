@@ -3,7 +3,7 @@
  */
 
 // API URL for backend requests
-export const API_URL = 'http://localhost:3001';
+export const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Default pagination limit
 export const DEFAULT_PAGE_SIZE = 10;

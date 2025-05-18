@@ -17,9 +17,8 @@ const corsPolicy = (req, res, next) => {
 
   // Check if the origin is in the allowed list
   const allowedOrigins = [
-    'http://localhost:1030',
-    'http://localhost:3001',
-    // Add production domains when deployed
+    process.env.FRONTEND_URL || 'http://localhost:1030',
+    process.env.API_BASE_URL || 'http://localhost:3001',
   ];
 
   if (allowedOrigins.includes(origin)) {

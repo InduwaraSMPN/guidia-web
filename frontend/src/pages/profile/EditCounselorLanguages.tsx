@@ -47,12 +47,16 @@ export function EditCounselorLanguages() {
       }
 
       try {
+        // Use the proxy endpoint instead of direct API URL
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/counselors/${userID}`,
+          `/api/counselors/${userID}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache'
             },
+            credentials: 'include', // Include cookies if any
           }
         );
 
@@ -107,17 +111,26 @@ export function EditCounselorLanguages() {
         userID: user.userID
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/counselors/${userID}`, {
+      // Log the request details for debugging
+      console.log('Sending request to:', `/api/counselors/${userID}`);
+      console.log('Request payload:', profileData);
+
+      const response = await fetch(`/api/counselors/${userID}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify(profileData),
+        credentials: 'include', // Include cookies if any
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update languages');
+        const errorData = await response.json().catch(() => null);
+        console.error('Server response:', errorData);
+        throw new Error(errorData?.message || 'Failed to update languages');
       }
 
       toast.success('Languages updated successfully');
