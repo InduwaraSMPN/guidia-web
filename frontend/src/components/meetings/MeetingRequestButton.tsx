@@ -50,7 +50,7 @@ export function MeetingRequestButton({
           Request Meeting
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[680px] max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-brand">Request Meeting with {recipientName}</DialogTitle>
           <DialogDescription>

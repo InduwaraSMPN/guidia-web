@@ -1,16 +1,18 @@
 # typical gitignore for web apps
 node_modules
+**/node_modules
 dist
 .DS_Store
 # Sentry Config File
 .env.sentry-build-plugin
+**/env.sentry-build-plugin
 
 # Package lock files (if you want to exclude them)
 package-lock.json
 **/package-lock.json
 
 # Large mock data files
-src/mocks/*
+frontend/src/mocks/*
 **/mock-data/*
 
 # Environment files
@@ -24,12 +26,16 @@ src/mocks/*
 build/
 dist/
 out/
+**/build/
+**/dist/
+**/out/
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+**/logs/
 
 # IDE specific files
 .idea/
@@ -37,10 +43,9 @@ yarn-error.log*
 *.swp
 *.swo
 
-
 #examples
 index.sql
 # Firebase service account keys
-guidia-auth/firebase-service-account.json
+backend/firebase-service-account.json
 **/firebase-service-account.json
 **/key-backups/

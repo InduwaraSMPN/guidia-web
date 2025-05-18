@@ -89,7 +89,7 @@ const apiLimiter = createRateLimiter();
 // More strict rate limiter for authentication endpoints
 const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // Limit each IP to 5 login attempts per windowMs
+  max: 5, // Limit each IP to 5 login attempts per windowMs
   message: {
     error: 'Too many login attempts',
     message: 'Please try again after 15 minutes'
