@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MeetingRequestButton } from "@/components/meetings/MeetingRequestButton";
-import { AzureImage, CompanyImage } from "@/lib/imageUtils";
+import { CompanyImage } from "@/lib/imageUtils";
 import {
   Building2,
   Mail,
@@ -17,7 +17,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 interface Company {
   id: string;
@@ -94,7 +93,18 @@ function ChatButton({ companyData }: { companyData: CompanyData }) {
   const { userID } = useParams();
 
   // Check if current user is viewing their own profile
-  const isCurrentUser = user?.userType === "Company" && String(companyData.companyID) === String(userID);
+  // Compare user's ID with company's userID, not companyID with URL parameter
+  const isCurrentUser = user?.userType === "Company" && String(user.userID) === String(companyData.userID);
+
+  // Debug logging
+  console.log('ChatButton Debug:', {
+    userType: user?.userType,
+    userId: user?.userID,
+    companyUserId: companyData.userID,
+    companyId: companyData.companyID,
+    urlParam: userID,
+    isCurrentUser
+  });
 
   const handleChat = () => {
     if (!isCurrentUser && user?.userType && user?.userID) {
@@ -131,8 +141,19 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
   // Check if current user is viewing their own profile
   useEffect(() => {
     if (user && companyData) {
-      // We need to compare the companyID with the userID from the URL
-      const isOwn = user.userType === "Company" && String(companyData.companyID) === String(userID);
+      // Compare user's ID with company's userID, not companyID with URL parameter
+      const isOwn = user.userType === "Company" && String(user.userID) === String(companyData.userID);
+
+      // Debug logging
+      console.log('PublicCompanyProfile Debug:', {
+        userType: user.userType,
+        userId: user.userID,
+        companyUserId: companyData.userID,
+        companyId: companyData.companyID,
+        urlParam: userID,
+        isOwn
+      });
+
       setIsCurrentUser(isOwn);
     }
   }, [user, companyData, userID]);
@@ -416,7 +437,7 @@ export function PublicCompanyProfile({ companies }: PublicCompanyProfileProps) {
           >
             <h2 className="text-xl font-semibold mb-4">Posted Jobs</h2>
             <div className="space-y-4">
-              {companyData.postedJobs.map((job, index) => {
+              {companyData.postedJobs.map((job) => {
                 // Make sure we have a valid job ID (should be a number)
                 const jobId = job.id || (job as any).jobID?.toString();
 
