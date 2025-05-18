@@ -10,7 +10,7 @@ import { MeetingDetailsDialog } from '@/components/meetings/MeetingDetailsDialog
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { API_URL } from '@/config';
 import axios from 'axios';
 import {
@@ -278,9 +278,12 @@ export function MeetingsPage() {
   if (isLoading) {
     return (
       <div className="container pb-32 pt-32 max-w-[1216px]">
+        {/* Back button skeleton */}
+        <Skeleton className="h-8 w-20 mb-2" />
+
+        {/* Page title skeleton */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <Skeleton className="h-10 w-40" />
-          <Skeleton className="h-10 w-36" />
         </div>
 
         {/* Filters Skeleton */}
@@ -301,7 +304,11 @@ export function MeetingsPage() {
 
         {/* Tabs Skeleton */}
         <div className="mb-6">
-          <Skeleton className="h-10 w-full max-w-md" />
+          <div className="border-b flex">
+            <Skeleton className="h-10 w-36 mr-2" />
+            <Skeleton className="h-10 w-36 mr-2" />
+            <Skeleton className="h-10 w-36" />
+          </div>
         </div>
 
         {/* Card Skeleton */}
@@ -318,22 +325,23 @@ export function MeetingsPage() {
                     <div className="space-y-2">
                       <Skeleton className="h-6 w-48" />
                       <div className="flex items-center">
-                        <User className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <Skeleton className="h-4 w-4 mr-1 rounded-full" />
                         <Skeleton className="h-4 w-32 ml-1" />
                       </div>
                     </div>
                     <Skeleton className="h-6 w-20 rounded-full" />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                     <div className="flex items-center text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-2" />
+                      <Skeleton className="h-4 w-4 mr-2 rounded-full" />
                       <Skeleton className="h-4 w-32" />
                     </div>
                     <div className="flex items-center text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-2" />
+                      <Skeleton className="h-4 w-4 mr-2 rounded-full" />
                       <Skeleton className="h-4 w-32" />
                     </div>
+                    <Skeleton className="h-4 w-32" />
                   </div>
 
                   <Skeleton className="h-16 w-full mb-4" />
