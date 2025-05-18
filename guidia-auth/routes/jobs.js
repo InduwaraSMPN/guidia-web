@@ -637,7 +637,7 @@ router.get('/applications/company/:companyId', verifyToken, async (req, res) => 
       JOIN jobs j ON ja.jobID = j.jobID
       LEFT JOIN students s ON ja.studentID = s.userID
       WHERE j.companyID = ?
-      ORDER BY ja.submittedAt DESC
+      ORDER BY submittedAt DESC
     `, [companyId]);
 
     // Log the number of applications found
@@ -885,3 +885,4 @@ router.delete('/:jobId/save', verifyToken, async (req, res) => {
 
 
 module.exports = router;
+
