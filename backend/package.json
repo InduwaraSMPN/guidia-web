@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "node --no-deprecation index.js",
     "test-firebase": "node scripts/test-firebase-connection.js",
     "rotate-key": "node scripts/rotate-firebase-key.js",
     "schedule-rotation": "node scripts/schedule-key-rotation.js"
