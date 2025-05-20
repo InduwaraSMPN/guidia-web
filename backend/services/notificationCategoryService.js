@@ -51,7 +51,8 @@ class NotificationCategoryService {
       'REPORTED_CONTENT': 'ADMIN',
       'SYSTEM_HEALTH_ALERT': 'ADMIN',
       'PERFORMANCE_METRIC': 'ADMIN',
-      'SUPPORT_REQUEST': 'ADMIN'
+      'SUPPORT_REQUEST': 'ADMIN',
+      'PENDING_REGISTRATIONS': 'ADMIN'
     };
 
     // Define categories with their notification types
@@ -98,7 +99,8 @@ class NotificationCategoryService {
         'REPORTED_CONTENT',
         'SYSTEM_HEALTH_ALERT',
         'PERFORMANCE_METRIC',
-        'SUPPORT_REQUEST'
+        'SUPPORT_REQUEST',
+        'PENDING_REGISTRATIONS'
       ]
     };
   }

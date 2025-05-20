@@ -370,7 +370,8 @@ class NotificationService {
         'MEETING_ACCEPTED',
         'MEETING_DECLINED',
         'MEETING_REMINDER',
-        'MEETING_FEEDBACK_REQUEST'
+        'MEETING_FEEDBACK_REQUEST',
+        'PENDING_REGISTRATIONS'
       ];
 
       // Create default preferences for each notification type

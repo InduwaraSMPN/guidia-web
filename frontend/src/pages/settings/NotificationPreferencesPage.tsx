@@ -73,6 +73,7 @@ const notificationCategories = {
     { type: 'SYSTEM_HEALTH_ALERT', label: 'System Health Alerts' },
     { type: 'PERFORMANCE_METRIC', label: 'Performance Metrics' },
     { type: 'SUPPORT_REQUEST', label: 'Support Requests' },
+    { type: 'PENDING_REGISTRATIONS', label: 'Pending Registrations' },
   ]
 }
 
