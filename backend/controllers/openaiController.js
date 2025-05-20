@@ -58,13 +58,13 @@ const aiController = {
           const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
 
           // Check if the message is a job search query
-          const isJobQuery = this.isJobSearchQuery(message);
+          const isJobQuery = isJobSearchQuery(message);
 
           // Get jobs based on query or user profile
           let jobs = [];
           if (isJobQuery) {
             console.log('Detected job search query, searching for relevant jobs');
-            const jobKeywords = this.extractJobKeywords(message);
+            const jobKeywords = extractJobKeywords(message);
             console.log(`Extracted job keywords: "${jobKeywords}"`);
 
             // Use the new getRelatedJobs method which combines user interests with the query
@@ -98,7 +98,27 @@ const aiController = {
             jobApplications
           };
 
+          // Enhanced logging for debugging
           console.log('Database context fetched successfully');
+          console.log('Context components available:', {
+            userInfo: !!userContext?.user,
+            profileInfo: !!userContext?.profile,
+            conversations: recentConversations?.length || 0,
+            jobs: jobs?.length || 0,
+            events: events?.length || 0,
+            news: news?.length || 0,
+            meetings: meetings?.length || 0,
+            applications: jobApplications?.length || 0
+          });
+
+          // Log job details if this is a job query
+          if (isJobQuery && jobs?.length > 0) {
+            console.log('Job search results:', jobs.map(job => ({
+              title: job.title,
+              company: job.company,
+              relevanceScore: job.relevanceScore
+            })));
+          }
         } catch (contextError) {
           console.error('Error fetching database context:', contextError);
           // Continue without context if there's an error
@@ -351,13 +371,13 @@ const aiController = {
             const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
 
             // Check if the message is a job search query
-            const isJobQuery = this.isJobSearchQuery(message);
+            const isJobQuery = isJobSearchQuery(message);
 
             // Get jobs based on query or user profile
             let jobs = [];
             if (isJobQuery) {
               console.log('Detected job search query in streaming mode, searching for relevant jobs');
-              const jobKeywords = this.extractJobKeywords(message);
+              const jobKeywords = extractJobKeywords(message);
               console.log(`Extracted job keywords: "${jobKeywords}"`);
 
               // Use the new getRelatedJobs method which combines user interests with the query
@@ -765,8 +785,9 @@ function extractJobKeywords(message) {
   return cleanedMessage;
 }
 
-// Add the helper methods to the controller
-aiController.isJobSearchQuery = isJobSearchQuery;
-aiController.extractJobKeywords = extractJobKeywords;
-
-module.exports = aiController;
+// Export the controller and helper functions
+module.exports = {
+  ...aiController,
+  isJobSearchQuery,
+  extractJobKeywords
+};
