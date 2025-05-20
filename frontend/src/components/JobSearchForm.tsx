@@ -83,7 +83,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                       animate={{ opacity: 1, scale: 1 }}
                       type="button"
                       onClick={() => setKeywords("")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
+                      className="absolute right-3 top-1/4 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
                       aria-label="Clear keywords"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -124,7 +124,7 @@ export function JobSearchForm({ onSearch, initialKeywords = "", initialLocation 
                       animate={{ opacity: 1, scale: 1 }}
                       type="button"
                       onClick={() => setLocation("")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
+                      className="absolute right-3 top-1/4 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors bg-secondary-light rounded-full w-6 h-6 flex items-center justify-center"
                       aria-label="Clear location"
                     >
                       <X className="h-3.5 w-3.5" />
