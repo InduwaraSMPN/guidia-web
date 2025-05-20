@@ -1,4 +1,4 @@
-"use client"
+
 
 import { PanelLeft } from "lucide-react"
 import { motion } from "framer-motion"

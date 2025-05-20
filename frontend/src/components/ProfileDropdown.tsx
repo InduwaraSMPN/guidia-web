@@ -589,7 +589,7 @@ export function ProfileDropdown() {
 
             {/* Notification Preferences - available for all user types */}
             <Link
-              to="/coming-soon"
+              to="/settings/notifications"
               onClick={(e) => {
                 e.stopPropagation(); // Prevent event bubbling
                 setActiveDropdown(null);

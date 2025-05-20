@@ -1,5 +1,3 @@
-
-
 import type React from "react"
 
 import { useNavigate } from "react-router-dom"
@@ -33,19 +31,6 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
   // Special case for admin users - they should always be able to chat and request meetings
   const isAdmin = user?.roleId === 1;
 
-  // Debug user information
-  console.log('DirectoryCard Debug:', {
-    cardType: type,
-    cardId: id,
-    cardUserID: userID,
-    currentUser: user ? {
-      userID: user.userID,
-      userType: user.userType,
-      roleId: user.roleId
-    } : 'Not logged in',
-    isAdmin
-  });
-
   if (user && !isAdmin) {
     // Only check for isCurrentUser if the user type matches the card type
     // For example, a Student user viewing a Company card should never have isCurrentUser=true
@@ -77,19 +62,8 @@ export function DirectoryCard({ id, type, name, image, subtitle, email, contactN
     } else {
       // Different user type than card type - never a match
       isCurrentUser = false;
-      console.log(`User type (${user.userType}) doesn't match card type (${type}), setting isCurrentUser=false`);
     }
   }
-
-  // Final debug output for button state
-  console.log(`DirectoryCard for ${name} (${id}): isCurrentUser=${isCurrentUser}, isAdmin=${isAdmin}, buttons should be ${(!isAdmin && isCurrentUser) ? 'DISABLED' : 'ENABLED'}`);
-
-  // Special case for LOLC Holdings PLC - force enable buttons for debugging
-  if (name === "LOLC Holdings PLC" && type === "company") {
-    console.log("Special case for LOLC Holdings PLC - forcing buttons to be enabled");
-    isCurrentUser = false;
-  }
-
 
   const handleChat = async (e: React.MouseEvent) => {
     e.preventDefault();

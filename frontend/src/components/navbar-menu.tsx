@@ -1,4 +1,3 @@
-"use client"
 import React, { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Link as RouterLink } from "react-router-dom"

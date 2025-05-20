@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { API_URL } from "@/config"
@@ -9,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Bell, Mail, BellOff, AlertTriangle } from "lucide-react"
+import { Bell, Mail, BellOff, AlertTriangle } from "lucide-react" // AlertTriangle is already imported
 import { secureApiRequest } from "@/lib/tokenHelper"
 
 interface NotificationPreference {
@@ -797,6 +795,16 @@ export function NotificationPreferencesPage() {
             <CardDescription>
               Choose which notifications you want to receive and how you want to receive them.
             </CardDescription>
+            {/* BETA WARNING MESSAGE START */}
+            <div className="mt-4 mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-md dark:bg-yellow-900/30 dark:border-yellow-600 dark:text-yellow-300">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                <p className="text-sm font-medium">
+                  This feature is currently in beta. Some functionalities may not work as expected or could change in the future.
+                </p>
+              </div>
+            </div>
+            {/* BETA WARNING MESSAGE END */}
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
