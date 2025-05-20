@@ -774,7 +774,7 @@ export function ChatHistoryDrawer({
                                   );
                                   setIsDeleteDialogOpen(true);
                                 }}
-                                className="text-destructive focus:text-destructive flex items-center gap-2 cursor-pointer"
+                                className="text-brand focus:text-brand flex items-center gap-2 cursor-pointer"
                               >
                                 <Trash2 className="h-4 w-4" />
                                 Delete
@@ -834,7 +834,6 @@ export function ChatHistoryDrawer({
               Cancel
             </Button>
             <Button
-              variant="destructive"
               onClick={handleDelete}
               className="mb-2 sm:mb-0"
             >

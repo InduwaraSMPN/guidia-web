@@ -180,7 +180,7 @@ export function Settings() {
           className="text-4xl font-extrabold tracking-tight mb-2"
           tabIndex={-1}
         >
-          Account Settings
+          Login Account Settings
         </h1>
         {/* Breadcrumbs for navigation clarity (if needed in future) */}
         {/* <nav aria-label="Breadcrumb" className="mb-2">
