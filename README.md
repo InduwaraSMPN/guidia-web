@@ -1,5 +1,5 @@
 # Guidia Web Application
-
+![Logo](https://ik.imagekit.io/pasindunaduninduwara/logo.svg)
 ## Project Overview
 
 Guidia is a comprehensive career guidance platform designed to connect students with counselors and companies. The platform facilitates career exploration, job searching, and professional networking in an educational context. Guidia serves as a bridge between educational institutions and the job market, helping students transition from education to employment with personalized guidance.
