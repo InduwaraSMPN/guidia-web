@@ -57,8 +57,23 @@ const aiController = {
           // Get recent chat history
           const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
 
-          // Get relevant jobs
-          const jobs = await DbContextService.getRecentJobs(userID, 3);
+          // Check if the message is a job search query
+          const isJobQuery = this.isJobSearchQuery(message);
+
+          // Get jobs based on query or user profile
+          let jobs = [];
+          if (isJobQuery) {
+            console.log('Detected job search query, searching for relevant jobs');
+            const jobKeywords = this.extractJobKeywords(message);
+            console.log(`Extracted job keywords: "${jobKeywords}"`);
+
+            // Use the new getRelatedJobs method which combines user interests with the query
+            jobs = await DbContextService.getRelatedJobs(userID, jobKeywords, 5);
+            console.log(`Found ${jobs.length} jobs matching query and user interests`);
+          } else {
+            // Get relevant jobs based on user profile
+            jobs = await DbContextService.getRelatedJobs(userID, '', 3);
+          }
 
           // Get upcoming events
           const events = await DbContextService.getUpcomingEvents(2);
@@ -335,8 +350,23 @@ const aiController = {
             // Get recent chat history
             const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
 
-            // Get relevant jobs
-            const jobs = await DbContextService.getRecentJobs(userID, 3);
+            // Check if the message is a job search query
+            const isJobQuery = this.isJobSearchQuery(message);
+
+            // Get jobs based on query or user profile
+            let jobs = [];
+            if (isJobQuery) {
+              console.log('Detected job search query in streaming mode, searching for relevant jobs');
+              const jobKeywords = this.extractJobKeywords(message);
+              console.log(`Extracted job keywords: "${jobKeywords}"`);
+
+              // Use the new getRelatedJobs method which combines user interests with the query
+              jobs = await DbContextService.getRelatedJobs(userID, jobKeywords, 5);
+              console.log(`Found ${jobs.length} jobs matching query and user interests`);
+            } else {
+              // Get relevant jobs based on user profile
+              jobs = await DbContextService.getRelatedJobs(userID, '', 3);
+            }
 
             // Get upcoming events
             const events = await DbContextService.getUpcomingEvents(2);
@@ -603,5 +633,140 @@ async function saveConversationAndMessages(userID, conversationID, userMessage, 
     connection.release();
   }
 }
+
+/**
+ * Check if a message is a job search query
+ * @param {string} message - The user's message
+ * @returns {boolean} - Whether the message is a job search query
+ */
+function isJobSearchQuery(message) {
+  if (!message) return false;
+
+  // Common industry terms that indicate job search intent
+  const industryTerms = [
+    'banking', 'finance', 'accounting', 'marketing', 'sales', 'engineering',
+    'software', 'development', 'IT', 'healthcare', 'medical', 'legal',
+    'education', 'teaching', 'hospitality', 'retail', 'manufacturing',
+    'construction', 'design', 'media', 'communications', 'human resources',
+    'HR', 'administration', 'customer service', 'data', 'science', 'research'
+  ];
+
+  // Create a regex pattern to match industry terms (case insensitive, whole word)
+  const industryPattern = new RegExp(`\\b(${industryTerms.join('|')})\\b`, 'gi');
+
+  // Job-related terms
+  const jobQueryPatterns = [
+    /jobs?/i,
+    /career/i,
+    /position/i,
+    /opening/i,
+    /vacancy/i,
+    /employment/i,
+    /hire/i,
+    /hiring/i,
+    /work/i,
+    /opportunity/i,
+    /role/i,
+    /apply/i,
+    /application/i,
+    /interview/i,
+    /recruit/i
+  ];
+
+  // Question or search intent patterns
+  const questionPatterns = [
+    /are there/i,
+    /is there/i,
+    /do you have/i,
+    /can i find/i,
+    /looking for/i,
+    /searching for/i,
+    /interested in/i,
+    /available/i,
+    /show me/i,
+    /tell me about/i,
+    /any/i,
+    /list/i,
+    /what/i,
+    /where/i,
+    /how/i,
+    /related to/i,
+    /in the field of/i,
+    /find/i,
+    /search/i
+  ];
+
+  // Check if the message contains job-related terms
+  const hasJobTerm = jobQueryPatterns.some(pattern => pattern.test(message));
+
+  // Check if the message contains question patterns
+  const hasQuestionPattern = questionPatterns.some(pattern => pattern.test(message));
+
+  // Check if the message contains industry terms
+  const hasIndustryTerm = industryPattern.test(message);
+
+  // Consider it a job search query if:
+  // 1. It contains both job-related terms and question patterns, OR
+  // 2. It contains industry terms along with either job-related terms or question patterns
+  return (hasJobTerm && hasQuestionPattern) ||
+         (hasIndustryTerm && (hasJobTerm || hasQuestionPattern));
+}
+
+/**
+ * Extract job keywords from a message
+ * @param {string} message - The user's message
+ * @returns {string} - Extracted job keywords
+ */
+function extractJobKeywords(message) {
+  if (!message) return '';
+
+  // Common industry terms to preserve
+  const industryTerms = [
+    'banking', 'finance', 'accounting', 'marketing', 'sales', 'engineering',
+    'software', 'development', 'IT', 'healthcare', 'medical', 'legal',
+    'education', 'teaching', 'hospitality', 'retail', 'manufacturing',
+    'construction', 'design', 'media', 'communications', 'human resources',
+    'HR', 'administration', 'customer service', 'data', 'science', 'research',
+    'analyst', 'manager', 'director', 'assistant', 'specialist', 'coordinator',
+    'executive', 'associate', 'consultant', 'technician', 'developer', 'engineer',
+    'architect', 'designer', 'writer', 'editor', 'full-time', 'part-time', 'contract',
+    'internship', 'entry-level', 'junior', 'senior', 'lead', 'head', 'chief'
+  ];
+
+  // Create a regex pattern to match industry terms (case insensitive, whole word)
+  const industryPattern = new RegExp(`\\b(${industryTerms.join('|')})\\b`, 'gi');
+
+  // Extract industry terms from the message
+  const industryMatches = message.match(industryPattern) || [];
+
+  // Remove common question phrases and job-related terms
+  let cleanedMessage = message.replace(/are there|is there|do you have|can i find|looking for|searching for|interested in|available|show me|tell me about|any/gi, '');
+  cleanedMessage = cleanedMessage.replace(/jobs?|career|position|opening|vacancy|employment|hire|hiring|work|opportunity/gi, '');
+
+  // Remove common filler words
+  cleanedMessage = cleanedMessage.replace(/\b(a|an|the|in|on|at|for|with|about|of|to|by|as|if|or|and|but)\b/gi, ' ');
+
+  // Remove punctuation and extra spaces
+  cleanedMessage = cleanedMessage.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // If we have industry terms, prioritize those
+  if (industryMatches.length > 0) {
+    // Remove duplicates and join
+    const uniqueTerms = [...new Set(industryMatches.map(term => term.toLowerCase()))];
+
+    // If we have both industry terms and other keywords, combine them
+    if (cleanedMessage) {
+      return uniqueTerms.join(' ') + ' ' + cleanedMessage;
+    }
+
+    return uniqueTerms.join(' ');
+  }
+
+  return cleanedMessage;
+}
+
+// Add the helper methods to the controller
+aiController.isJobSearchQuery = isJobSearchQuery;
+aiController.extractJobKeywords = extractJobKeywords;
 
 module.exports = aiController;

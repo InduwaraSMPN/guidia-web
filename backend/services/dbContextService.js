@@ -717,6 +717,292 @@ class DbContextService {
   }
 
   /**
+   * Search for jobs by keywords
+   * @param {string} keywords - Keywords to search for
+   * @param {number} limit - Maximum number of jobs to retrieve
+   * @returns {Promise<Array>} - Matching jobs
+   */
+  async searchJobsByKeywords(keywords, limit = 5) {
+    try {
+      if (!keywords || keywords.trim() === '') {
+        return [];
+      }
+
+      // Split keywords into individual terms
+      const terms = keywords.split(/\s+/).filter(term => term.length > 2);
+
+      if (terms.length === 0) {
+        return [];
+      }
+
+      // Prepare for weighted search
+      let scoreConditions = [];
+      let likeConditions = [];
+      const params = [];
+
+      // Add conditions for each term
+      terms.forEach(term => {
+        // Exact match in title (highest weight)
+        scoreConditions.push(`(CASE WHEN j.title LIKE ? THEN 10 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Exact match in tags (high weight)
+        scoreConditions.push(`(CASE WHEN j.tags LIKE ? THEN 5 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Match in description (medium weight)
+        scoreConditions.push(`(CASE WHEN j.description LIKE ? THEN 3 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Add to LIKE conditions for filtering
+        likeConditions.push(`j.title LIKE ? OR j.tags LIKE ? OR j.description LIKE ?`);
+        params.push(`%${term}%`, `%${term}%`, `%${term}%`);
+      });
+
+      // Combine score conditions
+      const scoreExpression = scoreConditions.join(' + ');
+
+      // Combine LIKE conditions
+      const whereCondition = likeConditions.map(cond => `(${cond})`).join(' OR ');
+
+      // Add limit parameter
+      params.push(limit);
+
+      // Execute the query with weighted scoring
+      const [matchingJobs] = await pool.query(
+        `SELECT
+          j.jobID,
+          j.title,
+          j.description,
+          j.location,
+          j.tags,
+          j.status,
+          j.startDate,
+          j.endDate,
+          c.companyName,
+          (${scoreExpression}) AS relevance_score
+        FROM jobs j
+        JOIN companies c ON j.companyID = c.companyID
+        WHERE (${whereCondition})
+        AND j.endDate >= CURRENT_DATE()
+        AND j.status = 'active'
+        ORDER BY relevance_score DESC, j.createdAt DESC
+        LIMIT ?`,
+        params
+      );
+
+      return matchingJobs.map(job => ({
+        id: job.jobID,
+        title: job.title,
+        company: job.companyName,
+        location: job.location,
+        type: job.tags, // Using tags as job type
+        status: job.status,
+        startDate: job.startDate,
+        endDate: job.endDate, // Using endDate as deadline
+        // Truncate description to avoid too much text
+        description: job.description ?
+          (job.description.length > 150 ? job.description.substring(0, 150) + '...' : job.description) : ''
+      }));
+    } catch (error) {
+      console.error('Error searching jobs by keywords:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get related jobs based on a user's career interests
+   * @param {number} userID - The user's ID
+   * @param {string} query - Optional query to further filter jobs
+   * @param {number} limit - Maximum number of jobs to retrieve
+   * @returns {Promise<Array>} - Related jobs
+   */
+  async getRelatedJobs(userID, query = '', limit = 5) {
+    try {
+      if (!userID) {
+        return [];
+      }
+
+      // First, check if the user is a student
+      const [users] = await pool.query(
+        `SELECT roleID FROM users WHERE userID = ?`,
+        [userID]
+      );
+
+      if (users.length === 0 || users[0].roleID !== 2) {
+        // Not a student, return general jobs or search results
+        if (query) {
+          return this.searchJobsByKeywords(query, limit);
+        } else {
+          // Get recent jobs
+          const [recentJobs] = await pool.query(
+            `SELECT
+              j.jobID,
+              j.title,
+              j.description,
+              j.location,
+              j.tags,
+              j.status,
+              j.startDate,
+              j.endDate,
+              c.companyName
+            FROM jobs j
+            JOIN companies c ON j.companyID = c.companyID
+            WHERE j.endDate >= CURRENT_DATE()
+            AND j.status = 'active'
+            ORDER BY j.createdAt DESC
+            LIMIT ?`,
+            [limit]
+          );
+
+          return recentJobs.map(job => ({
+            id: job.jobID,
+            title: job.title,
+            company: job.companyName,
+            location: job.location,
+            type: job.tags,
+            status: job.status,
+            startDate: job.startDate,
+            endDate: job.endDate,
+            description: job.description ?
+              (job.description.length > 150 ? job.description.substring(0, 150) + '...' : job.description) : ''
+          }));
+        }
+      }
+
+      // Get the student's career pathways
+      const [students] = await pool.query(
+        `SELECT studentCareerPathways FROM students WHERE userID = ?`,
+        [userID]
+      );
+
+      if (students.length === 0 || !students[0].studentCareerPathways) {
+        // No career pathways, return general jobs or search results
+        if (query) {
+          return this.searchJobsByKeywords(query, limit);
+        } else {
+          return this.getRecentJobs(userID, limit);
+        }
+      }
+
+      // Parse career pathways
+      let careerPathways = [];
+      try {
+        if (typeof students[0].studentCareerPathways === 'object') {
+          careerPathways = students[0].studentCareerPathways;
+        } else if (typeof students[0].studentCareerPathways === 'string') {
+          if (students[0].studentCareerPathways.startsWith('[') || students[0].studentCareerPathways.startsWith('{')) {
+            careerPathways = JSON.parse(students[0].studentCareerPathways);
+          } else {
+            careerPathways = students[0].studentCareerPathways.split(',').map(item => item.trim());
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse career pathways for related jobs:', e);
+        if (typeof students[0].studentCareerPathways === 'string') {
+          careerPathways = students[0].studentCareerPathways.split(',').map(item => item.trim());
+        } else {
+          careerPathways = [String(students[0].studentCareerPathways)];
+        }
+      }
+
+      if (careerPathways.length === 0) {
+        // No valid career pathways, return general jobs or search results
+        if (query) {
+          return this.searchJobsByKeywords(query, limit);
+        } else {
+          return this.getRecentJobs(userID, limit);
+        }
+      }
+
+      // Prepare search terms
+      let searchTerms = [...careerPathways];
+
+      // Add query terms if provided
+      if (query) {
+        const queryTerms = query.split(/\s+/).filter(term => term.length > 2);
+        searchTerms = [...searchTerms, ...queryTerms];
+      }
+
+      // Remove duplicates
+      searchTerms = [...new Set(searchTerms)];
+
+      // Prepare for weighted search
+      let scoreConditions = [];
+      let likeConditions = [];
+      const params = [];
+
+      // Add conditions for each term
+      searchTerms.forEach(term => {
+        // Exact match in title (highest weight)
+        scoreConditions.push(`(CASE WHEN j.title LIKE ? THEN 10 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Exact match in tags (high weight)
+        scoreConditions.push(`(CASE WHEN j.tags LIKE ? THEN 5 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Match in description (medium weight)
+        scoreConditions.push(`(CASE WHEN j.description LIKE ? THEN 3 ELSE 0 END)`);
+        params.push(`%${term}%`);
+
+        // Add to LIKE conditions for filtering
+        likeConditions.push(`j.title LIKE ? OR j.tags LIKE ? OR j.description LIKE ?`);
+        params.push(`%${term}%`, `%${term}%`, `%${term}%`);
+      });
+
+      // Combine score conditions
+      const scoreExpression = scoreConditions.join(' + ');
+
+      // Combine LIKE conditions
+      const whereCondition = likeConditions.map(cond => `(${cond})`).join(' OR ');
+
+      // Add limit parameter
+      params.push(limit);
+
+      // Execute the query with weighted scoring
+      const [matchingJobs] = await pool.query(
+        `SELECT
+          j.jobID,
+          j.title,
+          j.description,
+          j.location,
+          j.tags,
+          j.status,
+          j.startDate,
+          j.endDate,
+          c.companyName,
+          (${scoreExpression}) AS relevance_score
+        FROM jobs j
+        JOIN companies c ON j.companyID = c.companyID
+        WHERE (${whereCondition})
+        AND j.endDate >= CURRENT_DATE()
+        AND j.status = 'active'
+        ORDER BY relevance_score DESC, j.createdAt DESC
+        LIMIT ?`,
+        params
+      );
+
+      return matchingJobs.map(job => ({
+        id: job.jobID,
+        title: job.title,
+        company: job.companyName,
+        location: job.location,
+        type: job.tags,
+        status: job.status,
+        startDate: job.startDate,
+        endDate: job.endDate,
+        relevanceScore: job.relevance_score,
+        description: job.description ?
+          (job.description.length > 150 ? job.description.substring(0, 150) + '...' : job.description) : ''
+      }));
+    } catch (error) {
+      console.error('Error getting related jobs:', error);
+      return [];
+    }
+  }
+
+  /**
    * Format database context as a string for inclusion in AI prompts
    * @param {Object} context - The database context object
    * @returns {string} - Formatted context string
@@ -809,16 +1095,26 @@ class DbContextService {
       formattedContext += `\n## RELEVANT JOBS ##\n`;
 
       context.jobs.forEach((job, index) => {
-        formattedContext += `${index + 1}. ${job.title} at ${job.company}\n`;
+        // Add relevance score if available
+        const relevanceInfo = job.relevanceScore ? ` (Relevance: ${job.relevanceScore})` : '';
+        formattedContext += `${index + 1}. ${job.title} at ${job.company}${relevanceInfo}\n`;
+        formattedContext += `   Job ID: ${job.id}\n`;
         formattedContext += `   Location: ${job.location}\n`;
-        formattedContext += `   Type: ${job.type}\n`;
 
-        if (job.salary) {
-          formattedContext += `   Salary: ${job.salary}\n`;
+        if (job.type) {
+          formattedContext += `   Type/Tags: ${job.type}\n`;
+        }
+
+        if (job.status) {
+          formattedContext += `   Status: ${job.status}\n`;
+        }
+
+        if (job.startDate) {
+          formattedContext += `   Start Date: ${new Date(job.startDate).toLocaleDateString()}\n`;
         }
 
         if (job.endDate) {
-          formattedContext += `   End Date: ${new Date(job.endDate).toLocaleDateString()}\n`;
+          formattedContext += `   End Date/Deadline: ${new Date(job.endDate).toLocaleDateString()}\n`;
         }
 
         if (job.description) {
@@ -833,7 +1129,12 @@ class DbContextService {
 
       context.events.forEach((event, index) => {
         formattedContext += `${index + 1}. ${event.title}\n`;
+        formattedContext += `   Event ID: ${event.id}\n`;
         formattedContext += `   Date: ${new Date(event.date).toLocaleDateString()}\n`;
+
+        if (event.imageURL) {
+          formattedContext += `   Has Image: Yes\n`;
+        }
       });
     }
 
@@ -843,10 +1144,15 @@ class DbContextService {
 
       context.news.forEach((article, index) => {
         formattedContext += `${index + 1}. ${article.title}\n`;
+        formattedContext += `   News ID: ${article.id}\n`;
         formattedContext += `   Published: ${new Date(article.publishDate).toLocaleDateString()}\n`;
 
         if (article.content) {
           formattedContext += `   Summary: ${article.content}\n`;
+        }
+
+        if (article.imageUrl) {
+          formattedContext += `   Has Image: Yes\n`;
         }
       });
     }
@@ -866,6 +1172,17 @@ class DbContextService {
         }
       });
     }
+
+    // Add a summary of available data
+    formattedContext += '\n## DATA SUMMARY ##\n';
+    formattedContext += `User Information: ${context.user ? 'Available' : 'Not available'}\n`;
+    formattedContext += `Profile Information: ${context.profile ? 'Available' : 'Not available'}\n`;
+    formattedContext += `Job Applications: ${context.jobApplications ? context.jobApplications.length : 0}\n`;
+    formattedContext += `Upcoming Meetings: ${context.meetings ? context.meetings.length : 0}\n`;
+    formattedContext += `Relevant Jobs: ${context.jobs ? context.jobs.length : 0}\n`;
+    formattedContext += `Upcoming Events: ${context.events ? context.events.length : 0}\n`;
+    formattedContext += `Latest News: ${context.news ? context.news.length : 0}\n`;
+    formattedContext += `Recent Conversations: ${context.recentConversations ? context.recentConversations.length : 0}\n`;
 
     formattedContext += '\n### END DATABASE CONTEXT ###\n';
     return formattedContext;

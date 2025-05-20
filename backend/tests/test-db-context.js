@@ -313,8 +313,38 @@ async function testDbContext() {
     console.log('Formatted context:');
     console.log(formattedContext);
 
-    // Test 5: Test AI service with context
-    console.log('\n5. Testing AI Service with Context:');
+    // Test 5: Test job search functionality
+    console.log('\n5. Testing Job Search Functionality:');
+    console.log('----------------------------------');
+
+    // Test job search with keywords
+    const jobSearchKeywords = 'Banking Associate';
+    console.log(`Searching for jobs with keywords: "${jobSearchKeywords}"`);
+
+    try {
+      // Test basic keyword search
+      console.log('\nTesting basic keyword search:');
+      const searchResults = await DbContextService.searchJobsByKeywords(jobSearchKeywords, 5);
+      console.log(`Found ${searchResults.length} jobs matching keywords`);
+      console.log(JSON.stringify(searchResults, null, 2));
+
+      // Test related jobs search (combining user interests with query)
+      console.log('\nTesting related jobs search (combining user interests with query):');
+      const relatedResults = await DbContextService.getRelatedJobs(userID, jobSearchKeywords, 5);
+      console.log(`Found ${relatedResults.length} jobs matching user interests and query`);
+      console.log(JSON.stringify(relatedResults, null, 2));
+
+      // Test industry-specific search
+      console.log('\nTesting industry-specific search:');
+      const industryResults = await DbContextService.searchJobsByKeywords('banking', 5);
+      console.log(`Found ${industryResults.length} jobs matching industry keyword`);
+      console.log(JSON.stringify(industryResults, null, 2));
+    } catch (error) {
+      console.error('Error searching for jobs:', error.message);
+    }
+
+    // Test 6: Test AI service with context
+    console.log('\n6. Testing AI Service with Context:');
     console.log('--------------------------------');
     const aiService = new OpenAIService();
 
@@ -346,6 +376,30 @@ async function testDbContext() {
       console.log(responseWithContext);
     } catch (error) {
       console.error('Error getting response with context:', error.message);
+    }
+
+    // Test job-related query with context
+    console.log('\nSending job-related query WITH context:');
+    try {
+      // Add job search results to the context
+      const jobSearchResults = await DbContextService.getRelatedJobs(userID, 'Banking Associate', 5);
+      const jobContext = {
+        ...dbContext,
+        jobs: jobSearchResults
+      };
+      const jobFormattedContext = DbContextService.formatContextForPrompt(jobContext);
+
+      const responseWithJobContext = await aiService.sendMessage(
+        'Are there any Banking Associate jobs available?',
+        [],
+        false,
+        null,
+        jobFormattedContext
+      );
+      console.log('Response to job query WITH context:');
+      console.log(responseWithJobContext);
+    } catch (error) {
+      console.error('Error getting response to job query with context:', error.message);
     }
 
     console.log('\nTests completed.');
