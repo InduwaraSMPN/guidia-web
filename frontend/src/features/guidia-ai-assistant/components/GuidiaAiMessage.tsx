@@ -1,10 +1,7 @@
-// ./components/GuidiaAiMessage.tsx
-
-
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn, sanitizeHtml, stripHtmlTags } from "@/lib/utils" // Import stripHtmlTags
-import { Copy } from "lucide-react" // Import Copy icon
+import { Copy, User } from "lucide-react" // Import Copy icon
 import { toast } from "sonner" // Import toast
 import { useThemeContext } from "@/contexts/ThemeContext" // Assuming this context exists
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar" // Assuming Avatar exists
@@ -354,8 +351,10 @@ export function GuidiaAiMessage({
        {/* Avatar for User messages only - show only for first message in sequence */}
        {isUser && isFirstInSequence && (
         <Avatar className="h-8 w-8 ml-2 flex-shrink-0 shadow-sm border border-border/30 self-end mb-1"> {/* Added self-end mb-1 */}
-          <AvatarFallback className="bg-primary text-primary-foreground font-semibold">US</AvatarFallback> {/* Or use actual user initial */}
-        </Avatar>
+      <AvatarFallback className="bg-primary text-primary-foreground">
+        <User className="h-5 w-5" />
+      </AvatarFallback>        
+      </Avatar>
       )}
       {/* Spacer for alignment when not showing user avatar */}
       {isUser && !isFirstInSequence && <div className="w-[calc(2rem+0.5rem)] flex-shrink-0" />} {/* w-8 (avatar) + ml-2 (0.5rem) */}
