@@ -343,7 +343,7 @@ const meetingController = {
    */
   requestMeeting: async (req, res) => {
     try {
-      const { recipientID, meetingTitle, meetingDescription, meetingDate, startTime, endTime, meetingType } = req.body;
+      let { recipientID, meetingTitle, meetingDescription, meetingDate, startTime, endTime, meetingType } = req.body;
       const requestorID = req.user.id;
 
       // Validate required fields
@@ -354,6 +354,29 @@ const meetingController = {
           message: 'Missing required fields for meeting request'
         });
       }
+
+      // Ensure meetingType is in the correct format
+      // Valid types: 'student_company', 'student_counselor', 'company_counselor', 'student_student', 'company_company', 'counselor_counselor'
+      console.log('Original meetingType:', meetingType);
+
+      // Map incorrect formats to correct ones
+      if (meetingType === 'company_student') {
+        meetingType = 'student_company';
+      } else if (meetingType === 'counselor_student') {
+        meetingType = 'student_counselor';
+      }
+
+      // Validate that the meetingType is one of the allowed values
+      const validMeetingTypes = ['student_company', 'student_counselor', 'company_counselor', 'student_student', 'company_company', 'counselor_counselor'];
+      if (!validMeetingTypes.includes(meetingType)) {
+        console.error('Invalid meeting type:', meetingType);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid meeting type'
+        });
+      }
+
+      console.log('Corrected meetingType:', meetingType);
       const pool = req.app.locals.pool;
 
       // Validate that the meeting time is available for the recipient
@@ -390,7 +413,8 @@ const meetingController = {
         });
       }
 
-      // Create the meeting request
+      // Create the meeting request with the corrected meetingType
+      console.log('Inserting meeting with meetingType:', meetingType);
       const [result] = await pool.query(
         'INSERT INTO meetings (requestorID, recipientID, meetingTitle, meetingDescription, meetingDate, startTime, endTime, status, meetingType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [requestorID, recipientID, meetingTitle, meetingDescription, meetingDate, startTime, endTime, 'requested', meetingType]

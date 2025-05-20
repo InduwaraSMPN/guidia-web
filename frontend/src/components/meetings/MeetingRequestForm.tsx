@@ -81,10 +81,43 @@ export function MeetingRequestForm({
         userType = 'Student'; // Default fallback
     }
 
-    // Create a standardized meeting type string
-    // Always put types in alphabetical order for consistency
-    const types = [userType, recipientType].sort();
-    const meetingType = types.join('_').toLowerCase();
+    // Directly map to the valid meeting types in the database
+    // Valid types: 'student_company', 'student_counselor', 'company_counselor', 'student_student', 'company_company', 'counselor_counselor'
+
+    // Convert to lowercase for consistent comparison
+    const userTypeLower = userType.toLowerCase();
+    const recipientTypeLower = recipientType.toLowerCase();
+
+    // Create a key to look up the correct meeting type
+    // Sort the types to ensure consistent ordering
+    const typePair = [userTypeLower, recipientTypeLower].sort().join('_');
+
+    // Map the type pair to a valid meeting type
+    let meetingType;
+    switch (typePair) {
+      case 'company_student':
+        meetingType = 'student_company';
+        break;
+      case 'counselor_student':
+        meetingType = 'student_counselor';
+        break;
+      case 'company_counselor':
+        meetingType = 'company_counselor';
+        break;
+      case 'student_student':
+        meetingType = 'student_student';
+        break;
+      case 'company_company':
+        meetingType = 'company_company';
+        break;
+      case 'counselor_counselor':
+        meetingType = 'counselor_counselor';
+        break;
+      default:
+        console.error(`Unknown meeting type pair: ${typePair}`);
+        meetingType = 'student_student'; // Default fallback
+    }
+
     console.log(`Generated meeting type: ${meetingType} for user role ${user.roleId} (${userType}) and recipient type ${recipientType}`);
     return meetingType;
   };
@@ -265,6 +298,10 @@ export function MeetingRequestForm({
       // Use the utility function to format the date
       const localDate = formatLocalDate(values.meetingDate);
 
+      // Get the meeting type and log it for debugging
+      const meetingType = getMeetingType();
+      console.log('Final meeting type being sent to server:', meetingType);
+
       const meetingData = {
         recipientID: actualRecipientID,
         meetingTitle: values.meetingTitle,
@@ -272,7 +309,7 @@ export function MeetingRequestForm({
         meetingDate: localDate, // Use local date format instead of ISO
         startTime: values.startTime,
         endTime: values.endTime,
-        meetingType: getMeetingType(),
+        meetingType: meetingType,
       };
 
       await axios.post(`${API_URL}/api/meeting/meetings`, meetingData, {
