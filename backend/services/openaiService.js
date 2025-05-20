@@ -159,6 +159,35 @@ class OpenAIService {
 
       // Make the API request using the OpenAI SDK
       console.log(`Making API request to ${activeProvider} with client:`, !!client);
+
+      // Enhanced logging for debugging context inclusion
+      const hasDbContext = systemPrompt.includes('### DATABASE CONTEXT ###');
+      console.log('Database context included in request:', hasDbContext);
+
+      // Log the first 100 characters of the database context if present
+      if (hasDbContext) {
+        const contextStart = systemPrompt.indexOf('### DATABASE CONTEXT ###');
+        const contextEnd = systemPrompt.indexOf('### END DATABASE CONTEXT ###', contextStart);
+        if (contextStart > -1 && contextEnd > -1) {
+          const contextSection = systemPrompt.substring(contextStart, contextEnd + 25);
+          const contextPreview = contextSection.substring(0, 100) + '...';
+          console.log('Database context preview:', contextPreview);
+
+          // Log sections included in the context
+          const sections = [
+            'USER INFORMATION', 'PROFILE INFORMATION', 'JOB APPLICATIONS',
+            'UPCOMING MEETINGS', 'RELEVANT JOBS', 'UPCOMING EVENTS',
+            'LATEST NEWS', 'RECENT CONVERSATIONS', 'DATA SUMMARY'
+          ];
+
+          const includedSections = sections.filter(section =>
+            contextSection.includes(`## ${section} ##`)
+          );
+
+          console.log('Context sections included:', includedSections);
+        }
+      }
+
       console.log('Request parameters:', {
         ...requestParams,
         stream

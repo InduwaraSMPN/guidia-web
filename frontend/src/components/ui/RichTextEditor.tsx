@@ -46,8 +46,6 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     React.useEffect(() => {
       if (quill) {
-        console.log("Quill initialized");
-
         // Set initial value when quill is initialized dropdown elements
         if (value && quill.getText().trim() === '') {
           quill.clipboard.dangerouslyPasteHTML(value);
@@ -70,7 +68,6 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
         removeQuillBranding();
 
         const handleChange = () => {
-          console.log("Text changed");
           // Remove branding after each change
           removeQuillBranding();
           memoizedOnChange(quill.root.innerHTML);
@@ -78,7 +75,6 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 
         // Handle Enter key press to submit the form
         const handleKeyDown = (event: KeyboardEvent) => {
-          console.log("Key pressed:", event.key);
           // Check if Enter is pressed without Shift (Shift+Enter creates a new line)
           if (event.key === 'Enter' && !event.shiftKey && onEnterPress) {
             // Prevent the default behavior (new line)
@@ -90,19 +86,14 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
 
         // Handle focus and blur events
         const handleFocus = () => {
-          console.log("Editor focused via focus event");
           setIsFocused(true);
           // Remove branding when focused
           removeQuillBranding();
         };
 
         const handleBlur = () => {
-          console.log("Editor blurred via blur event");
           setIsFocused(false);
         };
-
-        // Log initial focus state
-        console.log("Initial focus state:", document.activeElement === quill.root);
 
         // Add event listeners
         quill.on("text-change", handleChange);
@@ -198,8 +189,6 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
             quill.setSelection(length, 0);
           }
         }
-
-        console.log("Editor focused and enabled via container click");
       }
     }, [quill, readOnly]);
 

@@ -82,32 +82,23 @@ export function EventsDropdown() {
         const data = await response.json()
         console.log('Events data:', data)
 
-        // Log each event's imageURL to debug
-        data.forEach((event: Event, index: number) => {
-          console.log(`Event ${index + 1} imageURL:`, event.imageURL)
-        })
-
         // Check if we have valid events with images
         if (data && data.length > 0) {
           // Check if any of the events have image URLs
           const hasImages = data.some((event: Event) => event.imageURL);
 
           if (hasImages) {
-            console.log('Using API data with images');
             setEvents(data);
           } else {
-            console.log('API events have no images, using sample data');
             setUseBackupData(true);
             setEvents(sampleEvents);
           }
         } else {
-          console.log('No events found from API, using sample data');
           setUseBackupData(true);
           setEvents(sampleEvents);
         }
       } catch (err) {
         console.error("Error fetching events:", err)
-        console.log('Error fetching events, using sample data')
         setUseBackupData(true)
         setEvents(sampleEvents)
       } finally {

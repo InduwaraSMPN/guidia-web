@@ -11,6 +11,7 @@
 const DbContextService = require('../services/dbContextService');
 const OpenAIService = require('../services/openaiService');
 const pool = require('../config/db');
+const { isJobSearchQuery, extractJobKeywords } = require('../controllers/openaiController');
 
 // Mock data to use when database is not available
 const mockUserContext = {
@@ -317,9 +318,31 @@ async function testDbContext() {
     console.log('\n5. Testing Job Search Functionality:');
     console.log('----------------------------------');
 
+    // Test job search query detection
+    console.log('\nTesting job search query detection:');
+    const testQueries = [
+      'Are there any Banking Associate jobs available?',
+      'Show me jobs related to software development',
+      'I want to find marketing positions',
+      'Tell me about my profile',
+      'What events are coming up?',
+      'Is there any banking jobs in Guidia?'
+    ];
+
+    testQueries.forEach(query => {
+      const isJobQuery = isJobSearchQuery(query);
+      const keywords = isJobQuery ? extractJobKeywords(query) : '';
+      console.log(`Query: "${query}"`);
+      console.log(`Is job query: ${isJobQuery}`);
+      if (isJobQuery) {
+        console.log(`Extracted keywords: "${keywords}"`);
+      }
+      console.log('---');
+    });
+
     // Test job search with keywords
     const jobSearchKeywords = 'Banking Associate';
-    console.log(`Searching for jobs with keywords: "${jobSearchKeywords}"`);
+    console.log(`\nSearching for jobs with keywords: "${jobSearchKeywords}"`);
 
     try {
       // Test basic keyword search
