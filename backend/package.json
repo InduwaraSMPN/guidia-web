@@ -7,7 +7,10 @@
     "dev": "node --no-deprecation index.js",
     "test-firebase": "node scripts/test-firebase-connection.js",
     "rotate-key": "node scripts/rotate-firebase-key.js",
-    "schedule-rotation": "node scripts/schedule-key-rotation.js"
+    "schedule-rotation": "node scripts/schedule-key-rotation.js",
+    "test-db": "node tests/test-db-connection.js",
+    "test-db-context": "node tests/test-db-context.js",
+    "update-db-config": "node scripts/update-db-config.js"
   },
   "keywords": [],
   "author": "",

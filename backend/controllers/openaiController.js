@@ -2,6 +2,7 @@
  * Controller for handling AI API interactions with multiple providers (SambaNova, DeepSeek)
  */
 const OpenAIService = require('../services/openaiService');
+const DbContextService = require('../services/dbContextService');
 const pool = require('../config/db');
 
 const aiController = {
@@ -45,6 +46,52 @@ const aiController = {
 
       console.log('AI service initialized with provider:', provider || aiService.provider);
 
+      // Fetch database context for the user if authenticated
+      let dbContext = null;
+      if (userID) {
+        console.log('Fetching database context for user:', userID);
+        try {
+          // Get user profile information
+          const userContext = await DbContextService.getUserContext(userID);
+
+          // Get recent chat history
+          const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
+
+          // Get relevant jobs
+          const jobs = await DbContextService.getRecentJobs(userID, 3);
+
+          // Get upcoming events
+          const events = await DbContextService.getUpcomingEvents(2);
+
+          // Get latest news
+          const news = await DbContextService.getLatestNews(2);
+
+          // Get user's meetings
+          const meetings = await DbContextService.getUserMeetings(userID, 2);
+
+          // Get user's job applications (for students)
+          const jobApplications = await DbContextService.getUserJobApplications(userID, 3);
+
+          // Combine context
+          dbContext = {
+            ...userContext,
+            recentConversations,
+            jobs,
+            events,
+            news,
+            meetings,
+            jobApplications
+          };
+
+          console.log('Database context fetched successfully');
+        } catch (contextError) {
+          console.error('Error fetching database context:', contextError);
+          // Continue without context if there's an error
+        }
+      } else {
+        console.log('No user ID available, skipping database context');
+      }
+
       // If user is authenticated and we have a conversationID, verify it belongs to the user
       let verifiedConversationID = null;
       if (userID && conversationID) {
@@ -73,9 +120,16 @@ const aiController = {
           res.setHeader('Connection', 'keep-alive');
           res.flushHeaders();
 
-          // Get streaming response from SambaNova
+          // Format database context for prompt if available
+          let formattedDbContext = null;
+          if (dbContext) {
+            formattedDbContext = DbContextService.formatContextForPrompt(dbContext);
+            console.log('Database context formatted for prompt');
+          }
+
+          // Get streaming response from AI service with database context
           console.log('Requesting streaming response from AI service');
-          const streamResponse = await aiService.sendMessage(message, history || [], true);
+          const streamResponse = await aiService.sendMessage(message, history || [], true, null, formattedDbContext);
 
           // For collecting the complete response
           let completeResponse = '';
@@ -130,7 +184,15 @@ const aiController = {
       } else {
         // Handle regular response
         console.log('Sending message to AI service');
-        const response = await aiService.sendMessage(message, history || [], false);
+
+        // Format database context for prompt if available
+        let formattedDbContext = null;
+        if (dbContext) {
+          formattedDbContext = DbContextService.formatContextForPrompt(dbContext);
+          console.log('Database context formatted for prompt');
+        }
+
+        const response = await aiService.sendMessage(message, history || [], false, null, formattedDbContext);
         console.log('Response received from AI service:', { responseLength: response?.length || 0 });
 
         // Save the conversation and messages if user is authenticated
@@ -260,8 +322,58 @@ const aiController = {
 
         console.log('AI service initialized for streaming with provider:', provider || aiService.provider);
 
-        // Get streaming response from SambaNova
-        const streamResponse = await aiService.sendMessage(message, history || [], true);
+        // Fetch database context for the user if authenticated
+        let dbContext = null;
+        let formattedDbContext = null;
+
+        if (userID) {
+          console.log('Fetching database context for user:', userID);
+          try {
+            // Get user profile information
+            const userContext = await DbContextService.getUserContext(userID);
+
+            // Get recent chat history
+            const recentConversations = await DbContextService.getRecentChatHistory(userID, 2);
+
+            // Get relevant jobs
+            const jobs = await DbContextService.getRecentJobs(userID, 3);
+
+            // Get upcoming events
+            const events = await DbContextService.getUpcomingEvents(2);
+
+            // Get latest news
+            const news = await DbContextService.getLatestNews(2);
+
+            // Get user's meetings
+            const meetings = await DbContextService.getUserMeetings(userID, 2);
+
+            // Get user's job applications (for students)
+            const jobApplications = await DbContextService.getUserJobApplications(userID, 3);
+
+            // Combine context
+            dbContext = {
+              ...userContext,
+              recentConversations,
+              jobs,
+              events,
+              news,
+              meetings,
+              jobApplications
+            };
+
+            // Format database context for prompt
+            formattedDbContext = DbContextService.formatContextForPrompt(dbContext);
+            console.log('Database context fetched and formatted successfully');
+          } catch (contextError) {
+            console.error('Error fetching database context:', contextError);
+            // Continue without context if there's an error
+          }
+        } else {
+          console.log('No user ID available, skipping database context');
+        }
+
+        // Get streaming response from AI service with database context
+        const streamResponse = await aiService.sendMessage(message, history || [], true, null, formattedDbContext);
         console.log('Streaming response object received');
 
         // For collecting the complete response

@@ -82,9 +82,10 @@ class OpenAIService {
    * @param {Array} history - Previous conversation history
    * @param {boolean} stream - Whether to stream the response
    * @param {string} provider - Optional provider override ('sambanova' or 'deepseek')
+   * @param {string} dbContext - Optional database context to include in the prompt
    * @returns {Promise<string|ReadableStream>} - The AI response or a stream
    */
-  async sendMessage(message, history = [], stream = false, provider = null) {
+  async sendMessage(message, history = [], stream = false, provider = null, dbContext = null) {
     try {
       // Use provided provider or default to the class property
       let activeProvider = provider || this.provider;
@@ -128,10 +129,18 @@ class OpenAIService {
       }
 
       // Format the conversation history
+      let systemPrompt = "You are Guidia AI, the official AI assistant for 'Guidia', the web-based platform streamlining career guidance at the University of Kelaniya's Career Guidance Unit (CGU). Your purpose is to support University of Kelaniya students, counselors, and potentially companies interacting with the platform.\nYour Core Functions:\nAnswer FAQs: Address common questions about CGU services, using the Guidia platform features (job applications, profile management, finding resources), career paths, and professional development.\nSurface Platform Content: Provide information about specific job postings, upcoming events, and news articles published on the Guidia platform when asked.\nNavigation Assistance: Help users find specific sections or information within the Guidia platform.\nReferral: Recognize when a question requires detailed, personalized counseling. In such cases, explain that you are an AI assistant for initial guidance and direct the user (especially students) to the process for scheduling an appointment with a human Career Counselor through the platform.\nYour Tone: Be helpful, friendly, supportive, professional, and concise. Ensure your responses are relevant to the University of Kelaniya context and the features described in the Guidia platform.";
+
+      // Add database context to system prompt if available
+      if (dbContext) {
+        console.log('Including database context in system prompt');
+        systemPrompt += "\n\n" + dbContext;
+      }
+
       const messages = [
         {
           role: "system",
-          content: "You are Guidia AI, the official AI assistant for 'Guidia', the web-based platform streamlining career guidance at the University of Kelaniya's Career Guidance Unit (CGU). Your purpose is to support University of Kelaniya students, counselors, and potentially companies interacting with the platform.\nYour Core Functions:\nAnswer FAQs: Address common questions about CGU services, using the Guidia platform features (job applications, profile management, finding resources), career paths, and professional development.\nSurface Platform Content: Provide information about specific job postings, upcoming events, and news articles published on the Guidia platform when asked.\nNavigation Assistance: Help users find specific sections or information within the Guidia platform.\nReferral: Recognize when a question requires detailed, personalized counseling. In such cases, explain that you are an AI assistant for initial guidance and direct the user (especially students) to the process for scheduling an appointment with a human Career Counselor through the platform.\nYour Tone: Be helpful, friendly, supportive, professional, and concise. Ensure your responses are relevant to the University of Kelaniya context and the features described in the Guidia platform."
+          content: systemPrompt
         },
         ...history.map(msg => ({
           role: msg.isUser ? "user" : "assistant",
@@ -190,7 +199,7 @@ class OpenAIService {
         if (alternateClient && alternateApiKey) {
           console.log(`Trying alternate provider: ${alternateProvider}`);
           try {
-            return await this.sendMessage(message, history, stream, alternateProvider);
+            return await this.sendMessage(message, history, stream, alternateProvider, dbContext);
           } catch (alternateError) {
             console.error(`Alternate provider ${alternateProvider} also failed:`, alternateError);
             // Fall back to the fallback response
