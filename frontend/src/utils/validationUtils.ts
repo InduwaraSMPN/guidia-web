@@ -12,7 +12,8 @@ export const validateEmail = (email: string): boolean => {
 // Phone number validation
 export const validatePhoneNumber = (phone: string): boolean => {
   // Allow only digits, spaces, dashes, parentheses, and plus sign
-  const phoneRegex = /^\+?[0-9]{1,4}?[-.\s]?(\(?\d{1,4}?\))?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+  // const phoneRegex = /^\+?[0-9]{1,4}?[-.\s]?(\(?\d{1,4}?\))?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+    const phoneRegex = /^(?=(?:\D*\d){10})\+?[0-9]{1,4}?[-.\s]?(\(?\d{1,4}?\))?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
   return phoneRegex.test(phone);
 };
 
