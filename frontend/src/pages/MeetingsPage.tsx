@@ -504,7 +504,7 @@ export function MeetingsPage() {
 
       {/* Decline Reason Dialog */}
       <Dialog open={isDeclineDialogOpen} onOpenChange={setIsDeclineDialogOpen}>
-        <DialogContent>
+        <DialogContent  className="max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Decline Meeting</DialogTitle>
             <DialogDescription>
