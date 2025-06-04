@@ -376,7 +376,4 @@ The application uses a MySQL database with the following main tables:
    - Check for syntax errors in recent changes
 
 ## License
-
-This project is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
-
 © 2023-2024 Guidia. All rights reserved.
